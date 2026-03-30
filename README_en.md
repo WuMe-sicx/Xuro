@@ -63,6 +63,6 @@ Please read our [Development Guidelines](docs/guidelines_en.md) before making a 
 
 This project is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike License (CC BY-NC-SA) - see the [LICENSE](LICENSE) file for details.
 
-Original author: [WuMe-sicx](https://github.com/WuMe-sicx)
+Original author: [asmroneapp](https://github.com/asmroneapp) | Original repo: [Yuro](https://github.com/asmroneapp/Yuro)
 
 This license allows others to remix, tweak, and build upon your work non-commercially, as long as they credit you and license their new creations under the identical terms.

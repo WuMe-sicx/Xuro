@@ -85,4 +85,4 @@ lib/
 
 本项目采用 Creative Commons 非商业性使用-相同方式共享许可证 (CC BY-NC-SA) - 查看 [LICENSE](LICENSE) 文件了解详细信息。
 
-原项目作者：[Yuro](https://github.com/asmroneapp/Yuro)
+原项目作者：[asmroneapp](https://github.com/asmroneapp) | 原始仓库：[Yuro](https://github.com/asmroneapp/Yuro)

@@ -1,0 +1,94 @@
+name: "❓ 使用问题 / 求助"
+description: "遇到使用问题？在这里寻求帮助"
+title: "[Help] "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        遇到问题不用慌，我们来帮你！请尽量详细描述你的情况，这样能更快得到解答。
+        
+        > 💡 提问前建议先查看是否有类似的已关闭 Issue。
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: 问题类别
+      options:
+        - 安装/构建问题
+        - 登录/账号问题
+        - 播放相关问题
+        - 缓存/存储问题
+        - 网络/连接问题
+        - 界面显示异常
+        - 其他
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Xuro 版本号
+      placeholder: "例如：v0.1.3"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: 运行平台
+      options:
+        - Android
+        - iOS
+        - Windows
+        - macOS
+        - Linux
+        - Web
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 问题描述
+      description: "详细描述你遇到的问题"
+      placeholder: "我在使用 Xuro 时..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: tried
+    attributes:
+      label: 你已经尝试过什么？
+      description: "列出你已经尝试过的解决方法"
+      placeholder: |
+        - 重启应用
+        - 清除缓存
+        - ...
+    validations:
+      required: false
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: 截图
+      description: "如果有相关截图，请上传帮助说明"
+      placeholder: "拖拽图片到此处上传..."
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: 补充信息
+      description: "任何其他你认为有帮助的信息"
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: 提交前确认
+      options:
+        - label: 我已搜索过现有 Issues，没有找到相同问题
+          required: true

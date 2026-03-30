@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Telegram 交流群
+    url: https://t.me/XuroAsmr
+    about: 加入 Telegram 群组讨论，获取实时帮助
+  - name: 📖 开发准则
+    url: https://github.com/WuMe-sicx/Xuro/blob/main/docs/guidelines_zh.md
+    about: 提交代码前请先阅读开发准则

@@ -64,4 +64,8 @@ class Strings {
   static const String cannotOpenLink = '无法打开链接';
   static const String feedbackUrl = 'https://github.com/WuMe-sicx/Xuro/issues';
   static const String repoUrl = 'https://github.com/WuMe-sicx/Xuro';
+  static const String originalRepo = '原作者仓库';
+  static const String originalRepoUrl = 'https://github.com/asmroneapp/Yuro';
+  static const String telegramChannel = 'Telegram 频道';
+  static const String telegramChannelUrl = 'https://t.me/XuroAsmr';
 }

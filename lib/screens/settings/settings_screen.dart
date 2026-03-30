@@ -220,6 +220,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
               leading: Icons.code_outlined,
               onTap: () => _openUrl(context, Strings.repoUrl),
             ),
+            SettingsTile.navigation(
+              title: Strings.originalRepo,
+              leading: Icons.account_circle_outlined,
+              onTap: () => _openUrl(context, Strings.originalRepoUrl),
+            ),
+            SettingsTile.navigation(
+              title: Strings.telegramChannel,
+              leading: Icons.send_outlined,
+              onTap: () => _openUrl(context, Strings.telegramChannelUrl),
+            ),
           ],
         );
       },
