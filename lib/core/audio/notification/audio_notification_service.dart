@@ -26,7 +26,7 @@ class AudioNotificationService {
         config: const AudioServiceConfig(
           androidNotificationChannelId: 'com.asmrapp.audio',
           androidNotificationChannelName: 'ASMR One 播放器',
-          androidNotificationOngoing: true,
+          androidNotificationOngoing: false,
           androidStopForegroundOnPause: false,
         ),
       );
