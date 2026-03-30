@@ -20,6 +20,7 @@ import '../../core/platform/i_lyric_overlay_controller.dart';
 import '../../core/platform/lyric_overlay_controller.dart';
 import '../../core/platform/lyric_overlay_manager.dart';
 import '../../core/platform/wakelock_controller.dart';
+import 'package:asmrapp/core/settings/app_settings_service.dart';
 
 final getIt = GetIt.instance;
 
@@ -54,9 +55,14 @@ Future<void> setupServiceLocator() async {
     ),
   );
 
+  // 注册 AppSettingsService
+  getIt.registerSingleton<AppSettingsService>(
+    AppSettingsService(prefs),
+  );
+
   // API 服务
   getIt.registerLazySingleton<ApiService>(
-    () => ApiService(),
+    () => ApiService(settings: getIt<AppSettingsService>()),
   );
 
   // 添加 AuthService 注册

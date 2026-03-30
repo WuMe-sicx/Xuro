@@ -13,6 +13,7 @@ import 'package:asmrapp/data/models/tags/tag_item.dart';
 import 'package:asmrapp/data/models/circles/circle_item.dart';
 import 'package:asmrapp/data/models/vas/voice_actor.dart';
 import 'package:asmrapp/data/models/works/work_info.dart';
+import 'package:asmrapp/core/settings/app_settings_service.dart';
 
 
 class WorksResponse {
@@ -26,11 +27,24 @@ class ApiService {
   final Dio _dio;
   final _recommendationCache = RecommendationCacheManager();
 
-  ApiService()
-      : _dio = Dio(BaseOptions(
-          baseUrl: 'https://api.asmr.one/api',
+  final AppSettingsService _settings;
+
+  ApiService({required AppSettingsService settings})
+      : _settings = settings,
+        _dio = Dio(BaseOptions(
+          baseUrl: settings.serverUrl,
         )) {
     _dio.interceptors.add(AuthInterceptor());
+    // Listen for server URL changes
+    _settings.addListener(_onSettingsChanged);
+  }
+
+  void _onSettingsChanged() {
+    if (_dio.options.baseUrl != _settings.serverUrl) {
+      _dio.options.baseUrl = _settings.serverUrl;
+      _recommendationCache.clear();
+      AppLogger.info('API服务器已切换: ${_settings.serverUrl}');
+    }
   }
 
   /// 获取作品文件列表

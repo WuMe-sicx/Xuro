@@ -4,7 +4,9 @@ import 'package:get_it/get_it.dart';
 import 'package:asmrapp/common/constants/strings.dart';
 import 'package:asmrapp/core/theme/theme_controller.dart';
 import 'package:asmrapp/core/platform/wakelock_controller.dart';
+import 'package:asmrapp/core/settings/app_settings_service.dart';
 import 'package:asmrapp/screens/settings/cache_manager_screen.dart';
+import 'package:asmrapp/screens/settings/audio_format_order_dialog.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -18,6 +20,13 @@ class SettingsScreen extends StatelessWidget {
               color: Theme.of(context).colorScheme.primary,
             ),
       ),
+    );
+  }
+
+  void _showAudioFormatDialog(BuildContext context, AppSettingsService settings) {
+    showDialog(
+      context: context,
+      builder: (context) => AudioFormatOrderDialog(settings: settings),
     );
   }
 
@@ -59,6 +68,58 @@ class SettingsScreen extends StatelessWidget {
               );
             },
           ),
+          _sectionHeader(context, '网络'),
+          Builder(builder: (context) {
+            final settings = GetIt.I<AppSettingsService>();
+            return ListenableBuilder(
+              listenable: settings,
+              builder: (context, _) {
+                return RadioGroup<String>(
+                  groupValue: settings.serverUrl,
+                  onChanged: (value) {
+                    if (value != null) settings.setServerUrl(value);
+                  },
+                  child: Column(
+                    children: AppSettingsService.serverOptions.entries.map((entry) {
+                      return RadioListTile<String>(
+                        title: Text(entry.value),
+                        subtitle: Text(entry.key, style: Theme.of(context).textTheme.bodySmall),
+                        value: entry.key,
+                      );
+                    }).toList(),
+                  ),
+                );
+              },
+            );
+          }),
+          _sectionHeader(context, '内容'),
+          Builder(builder: (context) {
+            final settings = GetIt.I<AppSettingsService>();
+            return ListenableBuilder(
+              listenable: settings,
+              builder: (context, _) {
+                return Column(
+                  children: [
+                    SwitchListTile(
+                      title: const Text('智能路径'),
+                      subtitle: const Text('打开作品后，自动展开包含音频的文件夹'),
+                      value: settings.smartPathEnabled,
+                      onChanged: (value) => settings.setSmartPathEnabled(value),
+                    ),
+                    ListTile(
+                      title: const Text('音频格式偏好'),
+                      subtitle: Text(
+                        settings.audioFormatOrder.join(' > '),
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => _showAudioFormatDialog(context, settings),
+                    ),
+                  ],
+                );
+              },
+            );
+          }),
           _sectionHeader(context, '播放'),
           Builder(builder: (context) {
             final controller = GetIt.I<WakeLockController>();

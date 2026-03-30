@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:asmrapp/data/models/files/child.dart';
 import 'package:asmrapp/utils/logger.dart';
 import 'package:asmrapp/widgets/detail/work_file_item.dart';
 import 'package:asmrapp/core/audio/models/file_path.dart';
+import 'package:asmrapp/core/settings/app_settings_service.dart';
 
 class WorkFolderItem extends StatelessWidget {
   final Child folder;
@@ -10,7 +12,13 @@ class WorkFolderItem extends StatelessWidget {
   final Function(Child file)? onFileTap;
 
   // 支持的音频格式列表，按优先级排序
-  static const _audioFormats = ['.mp3', '.wav'];
+  static List<String> get _audioFormats {
+    try {
+      return GetIt.I<AppSettingsService>().audioExtensions;
+    } catch (_) {
+      return ['.mp3', '.flac', '.wav', '.opus', '.m4a', '.aac'];
+    }
+  }
 
   // 静态变量用于跟踪第一个包含音频的文件夹的完整路径
   static List<String>? _audioFolderPath;
@@ -28,6 +36,13 @@ class WorkFolderItem extends StatelessWidget {
   });
 
   bool _shouldExpandFolder(Child folder) {
+    try {
+      final settings = GetIt.I<AppSettingsService>();
+      if (!settings.smartPathEnabled) return false;
+    } catch (_) {
+      // If settings not available, default to enabled
+    }
+
     // 如果还没有找到第一个音频文件夹，就搜索并记录
     _audioFolderPath ??= FilePath.findFirstAudioFolderPath(
         [folder],
