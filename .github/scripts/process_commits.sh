@@ -52,7 +52,7 @@ process_details() {
     fi
   done
   
-  echo -e "$details"
+  printf '%b' "$details"
 }
 
 # 详细信息的 emoji 映射
@@ -153,14 +153,15 @@ current_commit=""
 commit_details=""
 
 while IFS= read -r line; do
-  if [[ $line =~ ^[A-Za-z] ]] && [[ ! $line =~ ^These[[:space:]]changes ]]; then
+  if [[ $line =~ ^[[:alpha:]] ]] && [[ ! $line =~ ^These[[:space:]]changes ]]; then
     # 如果有之前的 commit，先输出它
     if [ -n "$current_commit" ]; then
       if [ -n "$commit_details" ]; then
-        echo "▶ $current_commit"
-        echo -e "$(process_details "$commit_details")\n"
+        printf "▶ %s\n" "$current_commit"
+        printf '%b' "$commit_details" | process_details
+        printf "\n"
       else
-        echo "  $current_commit"
+        printf "  %s\n" "$current_commit"
       fi
     fi
     current_commit=$(process_commit "$line")
@@ -173,9 +174,9 @@ done
 # 输出最后一个 commit
 if [ -n "$current_commit" ]; then
   if [ -n "$commit_details" ]; then
-    echo "▶ $current_commit"
-    echo -e "$(process_details "$commit_details")"
+    printf "▶ %s\n" "$current_commit"
+    printf '%b' "$commit_details" | process_details
   else
-    echo "  $current_commit"
+    printf "  %s\n" "$current_commit"
   fi
-fi 
+fi

@@ -1,8 +1,5 @@
 name: Build and Release
 
-permissions:
-  contents: write
-
 on:
   push:
     tags:
@@ -15,14 +12,16 @@ env:
 jobs:
   build-android:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0  # 获取完整的 git 历史
 
       - name: Setup Java
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
@@ -32,6 +31,24 @@ jobs:
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: 'stable'
+
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-flutter-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('android/build.gradle', 'android/app/build.gradle') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
 
       - name: Get dependencies
         run: flutter pub get
@@ -62,17 +79,35 @@ jobs:
 
   build-ios:
     runs-on: macos-latest
+    permissions:
+      contents: read
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0  # 获取完整的 git 历史
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.27.0'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: 'stable'
+
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-flutter-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-
+
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: ios/Pods
+          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
 
       - name: Get dependencies
         run: flutter pub get
@@ -96,9 +131,11 @@ jobs:
   upload:
     runs-on: ubuntu-latest
     needs: [ build-android, build-ios ]
+    permissions:
+      contents: write
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0  # 获取完整的 git 历史
 
@@ -112,59 +149,69 @@ jobs:
         run: tree dist
 
       - name: Prepare scripts
-        run: |
-          mkdir -p .github/scripts
-          chmod +x .github/scripts/process_commits.sh
+        run: chmod +x .github/scripts/process_commits.sh
 
       - name: Get Previous tag
         id: previoustag
         run: |
           CURRENT_TAG=${GITHUB_REF#refs/tags/}
-          PREVIOUS_TAG=$(git describe --tags --abbrev=0 ${CURRENT_TAG}^ 2>/dev/null || echo "v0.0.0")
-          echo "tag=${PREVIOUS_TAG}" >> $GITHUB_OUTPUT
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 "${CURRENT_TAG}^" 2>/dev/null || echo "")
+          if [ -z "$PREVIOUS_TAG" ]; then
+            echo "tag=" >> $GITHUB_OUTPUT
+            echo "is_first=true" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${PREVIOUS_TAG}" >> $GITHUB_OUTPUT
+            echo "is_first=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Generate commit messages
         id: commits
         run: |
           CURRENT_TAG=${GITHUB_REF#refs/tags/}
           PREV_TAG=${{ steps.previoustag.outputs.tag }}
-          COMMITS=$(git log ${PREV_TAG}..${CURRENT_TAG} --pretty=format:"%s%n%b" | .github/scripts/process_commits.sh)
-          echo "commits<<EOF" >> $GITHUB_OUTPUT
+          DELIMITER="$(openssl rand -hex 16)"
+          if [ -z "$PREV_TAG" ]; then
+            COMMITS=$(git log "${CURRENT_TAG}" --pretty=format:"%s%n%b" | .github/scripts/process_commits.sh)
+          else
+            COMMITS=$(git log "${PREV_TAG}..${CURRENT_TAG}" --pretty=format:"%s%n%b" | .github/scripts/process_commits.sh)
+          fi
+          echo "commits<<${DELIMITER}" >> $GITHUB_OUTPUT
           echo "$COMMITS" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          echo "${DELIMITER}" >> $GITHUB_OUTPUT
 
       - name: Create Release
         if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           prerelease: true
           draft: false
           body: |
             ## 🚧 Pre-release Version
-            
+
             ### 📋 Release Information
             **Version:** ${{ github.ref_name }}
             **Previous Version:** ${{ steps.previoustag.outputs.tag }}
             **Build Environment:** Flutter ${{ env.FLUTTER_VERSION }}
-            
+
             ### 📝 Changelog
             ${{ steps.commits.outputs.commits }}
-            
+
             ### 📦 Distribution
             | File | Description | Purpose |
             |------|-------------|----------|
             | `.apk` | Android Package | Direct installation for testing |
             | `.aab` | Android App Bundle | Google Play Store deployment |
-            
+            | `.ipa` | iOS App Archive | iOS device installation |
+
             ### 🔍 Additional Notes
             - This is a pre-release build intended for testing purposes
             - Features and functionality may not be fully stable
             - Not recommended for production use
-            
+
             ### 📱 Compatibility
             - Minimum Android SDK: 21 (Android 5.0)
             - Target Android SDK: 33 (Android 13)
-            
+
             > **Note:** Please report any issues or bugs through the GitHub issue tracker.
           files: |
             dist/flutter-apk/app-release.apk
