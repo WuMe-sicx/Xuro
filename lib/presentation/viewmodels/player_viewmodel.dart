@@ -23,6 +23,7 @@ class PlayerViewModel extends ChangeNotifier {
 
   bool _isPlaying = false;
   bool _isBuffering = false;
+  bool _isToggling = false;
   String? _errorMessage;
   bool _isUserImportedSubtitle = false;
   int _loadVersion = 0;
@@ -134,6 +135,33 @@ class PlayerViewModel extends ChangeNotifier {
       ),
     );
 
+    // 清空状态事件
+    _subscriptions.add(
+      _eventHub.playbackCleared.listen(
+        (_) {
+          _isPlaying = false;
+          _isBuffering = false;
+          _position = null;
+          _duration = null;
+          _isUserImportedSubtitle = false;
+          _subtitleService.clearSubtitle();
+          notifyListeners();
+        },
+        onError: (error) => debugPrint('$_tag - 清空状态流错误: $error'),
+      ),
+    );
+
+    // 播放完成事件
+    _subscriptions.add(
+      _eventHub.playbackCompleted.listen(
+        (event) {
+          _isPlaying = false;
+          notifyListeners();
+        },
+        onError: (error) => debugPrint('$_tag - 播放完成流错误: $error'),
+      ),
+    );
+
     _initSubtitleStreams();
   }
 
@@ -172,10 +200,16 @@ class PlayerViewModel extends ChangeNotifier {
   }
 
   Future<void> playPause() async {
-    if (_isPlaying) {
-      _audioService.pause();
-    } else {
-      _audioService.resume();
+    if (_isToggling) return;
+    _isToggling = true;
+    try {
+      if (_isPlaying) {
+        await _audioService.pause();
+      } else {
+        await _audioService.resume();
+      }
+    } finally {
+      _isToggling = false;
     }
   }
 
@@ -193,8 +227,6 @@ class PlayerViewModel extends ChangeNotifier {
 
   Future<void> stop() async {
     await _audioService.stop();
-    _position = Duration.zero;
-    notifyListeners();
   }
 
   @override
@@ -208,7 +240,9 @@ class PlayerViewModel extends ChangeNotifier {
 
   // 请求初始状态
   void _requestInitialState() {
-    _eventHub.emit(RequestInitialStateEvent());
+    Future.microtask(() {
+      _eventHub.emit(RequestInitialStateEvent());
+    });
   }
 
   Future<void> _loadSubtitleIfAvailable(PlaybackContext context) async {

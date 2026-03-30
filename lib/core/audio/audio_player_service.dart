@@ -197,7 +197,8 @@ class AudioPlayerService implements IAudioPlayerService {
 
   @override
   Future<void> dispose() async {
-    _player.dispose();
-    _notificationService.dispose();
+    _stateManager.dispose();
+    await _notificationService.dispose();
+    await _player.dispose();
   }
 }

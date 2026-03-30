@@ -3,7 +3,6 @@ import 'package:asmrapp/core/audio/events/playback_event_hub.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:asmrapp/utils/logger.dart';
-import 'package:rxdart/rxdart.dart';
 import '../models/audio_track_info.dart';
 import '../audio_player_handler.dart';
 
@@ -11,7 +10,6 @@ class AudioNotificationService {
   final AudioPlayer _player;
   final PlaybackEventHub _eventHub;
   AudioHandler? _audioHandler;
-  final _mediaItem = BehaviorSubject<MediaItem?>();
   StreamSubscription? _trackChangeSubscription;
 
   AudioNotificationService(
@@ -26,8 +24,8 @@ class AudioNotificationService {
         config: const AudioServiceConfig(
           androidNotificationChannelId: 'com.asmrapp.audio',
           androidNotificationChannelName: 'ASMR One 播放器',
-          androidNotificationOngoing: false,
-          androidStopForegroundOnPause: false,
+          androidNotificationOngoing: true,
+          androidStopForegroundOnPause: true,
         ),
       );
 
@@ -54,7 +52,6 @@ class AudioNotificationService {
       duration: trackInfo.duration,
     );
 
-    _mediaItem.add(mediaItem);
     if (_audioHandler != null) {
       (_audioHandler as BaseAudioHandler).mediaItem.add(mediaItem);
     }
@@ -63,6 +60,5 @@ class AudioNotificationService {
   Future<void> dispose() async {
     _trackChangeSubscription?.cancel();
     await _audioHandler?.stop();
-    await _mediaItem.close();
   }
 }

@@ -6,6 +6,7 @@ import '../utils/playlist_builder.dart';
 import '../utils/audio_error_handler.dart';
 import '../events/playback_event_hub.dart';
 import '../events/playback_event.dart';
+import '../models/play_mode.dart';
 import 'package:asmrapp/data/models/files/child.dart';
 import 'package:asmrapp/data/models/works/work.dart';
 
@@ -68,16 +69,8 @@ class PlaybackController {
       }
 
       if (_player.hasPrevious) {
-        final previousFile = _stateManager.currentContext!.getPreviousFile();
-        AppLogger.debug('获取到上一个文件: ${previousFile?.title}');
-        if (previousFile != null) {
-          _updateTrackAndContext(
-            previousFile,
-            _stateManager.currentContext!.work
-          );
-          AppLogger.debug('执行切换到上一曲');
-          await _player.seekToPrevious();
-        }
+        AppLogger.debug('执行切换到上一曲');
+        await _player.seekToPrevious();
       } else {
         AppLogger.debug('没有上一曲可切换');
       }
@@ -111,15 +104,7 @@ class PlaybackController {
       AppLogger.debug('停止当前播放');
       await _player.stop();
 
-      // 2. 等待播放器就绪
-      AppLogger.debug('暂停播放器');
-      await _player.pause();
-
-      // 3. 更新上下文
-      AppLogger.debug('更新播放上下文');
-      _stateManager.updateContext(originalContext);
-
-      // 4. 设置新的播放源
+      // 2. 设置新的播放源
       AppLogger.debug('设置播放源: 初始位置=${initialPosition?.inMilliseconds}ms');
       List<Child> loadedFiles;
       try {
@@ -135,7 +120,7 @@ class PlaybackController {
         rethrow;
       }
 
-      // Update context with filtered playlist to keep indices consistent
+      // 3. 加载成功后更新上下文
       var context = originalContext;
       if (loadedFiles.length != originalContext.playlist.length) {
         final currentFile = loadedFiles.contains(originalContext.currentFile)
@@ -148,15 +133,13 @@ class PlaybackController {
           playlist: loadedFiles,
           playMode: originalContext.playMode,
         );
-        _stateManager.updateContext(context);
       }
+      _stateManager.updateContext(context);
 
-      // 5. 等待播放器准备完成
-      // 删掉，会导致播放器索引回到0
-      // AppLogger.debug('等待播放器加载');
-      // await _player.load();
+      // Set loop mode based on play mode
+      await _player.setLoopMode(context.playMode.toLoopMode());
 
-      // 6. 更新轨道信息
+      // 4. 更新轨道信息
       AppLogger.debug('更新轨道信息');
       _updateTrackAndContext(context.currentFile, context.work);
 

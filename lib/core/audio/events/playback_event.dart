@@ -84,3 +84,5 @@ class InitialStateEvent extends PlaybackEvent {
   final PlaybackContext? context;
   InitialStateEvent(this.track, this.context);
 }
+
+class PlaybackClearedEvent extends PlaybackEvent {}

@@ -38,8 +38,10 @@ class PlaybackStateManager {
     _subscriptions.add(
       _player.currentIndexStream.listen((index) {
         if (index != null && _currentContext != null) {
-          final newFile = _currentContext!.playlist[index];
-          updateTrackAndContext(newFile, _currentContext!.work);
+          if (index >= 0 && index < _currentContext!.playlist.length) {
+            final newFile = _currentContext!.playlist[index];
+            updateTrackAndContext(newFile, _currentContext!.work);
+          }
         }
       }),
     );
@@ -69,6 +71,16 @@ class PlaybackStateManager {
       }),
     );
 
+    // 监听播放器错误
+    _subscriptions.add(
+      _player.playbackEventStream.listen(
+        (_) {},
+        onError: (error, stackTrace) {
+          _eventHub.emit(PlaybackErrorEvent('playerStream', error, stackTrace));
+        },
+      ),
+    );
+
     _setupEventListeners();
   }
 
@@ -89,7 +101,9 @@ class PlaybackStateManager {
 
   void updateTrackInfo(AudioTrackInfo track) {
     _currentTrack = track;
-    _eventHub.emit(TrackChangeEvent(track, _currentContext!.currentFile, _currentContext!.work));
+    if (_currentContext != null) {
+      _eventHub.emit(TrackChangeEvent(track, _currentContext!.currentFile, _currentContext!.work));
+    }
   }
 
   void updateTrackAndContext(Child file, Work work) {
@@ -115,7 +129,7 @@ class PlaybackStateManager {
   void clearState() {
     _currentTrack = null;
     _currentContext = null;
-    updateContext(null);
+    _eventHub.emit(PlaybackClearedEvent());
   }
 
   // 状态持久化

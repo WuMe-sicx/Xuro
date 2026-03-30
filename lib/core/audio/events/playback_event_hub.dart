@@ -30,6 +30,12 @@ class PlaybackEventHub {
   late final Stream<RequestInitialStateEvent> requestInitialState = _eventSubject
       .whereType<RequestInitialStateEvent>();
 
+  late final Stream<PlaybackClearedEvent> playbackCleared = _eventSubject
+      .whereType<PlaybackClearedEvent>();
+
+  late final Stream<PlaybackCompletedEvent> playbackCompleted = _eventSubject
+      .whereType<PlaybackCompletedEvent>();
+
   // 发送事件
   void emit(PlaybackEvent event) => _eventSubject.add(event);
 
