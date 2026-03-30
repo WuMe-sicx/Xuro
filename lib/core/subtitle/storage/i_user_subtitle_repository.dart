@@ -1,4 +1,4 @@
-import 'package:asmrapp/core/subtitle/models/user_subtitle_entry.dart';
+import 'package:xuro/core/subtitle/models/user_subtitle_entry.dart';
 
 abstract class IUserSubtitleRepository {
   Future<UserSubtitleEntry?> find(String workId, String fileName);

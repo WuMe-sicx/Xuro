@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:asmrapp/presentation/viewmodels/auth_viewmodel.dart';
-import 'package:asmrapp/utils/logger.dart';
+import 'package:xuro/presentation/viewmodels/auth_viewmodel.dart';
+import 'package:xuro/utils/logger.dart';
 
 class LoginDialog extends StatefulWidget {
   const LoginDialog({super.key});

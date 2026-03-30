@@ -1,9 +1,9 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import 'package:asmrapp/utils/logger.dart';
+import 'package:xuro/utils/logger.dart';
 
 class DatabaseService {
-  static const _databaseName = 'yuro.db';
+  static const _databaseName = 'xuro.db';
   static const _databaseVersion = 1;
 
   Database? _database;

@@ -1,12 +1,12 @@
-import 'package:asmrapp/core/theme/app_animations.dart';
+import 'package:xuro/core/theme/app_animations.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:asmrapp/widgets/sidebar/sidebar_menu.dart';
-import 'package:asmrapp/presentation/viewmodels/auth_viewmodel.dart';
-import 'package:asmrapp/presentation/viewmodels/favorites_viewmodel.dart';
-import 'package:asmrapp/presentation/layouts/work_layout_strategy.dart';
-import 'package:asmrapp/widgets/pagination_controls.dart';
-import 'package:asmrapp/widgets/work_grid_view.dart';
+import 'package:xuro/widgets/sidebar/sidebar_menu.dart';
+import 'package:xuro/presentation/viewmodels/auth_viewmodel.dart';
+import 'package:xuro/presentation/viewmodels/favorites_viewmodel.dart';
+import 'package:xuro/presentation/layouts/work_layout_strategy.dart';
+import 'package:xuro/widgets/pagination_controls.dart';
+import 'package:xuro/widgets/work_grid_view.dart';
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});

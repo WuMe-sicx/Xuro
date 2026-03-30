@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:asmrapp/data/models/works/work.dart';
-import 'package:asmrapp/data/models/works/tag.dart';
-import 'package:asmrapp/data/models/works/work_info.dart' as model;
-import 'package:asmrapp/widgets/common/tag_chip.dart';
-import 'package:asmrapp/widgets/detail/work_info_header.dart';
-import 'package:asmrapp/utils/logger.dart';
+import 'package:xuro/data/models/works/work.dart';
+import 'package:xuro/data/models/works/tag.dart';
+import 'package:xuro/data/models/works/work_info.dart' as model;
+import 'package:xuro/widgets/common/tag_chip.dart';
+import 'package:xuro/widgets/detail/work_info_header.dart';
+import 'package:xuro/utils/logger.dart';
 
 class WorkInfo extends StatelessWidget {
   final Work work;

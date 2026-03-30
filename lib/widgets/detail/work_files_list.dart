@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:asmrapp/data/models/files/files.dart';
-import 'package:asmrapp/data/models/files/child.dart';
-import 'package:asmrapp/widgets/detail/work_folder_item.dart';
-import 'package:asmrapp/widgets/detail/work_file_item.dart';
+import 'package:xuro/data/models/files/files.dart';
+import 'package:xuro/data/models/files/child.dart';
+import 'package:xuro/widgets/detail/work_folder_item.dart';
+import 'package:xuro/widgets/detail/work_file_item.dart';
 
 class WorkFilesList extends StatelessWidget {
   final Files files;

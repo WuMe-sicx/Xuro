@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:asmrapp/utils/logger.dart';
+import 'package:xuro/utils/logger.dart';
 
 class SubtitleCacheManager {
   static const String key = 'subtitleCache';

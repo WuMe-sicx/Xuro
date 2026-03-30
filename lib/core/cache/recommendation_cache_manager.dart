@@ -1,6 +1,6 @@
 import 'dart:collection';
-import 'package:asmrapp/data/services/api_service.dart';
-import 'package:asmrapp/utils/logger.dart';
+import 'package:xuro/data/services/api_service.dart';
+import 'package:xuro/utils/logger.dart';
 
 class RecommendationCacheManager {
   // 单例模式

@@ -1,17 +1,17 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:asmrapp/common/constants/strings.dart';
-import 'package:asmrapp/presentation/viewmodels/auth_viewmodel.dart';
-import 'package:asmrapp/presentation/widgets/auth/login_dialog.dart';
-import 'package:asmrapp/screens/favorites_screen.dart';
-import 'package:asmrapp/screens/browse/tags_screen.dart';
-import 'package:asmrapp/screens/browse/circles_screen.dart';
-import 'package:asmrapp/screens/browse/voice_actors_screen.dart';
-import 'package:asmrapp/screens/settings/settings_screen.dart';
-import 'package:asmrapp/widgets/sidebar/sidebar_header.dart';
-import 'package:asmrapp/widgets/sidebar/sidebar_group.dart';
-import 'package:asmrapp/widgets/sidebar/sidebar_tile.dart';
+import 'package:xuro/common/constants/strings.dart';
+import 'package:xuro/presentation/viewmodels/auth_viewmodel.dart';
+import 'package:xuro/presentation/widgets/auth/login_dialog.dart';
+import 'package:xuro/screens/favorites_screen.dart';
+import 'package:xuro/screens/browse/tags_screen.dart';
+import 'package:xuro/screens/browse/circles_screen.dart';
+import 'package:xuro/screens/browse/voice_actors_screen.dart';
+import 'package:xuro/screens/settings/settings_screen.dart';
+import 'package:xuro/widgets/sidebar/sidebar_header.dart';
+import 'package:xuro/widgets/sidebar/sidebar_group.dart';
+import 'package:xuro/widgets/sidebar/sidebar_tile.dart';
 
 class SidebarMenu extends StatelessWidget {
   const SidebarMenu({super.key});
@@ -120,7 +120,7 @@ class SidebarMenu extends StatelessWidget {
               // Footer
               Center(
                 child: Text(
-                  'Yuro v1.0.0',
+                  'Xuro v1.0.0',
                   style: TextStyle(
                     fontSize: 12,
                     color: colorScheme.onSurface.withValues(alpha: 0.35),

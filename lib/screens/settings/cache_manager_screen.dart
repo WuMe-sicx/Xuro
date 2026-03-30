@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:asmrapp/presentation/viewmodels/settings/cache_manager_viewmodel.dart';
+import 'package:xuro/presentation/viewmodels/settings/cache_manager_viewmodel.dart';
 
 class CacheManagerScreen extends StatelessWidget {
   const CacheManagerScreen({super.key});

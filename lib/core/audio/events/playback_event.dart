@@ -1,8 +1,8 @@
 import 'package:just_audio/just_audio.dart';
 import '../models/audio_track_info.dart';
 import '../models/playback_context.dart';
-import 'package:asmrapp/data/models/files/child.dart';
-import 'package:asmrapp/data/models/works/work.dart';
+import 'package:xuro/data/models/files/child.dart';
+import 'package:xuro/data/models/works/work.dart';
 
 /// 播放事件基类
 abstract class PlaybackEvent {}

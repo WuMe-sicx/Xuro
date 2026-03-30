@@ -1,5 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:asmrapp/data/models/works/i18n.dart';
+import 'package:xuro/data/models/works/i18n.dart';
 
 part 'tag_item.freezed.dart';
 part 'tag_item.g.dart';

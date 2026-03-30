@@ -1,11 +1,11 @@
-import 'package:asmrapp/core/theme/app_animations.dart';
+import 'package:xuro/core/theme/app_animations.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:asmrapp/presentation/viewmodels/search_viewmodel.dart';
-import 'package:asmrapp/widgets/work_grid_view.dart';
-import 'package:asmrapp/presentation/layouts/work_layout_strategy.dart';
-import 'package:asmrapp/utils/logger.dart';
-import 'package:asmrapp/widgets/pagination_controls.dart';
+import 'package:xuro/presentation/viewmodels/search_viewmodel.dart';
+import 'package:xuro/widgets/work_grid_view.dart';
+import 'package:xuro/presentation/layouts/work_layout_strategy.dart';
+import 'package:xuro/utils/logger.dart';
+import 'package:xuro/widgets/pagination_controls.dart';
 
 class SearchScreen extends StatelessWidget {
   final String? initialKeyword;

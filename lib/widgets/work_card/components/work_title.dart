@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:asmrapp/data/models/works/work.dart';
+import 'package:xuro/data/models/works/work.dart';
 
 class WorkTitle extends StatelessWidget {
   final Work work;

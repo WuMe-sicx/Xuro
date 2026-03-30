@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:asmrapp/data/models/works/work.dart';
-import 'package:asmrapp/widgets/work_card/work_card.dart';
+import 'package:xuro/data/models/works/work.dart';
+import 'package:xuro/widgets/work_card/work_card.dart';
 
 class WorkRow extends StatelessWidget {
   final List<Work> works;

@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
-import 'package:asmrapp/data/models/works/work.dart';
-import 'package:asmrapp/data/models/works/pagination.dart';
-import 'package:asmrapp/data/services/api_service.dart';
-import 'package:asmrapp/utils/logger.dart';
+import 'package:xuro/data/models/works/work.dart';
+import 'package:xuro/data/models/works/pagination.dart';
+import 'package:xuro/data/services/api_service.dart';
+import 'package:xuro/utils/logger.dart';
 
 class SearchViewModel extends ChangeNotifier {
   final _apiService = GetIt.I<ApiService>();

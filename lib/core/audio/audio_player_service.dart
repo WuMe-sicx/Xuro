@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:asmrapp/utils/logger.dart';
+import 'package:xuro/utils/logger.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:audio_session/audio_session.dart';
 import './i_audio_player_service.dart';

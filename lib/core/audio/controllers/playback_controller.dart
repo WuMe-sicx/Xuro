@@ -1,4 +1,4 @@
-import 'package:asmrapp/utils/logger.dart';
+import 'package:xuro/utils/logger.dart';
 import 'package:just_audio/just_audio.dart';
 import '../models/playback_context.dart';
 import '../state/playback_state_manager.dart';
@@ -7,8 +7,8 @@ import '../utils/audio_error_handler.dart';
 import '../events/playback_event_hub.dart';
 import '../events/playback_event.dart';
 import '../models/play_mode.dart';
-import 'package:asmrapp/data/models/files/child.dart';
-import 'package:asmrapp/data/models/works/work.dart';
+import 'package:xuro/data/models/files/child.dart';
+import 'package:xuro/data/models/works/work.dart';
 
 
 class PlaybackController {

@@ -1,8 +1,8 @@
-import 'package:asmrapp/core/audio/cache/audio_cache_manager.dart';
-import 'package:asmrapp/core/subtitle/cache/subtitle_cache_manager.dart';
-import 'package:asmrapp/core/image/cache/image_cache_manager.dart';
-import 'package:asmrapp/core/cache/recommendation_cache_manager.dart';
-import 'package:asmrapp/utils/logger.dart';
+import 'package:xuro/core/audio/cache/audio_cache_manager.dart';
+import 'package:xuro/core/subtitle/cache/subtitle_cache_manager.dart';
+import 'package:xuro/core/image/cache/image_cache_manager.dart';
+import 'package:xuro/core/cache/recommendation_cache_manager.dart';
+import 'package:xuro/utils/logger.dart';
 
 /// 统一缓存协调器
 /// 提供单一 API 查询、清理和清除所有应用缓存

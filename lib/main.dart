@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:asmrapp/common/constants/strings.dart';
-import 'package:asmrapp/core/audio/cache/audio_cache_manager.dart';
-import 'package:asmrapp/core/cache/cache_lifecycle_manager.dart';
-import 'package:asmrapp/presentation/viewmodels/auth_viewmodel.dart';
+import 'package:xuro/common/constants/strings.dart';
+import 'package:xuro/core/audio/cache/audio_cache_manager.dart';
+import 'package:xuro/core/cache/cache_lifecycle_manager.dart';
+import 'package:xuro/presentation/viewmodels/auth_viewmodel.dart';
 import 'core/di/service_locator.dart';
 import 'package:provider/provider.dart';
 import 'screens/main_screen.dart';
-import 'package:asmrapp/core/theme/app_theme.dart';
-import 'package:asmrapp/core/theme/theme_controller.dart';
+import 'package:xuro/core/theme/app_theme.dart';
+import 'package:xuro/core/theme/theme_controller.dart';
 import 'screens/search_screen.dart';
 
 void main() async {

@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'package:asmrapp/utils/logger.dart';
-import 'package:asmrapp/core/audio/models/subtitle.dart';
-import 'package:asmrapp/core/subtitle/i_subtitle_service.dart';
+import 'package:xuro/utils/logger.dart';
+import 'package:xuro/core/audio/models/subtitle.dart';
+import 'package:xuro/core/subtitle/i_subtitle_service.dart';
 import 'package:get_it/get_it.dart';
-import 'package:asmrapp/core/subtitle/subtitle_loader.dart';
-import 'package:asmrapp/core/subtitle/managers/subtitle_state_manager.dart';
+import 'package:xuro/core/subtitle/subtitle_loader.dart';
+import 'package:xuro/core/subtitle/managers/subtitle_state_manager.dart';
 
 
 class SubtitleService implements ISubtitleService {

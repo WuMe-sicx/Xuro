@@ -1,15 +1,15 @@
-import 'package:asmrapp/core/theme/app_animations.dart';
-import 'package:asmrapp/widgets/mini_player/mini_player.dart';
+import 'package:xuro/core/theme/app_animations.dart';
+import 'package:xuro/widgets/mini_player/mini_player.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:asmrapp/data/models/works/work.dart';
-import 'package:asmrapp/widgets/detail/work_cover.dart';
-import 'package:asmrapp/widgets/detail/work_info.dart';
-import 'package:asmrapp/widgets/detail/work_files_list.dart';
-import 'package:asmrapp/widgets/detail/work_files_skeleton.dart';
-import 'package:asmrapp/presentation/viewmodels/detail_viewmodel.dart';
-import 'package:asmrapp/widgets/detail/work_action_buttons.dart';
-import 'package:asmrapp/screens/similar_works_screen.dart';
+import 'package:xuro/data/models/works/work.dart';
+import 'package:xuro/widgets/detail/work_cover.dart';
+import 'package:xuro/widgets/detail/work_info.dart';
+import 'package:xuro/widgets/detail/work_files_list.dart';
+import 'package:xuro/widgets/detail/work_files_skeleton.dart';
+import 'package:xuro/presentation/viewmodels/detail_viewmodel.dart';
+import 'package:xuro/widgets/detail/work_action_buttons.dart';
+import 'package:xuro/screens/similar_works_screen.dart';
 
 class DetailScreen extends StatelessWidget {
   final Work work;

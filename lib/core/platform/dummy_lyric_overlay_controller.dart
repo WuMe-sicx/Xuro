@@ -1,4 +1,4 @@
-import 'package:asmrapp/utils/logger.dart';
+import 'package:xuro/utils/logger.dart';
 import 'i_lyric_overlay_controller.dart';
 
 class DummyLyricOverlayController implements ILyricOverlayController {

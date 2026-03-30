@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:asmrapp/utils/logger.dart';
-import 'package:asmrapp/data/models/playback/playback_state.dart';
+import 'package:xuro/utils/logger.dart';
+import 'package:xuro/data/models/playback/playback_state.dart';
 import 'i_playback_state_repository.dart';
 
 class PlaybackStateRepository implements IPlaybackStateRepository {

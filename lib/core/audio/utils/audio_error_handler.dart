@@ -1,4 +1,4 @@
-import 'package:asmrapp/utils/logger.dart';
+import 'package:xuro/utils/logger.dart';
 
 enum AudioErrorType {
   playback,    // 播放错误

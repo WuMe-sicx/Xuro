@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:marquee/marquee.dart';
-import 'package:asmrapp/core/audio/models/playback_context.dart';
+import 'package:xuro/core/audio/models/playback_context.dart';
 
 class PlayerWorkInfo extends StatelessWidget {
   final PlaybackContext? context;

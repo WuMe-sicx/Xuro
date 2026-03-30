@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:asmrapp/core/settings/app_settings_service.dart';
+import 'package:xuro/core/settings/app_settings_service.dart';
 
 class AudioFormatOrderDialog extends StatefulWidget {
   final AppSettingsService settings;

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:dio/dio.dart';
-import 'package:asmrapp/utils/logger.dart';
+import 'package:xuro/utils/logger.dart';
 
 class RetryInterceptor extends Interceptor {
   final Dio dio;

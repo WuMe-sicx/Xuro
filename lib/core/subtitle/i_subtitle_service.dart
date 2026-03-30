@@ -1,4 +1,4 @@
-import 'package:asmrapp/core/audio/models/subtitle.dart';
+import 'package:xuro/core/audio/models/subtitle.dart';
 
 abstract class ISubtitleService {
   // 字幕加载

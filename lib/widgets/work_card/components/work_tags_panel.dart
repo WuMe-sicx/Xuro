@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:asmrapp/data/models/works/work.dart';
-import 'package:asmrapp/data/models/works/tag.dart';
+import 'package:xuro/data/models/works/work.dart';
+import 'package:xuro/data/models/works/tag.dart';
 
 class WorkTagsPanel extends StatelessWidget {
   final Work work;

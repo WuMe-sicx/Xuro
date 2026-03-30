@@ -4,12 +4,12 @@ import '../models/audio_track_info.dart';
 import '../models/playback_context.dart';
 import '../utils/audio_error_handler.dart';
 import '../utils/track_info_creator.dart';
-import 'package:asmrapp/data/models/playback/playback_state.dart';
+import 'package:xuro/data/models/playback/playback_state.dart';
 import '../storage/i_playback_state_repository.dart';
 import '../events/playback_event.dart';
 import '../events/playback_event_hub.dart';
-import 'package:asmrapp/data/models/files/child.dart';
-import 'package:asmrapp/data/models/works/work.dart';
+import 'package:xuro/data/models/files/child.dart';
+import 'package:xuro/data/models/works/work.dart';
 
 
 class PlaybackStateManager {

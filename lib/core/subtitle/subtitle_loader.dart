@@ -1,12 +1,12 @@
-import 'package:asmrapp/data/models/files/child.dart';
-import 'package:asmrapp/data/models/files/files.dart';
-import 'package:asmrapp/core/audio/models/file_path.dart';
-import 'package:asmrapp/core/audio/models/subtitle.dart';
+import 'package:xuro/data/models/files/child.dart';
+import 'package:xuro/data/models/files/files.dart';
+import 'package:xuro/core/audio/models/file_path.dart';
+import 'package:xuro/core/audio/models/subtitle.dart';
 import 'package:dio/dio.dart';
-import 'package:asmrapp/utils/logger.dart';
-import 'package:asmrapp/core/subtitle/utils/subtitle_matcher.dart';
-import 'package:asmrapp/core/subtitle/parsers/subtitle_parser_factory.dart';
-import 'package:asmrapp/core/subtitle/cache/subtitle_cache_manager.dart';
+import 'package:xuro/utils/logger.dart';
+import 'package:xuro/core/subtitle/utils/subtitle_matcher.dart';
+import 'package:xuro/core/subtitle/parsers/subtitle_parser_factory.dart';
+import 'package:xuro/core/subtitle/cache/subtitle_cache_manager.dart';
 
 class SubtitleLoader {
   final Dio _dio;

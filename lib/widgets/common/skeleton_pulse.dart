@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:asmrapp/core/theme/app_animations.dart';
+import 'package:xuro/core/theme/app_animations.dart';
 
 /// Lightweight skeleton loading widget using simple opacity pulse.
 /// Replaces Shimmer for better performance (no per-frame gradient computation).

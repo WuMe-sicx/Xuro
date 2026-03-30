@@ -62,6 +62,6 @@ class Strings {
   static const String feedback = '问题反馈';
   static const String sourceCode = '源代码';
   static const String cannotOpenLink = '无法打开链接';
-  static const String feedbackUrl = 'https://github.com/WuMe-sicx/Yuro/issues';
-  static const String repoUrl = 'https://github.com/WuMe-sicx/Yuro';
+  static const String feedbackUrl = 'https://github.com/WuMe-sicx/Xuro/issues';
+  static const String repoUrl = 'https://github.com/WuMe-sicx/Xuro';
 }

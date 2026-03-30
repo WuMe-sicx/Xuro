@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:asmrapp/core/theme/app_animations.dart';
+import 'package:xuro/core/theme/app_animations.dart';
 
 class SidebarTile extends StatefulWidget {
   const SidebarTile({

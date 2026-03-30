@@ -1,6 +1,6 @@
 import 'dart:math';
-import 'package:asmrapp/data/models/files/child.dart';
-import 'package:asmrapp/utils/logger.dart';
+import 'package:xuro/data/models/files/child.dart';
+import 'package:xuro/utils/logger.dart';
 
 class SubtitleMatcher {
   static const supportedFormats = ['.vtt', '.lrc'];

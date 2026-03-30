@@ -1,10 +1,10 @@
-import 'package:asmrapp/core/audio/utils/audio_error_handler.dart';
-import 'package:asmrapp/data/models/works/work.dart';
-import 'package:asmrapp/data/models/files/files.dart';
-import 'package:asmrapp/data/models/files/child.dart';
-import 'package:asmrapp/utils/logger.dart';
-import 'package:asmrapp/core/audio/models/play_mode.dart';
-import 'package:asmrapp/core/audio/models/file_path.dart';
+import 'package:xuro/core/audio/utils/audio_error_handler.dart';
+import 'package:xuro/data/models/works/work.dart';
+import 'package:xuro/data/models/files/files.dart';
+import 'package:xuro/data/models/files/child.dart';
+import 'package:xuro/utils/logger.dart';
+import 'package:xuro/core/audio/models/play_mode.dart';
+import 'package:xuro/core/audio/models/file_path.dart';
 
 class PlaybackContext {
   final Work work;

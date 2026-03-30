@@ -1,4 +1,4 @@
-import 'package:asmrapp/core/audio/models/subtitle.dart';
+import 'package:xuro/core/audio/models/subtitle.dart';
 
 /// 字幕解析器接口
 abstract class SubtitleParser {

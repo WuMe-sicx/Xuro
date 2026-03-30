@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import 'package:asmrapp/presentation/viewmodels/player_viewmodel.dart';
+import 'package:xuro/presentation/viewmodels/player_viewmodel.dart';
 
 class PlayerControls extends StatelessWidget {
   const PlayerControls({super.key});

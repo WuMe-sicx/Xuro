@@ -1,19 +1,19 @@
-import 'package:asmrapp/data/models/playlists_with_exist_statu/pagination.dart';
-import 'package:asmrapp/data/models/playlists_with_exist_statu/playlist.dart';
+import 'package:xuro/data/models/playlists_with_exist_statu/pagination.dart';
+import 'package:xuro/data/models/playlists_with_exist_statu/playlist.dart';
 import 'package:get_it/get_it.dart';
 import 'package:flutter/material.dart';
-import 'package:asmrapp/data/models/files/files.dart';
-import 'package:asmrapp/data/models/files/child.dart';
-import 'package:asmrapp/data/models/works/work.dart';
-import 'package:asmrapp/data/services/api_service.dart';
-import 'package:asmrapp/core/audio/i_audio_player_service.dart';
-import 'package:asmrapp/utils/logger.dart';
-import 'package:asmrapp/core/audio/models/playback_context.dart';
-import 'package:asmrapp/widgets/detail/playlist_selection_dialog.dart';
-import 'package:asmrapp/data/models/mark_status.dart';
-import 'package:asmrapp/widgets/detail/mark_selection_dialog.dart';
-import 'package:asmrapp/data/models/works/work_info.dart';
-import 'package:asmrapp/widgets/detail/work_folder_item.dart';
+import 'package:xuro/data/models/files/files.dart';
+import 'package:xuro/data/models/files/child.dart';
+import 'package:xuro/data/models/works/work.dart';
+import 'package:xuro/data/services/api_service.dart';
+import 'package:xuro/core/audio/i_audio_player_service.dart';
+import 'package:xuro/utils/logger.dart';
+import 'package:xuro/core/audio/models/playback_context.dart';
+import 'package:xuro/widgets/detail/playlist_selection_dialog.dart';
+import 'package:xuro/data/models/mark_status.dart';
+import 'package:xuro/widgets/detail/mark_selection_dialog.dart';
+import 'package:xuro/data/models/works/work_info.dart';
+import 'package:xuro/widgets/detail/work_folder_item.dart';
 import 'package:dio/dio.dart';
 
 class DetailViewModel extends ChangeNotifier {

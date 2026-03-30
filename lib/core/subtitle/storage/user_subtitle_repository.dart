@@ -1,8 +1,8 @@
 import 'package:sqflite/sqflite.dart';
-import 'package:asmrapp/core/database/database_service.dart';
-import 'package:asmrapp/core/subtitle/models/user_subtitle_entry.dart';
-import 'package:asmrapp/core/subtitle/storage/i_user_subtitle_repository.dart';
-import 'package:asmrapp/utils/logger.dart';
+import 'package:xuro/core/database/database_service.dart';
+import 'package:xuro/core/subtitle/models/user_subtitle_entry.dart';
+import 'package:xuro/core/subtitle/storage/i_user_subtitle_repository.dart';
+import 'package:xuro/utils/logger.dart';
 
 class UserSubtitleRepository implements IUserSubtitleRepository {
   static const _table = 'user_subtitles';

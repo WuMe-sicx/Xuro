@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:asmrapp/data/models/works/work.dart';
-import 'package:asmrapp/presentation/layouts/work_layout_strategy.dart';
-import 'package:asmrapp/widgets/work_grid/components/grid_content.dart';
-import 'package:asmrapp/widgets/work_grid/components/grid_error.dart';
-import 'package:asmrapp/widgets/work_grid/components/grid_empty.dart';
-import 'package:asmrapp/widgets/work_grid/components/grid_loading.dart';
-import 'package:asmrapp/widgets/work_grid/models/grid_config.dart';
+import 'package:xuro/data/models/works/work.dart';
+import 'package:xuro/presentation/layouts/work_layout_strategy.dart';
+import 'package:xuro/widgets/work_grid/components/grid_content.dart';
+import 'package:xuro/widgets/work_grid/components/grid_error.dart';
+import 'package:xuro/widgets/work_grid/components/grid_empty.dart';
+import 'package:xuro/widgets/work_grid/components/grid_loading.dart';
+import 'package:xuro/widgets/work_grid/models/grid_config.dart';
 
 class EnhancedWorkGridView extends StatelessWidget {
   final List<Work> works;

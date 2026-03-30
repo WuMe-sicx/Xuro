@@ -1,12 +1,12 @@
 import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
-import 'package:asmrapp/core/subtitle/import/i_file_picker_service.dart';
-import 'package:asmrapp/core/subtitle/storage/i_user_subtitle_repository.dart';
-import 'package:asmrapp/core/subtitle/models/user_subtitle_entry.dart';
-import 'package:asmrapp/core/subtitle/parsers/subtitle_parser_factory.dart';
-import 'package:asmrapp/core/audio/models/subtitle.dart';
-import 'package:asmrapp/utils/logger.dart';
+import 'package:xuro/core/subtitle/import/i_file_picker_service.dart';
+import 'package:xuro/core/subtitle/storage/i_user_subtitle_repository.dart';
+import 'package:xuro/core/subtitle/models/user_subtitle_entry.dart';
+import 'package:xuro/core/subtitle/parsers/subtitle_parser_factory.dart';
+import 'package:xuro/core/audio/models/subtitle.dart';
+import 'package:xuro/utils/logger.dart';
 
 enum ImportResult {
   success,

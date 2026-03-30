@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Yuro is a Flutter-based ASMR.ONE client app (package name: `asmrapp`, app ID: `one.asmr.yuro`). It provides ASMR audio streaming with background playback, subtitle/lyric display, playlists, and caching. Licensed CC BY-NC-SA.
+Xuro is a Flutter-based ASMR.ONE client app (package name: `xuro`, app ID: `com.xuro`). It provides ASMR audio streaming with background playback, subtitle/lyric display, playlists, and caching. Licensed CC BY-NC-SA.
 
 ## Build & Development Commands
 

@@ -3,7 +3,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
 import 'package:just_audio/just_audio.dart';
-import 'package:asmrapp/utils/logger.dart';
+import 'package:xuro/utils/logger.dart';
 
 /// 音频缓存管理器
 /// 负责管理音频文件的缓存,对外隐藏具体的缓存实现

@@ -1,12 +1,12 @@
-import 'package:asmrapp/core/theme/app_animations.dart';
-import 'package:asmrapp/data/models/works/work.dart';
-import 'package:asmrapp/presentation/models/filter_state.dart';
-import 'package:asmrapp/widgets/filter/filter_panel.dart';
+import 'package:xuro/core/theme/app_animations.dart';
+import 'package:xuro/data/models/works/work.dart';
+import 'package:xuro/presentation/models/filter_state.dart';
+import 'package:xuro/widgets/filter/filter_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:asmrapp/presentation/viewmodels/home_viewmodel.dart';
-import 'package:asmrapp/presentation/layouts/work_layout_strategy.dart';
-import 'package:asmrapp/widgets/work_grid/enhanced_work_grid_view.dart';
+import 'package:xuro/presentation/viewmodels/home_viewmodel.dart';
+import 'package:xuro/presentation/layouts/work_layout_strategy.dart';
+import 'package:xuro/widgets/work_grid/enhanced_work_grid_view.dart';
 
 class HomeContent extends StatefulWidget {
   const HomeContent({super.key});

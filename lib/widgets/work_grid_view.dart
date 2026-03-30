@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:asmrapp/data/models/works/work.dart';
-import 'package:asmrapp/widgets/work_grid.dart';
-import 'package:asmrapp/presentation/layouts/work_layout_strategy.dart';
-import 'package:asmrapp/screens/detail_screen.dart';
+import 'package:xuro/data/models/works/work.dart';
+import 'package:xuro/widgets/work_grid.dart';
+import 'package:xuro/presentation/layouts/work_layout_strategy.dart';
+import 'package:xuro/screens/detail_screen.dart';
 
 class WorkGridView extends StatelessWidget {
   final List<Work> works;

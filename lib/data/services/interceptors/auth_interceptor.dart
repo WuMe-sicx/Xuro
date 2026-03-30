@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
-import 'package:asmrapp/data/repositories/auth_repository.dart';
-import 'package:asmrapp/utils/logger.dart';
+import 'package:xuro/data/repositories/auth_repository.dart';
+import 'package:xuro/utils/logger.dart';
 
 class AuthInterceptor extends Interceptor {
   @override

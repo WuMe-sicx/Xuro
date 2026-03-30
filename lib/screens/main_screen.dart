@@ -1,18 +1,18 @@
-import 'package:asmrapp/core/theme/app_animations.dart';
-import 'package:asmrapp/screens/contents/favorites_content.dart';
+import 'package:xuro/core/theme/app_animations.dart';
+import 'package:xuro/screens/contents/favorites_content.dart';
 import 'package:flutter/material.dart';
-import 'package:asmrapp/widgets/mini_player/mini_player.dart';
-import 'package:asmrapp/widgets/sidebar/sidebar_menu.dart';
-import 'package:asmrapp/screens/contents/home_content.dart';
-import 'package:asmrapp/screens/contents/recommend_content.dart';
-import 'package:asmrapp/screens/contents/popular_content.dart';
-import 'package:asmrapp/screens/search_screen.dart';
+import 'package:xuro/widgets/mini_player/mini_player.dart';
+import 'package:xuro/widgets/sidebar/sidebar_menu.dart';
+import 'package:xuro/screens/contents/home_content.dart';
+import 'package:xuro/screens/contents/recommend_content.dart';
+import 'package:xuro/screens/contents/popular_content.dart';
+import 'package:xuro/screens/search_screen.dart';
 import 'package:provider/provider.dart';
-import 'package:asmrapp/presentation/viewmodels/home_viewmodel.dart';
-import 'package:asmrapp/presentation/viewmodels/popular_viewmodel.dart';
-import 'package:asmrapp/presentation/viewmodels/recommend_viewmodel.dart';
-import 'package:asmrapp/presentation/viewmodels/auth_viewmodel.dart';
-import 'package:asmrapp/presentation/viewmodels/favorites_viewmodel.dart';
+import 'package:xuro/presentation/viewmodels/home_viewmodel.dart';
+import 'package:xuro/presentation/viewmodels/popular_viewmodel.dart';
+import 'package:xuro/presentation/viewmodels/recommend_viewmodel.dart';
+import 'package:xuro/presentation/viewmodels/auth_viewmodel.dart';
+import 'package:xuro/presentation/viewmodels/favorites_viewmodel.dart';
 
 /// MainScreen 是应用的主界面，负责管理底部导航栏和对应的内容页面。
 /// 它采用了集中式的状态管理架构，所有子页面的 ViewModel 都在这里初始化和提供。

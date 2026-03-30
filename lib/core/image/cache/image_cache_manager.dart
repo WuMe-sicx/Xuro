@@ -1,5 +1,5 @@
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:asmrapp/utils/logger.dart';
+import 'package:xuro/utils/logger.dart';
 
 /// 图片缓存管理器
 /// 统一管理应用内所有图片的缓存策略

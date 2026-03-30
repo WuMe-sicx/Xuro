@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:asmrapp/presentation/viewmodels/circles_viewmodel.dart';
-import 'package:asmrapp/screens/browse/widgets/browse_search_bar.dart';
-import 'package:asmrapp/screens/browse/widgets/browse_grid_item.dart';
+import 'package:xuro/presentation/viewmodels/circles_viewmodel.dart';
+import 'package:xuro/screens/browse/widgets/browse_search_bar.dart';
+import 'package:xuro/screens/browse/widgets/browse_grid_item.dart';
 
 class CirclesScreen extends StatelessWidget {
   const CirclesScreen({super.key});

@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "asmrapp" "\0"
+            VALUE "CompanyName", "com.xuro" "\0"
+            VALUE "FileDescription", "xuro" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "asmrapp" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2024 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "asmrapp.exe" "\0"
-            VALUE "ProductName", "asmrapp" "\0"
+            VALUE "InternalName", "xuro" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2024 com.xuro. All rights reserved." "\0"
+            VALUE "OriginalFilename", "xuro.exe" "\0"
+            VALUE "ProductName", "xuro" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

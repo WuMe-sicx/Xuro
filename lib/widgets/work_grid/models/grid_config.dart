@@ -1,4 +1,4 @@
-import 'package:asmrapp/core/theme/app_animations.dart';
+import 'package:xuro/core/theme/app_animations.dart';
 import 'package:flutter/material.dart';
 
 class GridConfig {

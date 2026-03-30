@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:asmrapp/data/models/files/child.dart';
-import 'package:asmrapp/utils/logger.dart';
-import 'package:asmrapp/utils/file_size_formatter.dart';
+import 'package:xuro/data/models/files/child.dart';
+import 'package:xuro/utils/logger.dart';
+import 'package:xuro/utils/file_size_formatter.dart';
 
 class WorkFileItem extends StatelessWidget {
   final Child file;

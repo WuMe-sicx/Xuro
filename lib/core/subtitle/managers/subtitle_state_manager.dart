@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'package:asmrapp/core/audio/models/subtitle.dart';
-import 'package:asmrapp/utils/logger.dart';
+import 'package:xuro/core/audio/models/subtitle.dart';
+import 'package:xuro/utils/logger.dart';
 
 class SubtitleStateManager {
   SubtitleList? _subtitleList;

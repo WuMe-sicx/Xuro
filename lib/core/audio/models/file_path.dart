@@ -1,6 +1,6 @@
-import 'package:asmrapp/data/models/files/files.dart';
-import 'package:asmrapp/data/models/files/child.dart';
-import 'package:asmrapp/utils/logger.dart';
+import 'package:xuro/data/models/files/files.dart';
+import 'package:xuro/data/models/files/child.dart';
+import 'package:xuro/utils/logger.dart';
 
 /// 文件路径工具类
 /// 用于在文件树中定位文件和获取同级文件

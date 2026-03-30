@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
-import 'package:asmrapp/data/models/vas/voice_actor.dart';
-import 'package:asmrapp/data/services/api_service.dart';
-import 'package:asmrapp/utils/logger.dart';
+import 'package:xuro/data/models/vas/voice_actor.dart';
+import 'package:xuro/data/services/api_service.dart';
+import 'package:xuro/utils/logger.dart';
 import 'package:get_it/get_it.dart';
 
 class VoiceActorsViewModel extends ChangeNotifier {

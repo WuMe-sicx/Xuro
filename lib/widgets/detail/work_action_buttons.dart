@@ -1,4 +1,4 @@
-import 'package:asmrapp/data/models/mark_status.dart';
+import 'package:xuro/data/models/mark_status.dart';
 import 'package:flutter/material.dart';
 
 class WorkActionButtons extends StatelessWidget {

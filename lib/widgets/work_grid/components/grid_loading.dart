@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:asmrapp/widgets/common/skeleton_pulse.dart';
+import 'package:xuro/widgets/common/skeleton_pulse.dart';
 
 class GridLoading extends StatelessWidget {
   const GridLoading({super.key});

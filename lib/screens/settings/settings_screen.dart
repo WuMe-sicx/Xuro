@@ -3,15 +3,15 @@ import 'package:provider/provider.dart';
 import 'package:get_it/get_it.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:asmrapp/common/constants/strings.dart';
-import 'package:asmrapp/core/theme/theme_controller.dart';
-import 'package:asmrapp/core/platform/wakelock_controller.dart';
-import 'package:asmrapp/core/settings/app_settings_service.dart';
-import 'package:asmrapp/screens/settings/cache_manager_screen.dart';
-import 'package:asmrapp/screens/settings/audio_format_order_dialog.dart';
-import 'package:asmrapp/screens/settings/widgets/settings_group.dart';
-import 'package:asmrapp/screens/settings/widgets/settings_tile.dart';
-import 'package:asmrapp/screens/settings/widgets/settings_theme.dart';
+import 'package:xuro/common/constants/strings.dart';
+import 'package:xuro/core/theme/theme_controller.dart';
+import 'package:xuro/core/platform/wakelock_controller.dart';
+import 'package:xuro/core/settings/app_settings_service.dart';
+import 'package:xuro/screens/settings/cache_manager_screen.dart';
+import 'package:xuro/screens/settings/audio_format_order_dialog.dart';
+import 'package:xuro/screens/settings/widgets/settings_group.dart';
+import 'package:xuro/screens/settings/widgets/settings_tile.dart';
+import 'package:xuro/screens/settings/widgets/settings_theme.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});

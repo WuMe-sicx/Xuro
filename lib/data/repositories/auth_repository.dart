@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:asmrapp/data/models/auth/auth_resp/auth_resp.dart';
-import 'package:asmrapp/utils/logger.dart';
+import 'package:xuro/data/models/auth/auth_resp/auth_resp.dart';
+import 'package:xuro/utils/logger.dart';
 
 class AuthRepository {
   static const _authDataKey = 'auth_data';

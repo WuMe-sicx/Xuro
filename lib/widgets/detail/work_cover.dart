@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:asmrapp/core/image/cache/image_cache_manager.dart';
+import 'package:xuro/core/image/cache/image_cache_manager.dart';
 
 class WorkCover extends StatelessWidget {
   final String imageUrl;

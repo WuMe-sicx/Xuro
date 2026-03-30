@@ -1,6 +1,6 @@
-import 'package:asmrapp/core/audio/models/subtitle.dart';
-import 'package:asmrapp/core/subtitle/parsers/subtitle_parser.dart';
-import 'package:asmrapp/utils/logger.dart';
+import 'package:xuro/core/audio/models/subtitle.dart';
+import 'package:xuro/core/subtitle/parsers/subtitle_parser.dart';
+import 'package:xuro/utils/logger.dart';
 
 class LrcParser extends BaseSubtitleParser {
   static final _timeTagRegex = RegExp(r'\[(\d{2}):(\d{2})\.(\d{2})\]');

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:asmrapp/core/theme/app_colors.dart';
+import 'package:xuro/core/theme/app_colors.dart';
 
 class SettingsTheme {
   const SettingsTheme._();

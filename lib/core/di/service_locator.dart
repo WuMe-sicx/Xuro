@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
-import 'package:asmrapp/data/services/interceptors/retry_interceptor.dart';
-import 'package:asmrapp/data/services/interceptors/auth_interceptor.dart';
-import 'package:asmrapp/core/platform/dummy_lyric_overlay_controller.dart';
+import 'package:xuro/data/services/interceptors/retry_interceptor.dart';
+import 'package:xuro/data/services/interceptors/auth_interceptor.dart';
+import 'package:xuro/core/platform/dummy_lyric_overlay_controller.dart';
 import 'package:get_it/get_it.dart';
 import '../audio/i_audio_player_service.dart';
 import '../audio/audio_player_service.dart';
@@ -23,13 +23,13 @@ import '../../core/platform/i_lyric_overlay_controller.dart';
 import '../../core/platform/lyric_overlay_controller.dart';
 import '../../core/platform/lyric_overlay_manager.dart';
 import '../../core/platform/wakelock_controller.dart';
-import 'package:asmrapp/core/settings/app_settings_service.dart';
-import 'package:asmrapp/core/database/database_service.dart';
-import 'package:asmrapp/core/subtitle/storage/i_user_subtitle_repository.dart';
-import 'package:asmrapp/core/subtitle/storage/user_subtitle_repository.dart';
-import 'package:asmrapp/core/subtitle/import/i_file_picker_service.dart';
-import 'package:asmrapp/core/subtitle/import/file_picker_service.dart';
-import 'package:asmrapp/core/subtitle/subtitle_import_service.dart';
+import 'package:xuro/core/settings/app_settings_service.dart';
+import 'package:xuro/core/database/database_service.dart';
+import 'package:xuro/core/subtitle/storage/i_user_subtitle_repository.dart';
+import 'package:xuro/core/subtitle/storage/user_subtitle_repository.dart';
+import 'package:xuro/core/subtitle/import/i_file_picker_service.dart';
+import 'package:xuro/core/subtitle/import/file_picker_service.dart';
+import 'package:xuro/core/subtitle/subtitle_import_service.dart';
 
 final getIt = GetIt.instance;
 

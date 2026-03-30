@@ -1,13 +1,13 @@
 import 'dart:async';
 
-import 'package:asmrapp/core/theme/app_animations.dart';
+import 'package:xuro/core/theme/app_animations.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-import 'package:asmrapp/core/subtitle/i_subtitle_service.dart';
-import 'package:asmrapp/core/audio/models/subtitle.dart';
+import 'package:xuro/core/subtitle/i_subtitle_service.dart';
+import 'package:xuro/core/audio/models/subtitle.dart';
 import 'lyric_line.dart';
-import 'package:asmrapp/presentation/viewmodels/player_viewmodel.dart';
+import 'package:xuro/presentation/viewmodels/player_viewmodel.dart';
 
 class PlayerLyricView extends StatefulWidget {
   final bool immediateScroll;

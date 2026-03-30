@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:asmrapp/presentation/viewmodels/auth_viewmodel.dart';
-import 'package:asmrapp/presentation/widgets/auth/login_dialog.dart';
+import 'package:xuro/presentation/viewmodels/auth_viewmodel.dart';
+import 'package:xuro/presentation/widgets/auth/login_dialog.dart';
 
 class SidebarHeader extends StatelessWidget {
   const SidebarHeader({super.key});

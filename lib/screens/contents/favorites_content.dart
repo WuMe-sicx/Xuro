@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:asmrapp/presentation/viewmodels/favorites_viewmodel.dart';
-import 'package:asmrapp/presentation/layouts/work_layout_strategy.dart';
-import 'package:asmrapp/widgets/work_grid/enhanced_work_grid_view.dart';
+import 'package:xuro/presentation/viewmodels/favorites_viewmodel.dart';
+import 'package:xuro/presentation/layouts/work_layout_strategy.dart';
+import 'package:xuro/widgets/work_grid/enhanced_work_grid_view.dart';
 
 class FavoritesContent extends StatefulWidget {
   const FavoritesContent({super.key});

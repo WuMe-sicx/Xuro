@@ -1,21 +1,21 @@
-import 'package:asmrapp/core/cache/recommendation_cache_manager.dart';
-import 'package:asmrapp/data/models/mark_status.dart';
-import 'package:asmrapp/data/models/playlists_with_exist_statu/playlists_with_exist_statu.dart';
+import 'package:xuro/core/cache/recommendation_cache_manager.dart';
+import 'package:xuro/data/models/mark_status.dart';
+import 'package:xuro/data/models/playlists_with_exist_statu/playlists_with_exist_statu.dart';
 import 'package:dio/dio.dart';
-import 'package:asmrapp/data/models/files/files.dart';
-import 'package:asmrapp/data/models/works/work.dart';
-import 'package:asmrapp/data/models/works/pagination.dart';
-import 'package:asmrapp/utils/logger.dart';
-import 'package:asmrapp/data/services/interceptors/auth_interceptor.dart';
-import 'package:asmrapp/data/services/interceptors/retry_interceptor.dart';
-import 'package:asmrapp/data/services/exceptions/network_exception.dart';
-import 'package:asmrapp/data/models/playlists_with_exist_statu/playlist.dart';
-import 'package:asmrapp/data/models/my_lists/my_playlists/my_playlists.dart';
-import 'package:asmrapp/data/models/tags/tag_item.dart';
-import 'package:asmrapp/data/models/circles/circle_item.dart';
-import 'package:asmrapp/data/models/vas/voice_actor.dart';
-import 'package:asmrapp/data/models/works/work_info.dart';
-import 'package:asmrapp/core/settings/app_settings_service.dart';
+import 'package:xuro/data/models/files/files.dart';
+import 'package:xuro/data/models/works/work.dart';
+import 'package:xuro/data/models/works/pagination.dart';
+import 'package:xuro/utils/logger.dart';
+import 'package:xuro/data/services/interceptors/auth_interceptor.dart';
+import 'package:xuro/data/services/interceptors/retry_interceptor.dart';
+import 'package:xuro/data/services/exceptions/network_exception.dart';
+import 'package:xuro/data/models/playlists_with_exist_statu/playlist.dart';
+import 'package:xuro/data/models/my_lists/my_playlists/my_playlists.dart';
+import 'package:xuro/data/models/tags/tag_item.dart';
+import 'package:xuro/data/models/circles/circle_item.dart';
+import 'package:xuro/data/models/vas/voice_actor.dart';
+import 'package:xuro/data/models/works/work_info.dart';
+import 'package:xuro/core/settings/app_settings_service.dart';
 
 
 class WorksResponse {

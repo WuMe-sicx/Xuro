@@ -1,4 +1,4 @@
-package one.asmr.yuro.lyric
+package com.xuro.lyric
 
 import android.content.ComponentName
 import android.content.Context
@@ -63,4 +63,4 @@ class LyricOverlayPlugin(private val context: Context) : MethodCallHandler {
             else -> result.notImplemented()
         }
     }
-} 
+}

@@ -1,5 +1,5 @@
-import 'package:asmrapp/data/models/auth/auth_resp/auth_resp.dart';
-import 'package:asmrapp/data/services/exceptions/network_exception.dart';
+import 'package:xuro/data/models/auth/auth_resp/auth_resp.dart';
+import 'package:xuro/data/services/exceptions/network_exception.dart';
 import 'package:dio/dio.dart';
 import '../../utils/logger.dart';
 

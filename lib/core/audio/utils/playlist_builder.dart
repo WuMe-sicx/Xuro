@@ -1,7 +1,7 @@
 import 'package:just_audio/just_audio.dart';
-import 'package:asmrapp/data/models/files/child.dart';
-import 'package:asmrapp/core/audio/cache/audio_cache_manager.dart';
-import 'package:asmrapp/utils/logger.dart';
+import 'package:xuro/data/models/files/child.dart';
+import 'package:xuro/core/audio/cache/audio_cache_manager.dart';
+import 'package:xuro/utils/logger.dart';
 
 class PlaylistBuilder {
   /// Build audio sources with per-item error handling.

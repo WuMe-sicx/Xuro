@@ -1,5 +1,5 @@
 import 'package:file_picker/file_picker.dart';
-import 'package:asmrapp/core/subtitle/import/i_file_picker_service.dart';
+import 'package:xuro/core/subtitle/import/i_file_picker_service.dart';
 
 class FilePickerService implements IFilePickerService {
   @override

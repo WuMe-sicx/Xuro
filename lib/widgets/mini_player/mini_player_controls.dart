@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:asmrapp/presentation/viewmodels/player_viewmodel.dart';
+import 'package:xuro/presentation/viewmodels/player_viewmodel.dart';
 import 'package:get_it/get_it.dart';
 
 class MiniPlayerControls extends StatelessWidget {

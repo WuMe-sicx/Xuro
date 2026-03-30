@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import 'package:asmrapp/data/models/files/child.dart';
-import 'package:asmrapp/utils/logger.dart';
-import 'package:asmrapp/widgets/detail/work_file_item.dart';
-import 'package:asmrapp/core/audio/models/file_path.dart';
-import 'package:asmrapp/core/settings/app_settings_service.dart';
+import 'package:xuro/data/models/files/child.dart';
+import 'package:xuro/utils/logger.dart';
+import 'package:xuro/widgets/detail/work_file_item.dart';
+import 'package:xuro/core/audio/models/file_path.dart';
+import 'package:xuro/core/settings/app_settings_service.dart';
 
 class WorkFolderItem extends StatelessWidget {
   final Child folder;

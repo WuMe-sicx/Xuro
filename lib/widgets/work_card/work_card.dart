@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:asmrapp/data/models/works/work.dart';
+import 'package:xuro/data/models/works/work.dart';
 import 'components/work_cover_image.dart';
 import 'components/work_info_section.dart';
 

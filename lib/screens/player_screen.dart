@@ -1,17 +1,17 @@
-import 'package:asmrapp/core/platform/lyric_overlay_manager.dart';
-import 'package:asmrapp/core/theme/app_animations.dart';
+import 'package:xuro/core/platform/lyric_overlay_manager.dart';
+import 'package:xuro/core/theme/app_animations.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import 'package:asmrapp/presentation/viewmodels/player_viewmodel.dart';
-import 'package:asmrapp/widgets/player/player_controls.dart';
-import 'package:asmrapp/widgets/player/player_progress.dart';
-import 'package:asmrapp/widgets/player/player_cover.dart';
-import 'package:asmrapp/screens/detail_screen.dart';
-import 'package:asmrapp/widgets/lyrics/components/player_lyric_view.dart';
-import 'package:asmrapp/widgets/player/player_work_info.dart';
-import 'package:asmrapp/core/platform/wakelock_controller.dart';
-import 'package:asmrapp/common/constants/strings.dart';
-import 'package:asmrapp/core/subtitle/subtitle_import_service.dart';
+import 'package:xuro/presentation/viewmodels/player_viewmodel.dart';
+import 'package:xuro/widgets/player/player_controls.dart';
+import 'package:xuro/widgets/player/player_progress.dart';
+import 'package:xuro/widgets/player/player_cover.dart';
+import 'package:xuro/screens/detail_screen.dart';
+import 'package:xuro/widgets/lyrics/components/player_lyric_view.dart';
+import 'package:xuro/widgets/player/player_work_info.dart';
+import 'package:xuro/core/platform/wakelock_controller.dart';
+import 'package:xuro/common/constants/strings.dart';
+import 'package:xuro/core/subtitle/subtitle_import_service.dart';
 
 class PlayerScreen extends StatefulWidget {
   const PlayerScreen({super.key});
