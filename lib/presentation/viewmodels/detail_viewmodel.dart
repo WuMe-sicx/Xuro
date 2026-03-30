@@ -12,6 +12,7 @@ import 'package:asmrapp/core/audio/models/playback_context.dart';
 import 'package:asmrapp/widgets/detail/playlist_selection_dialog.dart';
 import 'package:asmrapp/data/models/mark_status.dart';
 import 'package:asmrapp/widgets/detail/mark_selection_dialog.dart';
+import 'package:asmrapp/data/models/works/work_info.dart';
 import 'package:dio/dio.dart';
 
 class DetailViewModel extends ChangeNotifier {
@@ -23,7 +24,10 @@ class DetailViewModel extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
   bool _disposed = false;
-  
+
+  WorkInfo? _workInfo;
+  bool _isLoadingInfo = false;
+
   bool _hasRecommendations = false;
   bool _checkingRecommendations = false;
 
@@ -58,6 +62,8 @@ class DetailViewModel extends ChangeNotifier {
   String? get error => _error;
   bool get hasRecommendations => _hasRecommendations;
   bool get checkingRecommendations => _checkingRecommendations;
+  WorkInfo? get workInfo => _workInfo;
+  bool get isLoadingInfo => _isLoadingInfo;
 
   // 收藏夹相关 getters
   bool get loadingPlaylists => _loadingPlaylists;
@@ -84,6 +90,27 @@ class DetailViewModel extends ChangeNotifier {
     } finally {
       if (!_disposed) {
         _checkingRecommendations = false;
+        notifyListeners();
+      }
+    }
+  }
+
+  Future<void> loadWorkInfo() async {
+    if (_isLoadingInfo) return;
+    _isLoadingInfo = true;
+    notifyListeners();
+
+    try {
+      final workId = _extractNumericId(work.sourceId) ?? work.id.toString();
+      _workInfo = await _apiService.getWorkInfo(workId, cancelToken: _cancelToken);
+      AppLogger.info('作品详情加载成功: ${work.id}');
+    } catch (e) {
+      if (e is! DioException || e.type != DioExceptionType.cancel) {
+        AppLogger.error('加载作品详情失败', e);
+      }
+    } finally {
+      if (!_disposed) {
+        _isLoadingInfo = false;
         notifyListeners();
       }
     }
@@ -288,6 +315,12 @@ class DetailViewModel extends ChangeNotifier {
         },
       ),
     );
+  }
+
+  String? _extractNumericId(String? sourceId) {
+    if (sourceId == null) return null;
+    final match = RegExp(r'\d+').firstMatch(sourceId);
+    return match?.group(0);
   }
 
   @override

@@ -23,12 +23,8 @@ mixin _$AuthResp {
   User? get user => throw _privateConstructorUsedError;
   String? get token => throw _privateConstructorUsedError;
 
-  /// Serializes this AuthResp to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of AuthResp
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $AuthRespCopyWith<AuthResp> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -53,8 +49,6 @@ class _$AuthRespCopyWithImpl<$Res, $Val extends AuthResp>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of AuthResp
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -73,8 +67,6 @@ class _$AuthRespCopyWithImpl<$Res, $Val extends AuthResp>
     ) as $Val);
   }
 
-  /// Create a copy of AuthResp
-  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $UserCopyWith<$Res>? get user {
@@ -110,8 +102,6 @@ class __$$AuthRespImplCopyWithImpl<$Res>
       _$AuthRespImpl _value, $Res Function(_$AuthRespImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of AuthResp
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -158,13 +148,11 @@ class _$AuthRespImpl implements _AuthResp {
             (identical(other.token, token) || other.token == token));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(runtimeType, user, token);
 
-  /// Create a copy of AuthResp
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$AuthRespImplCopyWith<_$AuthRespImpl> get copyWith =>
@@ -188,11 +176,8 @@ abstract class _AuthResp implements AuthResp {
   User? get user;
   @override
   String? get token;
-
-  /// Create a copy of AuthResp
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$AuthRespImplCopyWith<_$AuthRespImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

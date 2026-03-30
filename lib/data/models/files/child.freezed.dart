@@ -30,12 +30,8 @@ mixin _$Child {
   String? get mediaDownloadUrl => throw _privateConstructorUsedError;
   int? get size => throw _privateConstructorUsedError;
 
-  /// Serializes this Child to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of Child
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $ChildCopyWith<Child> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -68,8 +64,6 @@ class _$ChildCopyWithImpl<$Res, $Val extends Child>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of Child
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -123,8 +117,6 @@ class _$ChildCopyWithImpl<$Res, $Val extends Child>
     ) as $Val);
   }
 
-  /// Create a copy of Child
-  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $WorkCopyWith<$Res>? get work {
@@ -168,8 +160,6 @@ class __$$ChildImplCopyWithImpl<$Res>
       _$ChildImpl _value, $Res Function(_$ChildImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of Child
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -293,7 +283,7 @@ class _$ChildImpl implements _Child {
             (identical(other.size, size) || other.size == size));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -307,9 +297,7 @@ class _$ChildImpl implements _Child {
       mediaDownloadUrl,
       size);
 
-  /// Create a copy of Child
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$ChildImplCopyWith<_$ChildImpl> get copyWith =>
@@ -355,11 +343,8 @@ abstract class _Child implements Child {
   String? get mediaDownloadUrl;
   @override
   int? get size;
-
-  /// Create a copy of Child
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$ChildImplCopyWith<_$ChildImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

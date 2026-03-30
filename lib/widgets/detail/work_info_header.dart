@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:asmrapp/data/models/works/work.dart';
+import 'package:asmrapp/data/models/works/work_info.dart';
 import 'package:asmrapp/widgets/common/tag_chip.dart';
 import 'package:asmrapp/widgets/detail/work_stats_info.dart';
 import 'package:asmrapp/utils/logger.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class WorkInfoHeader extends StatelessWidget {
   final Work work;
+  final WorkInfo? workInfo;
 
   const WorkInfoHeader({
     super.key,
     required this.work,
+    this.workInfo,
   });
 
   void _onTagTap(BuildContext context, String keyword) {
@@ -46,14 +50,7 @@ class WorkInfoHeader extends StatelessWidget {
                 textColor: Colors.orange[700],
                 onTap: () => _onTagTap(context, work.circle?.name ?? ''),
               ),
-            ...?work.vas?.map(
-              (va) => TagChip(
-                text: va['name'] ?? '',
-                backgroundColor: Colors.green.withOpacity(0.2),
-                textColor: Colors.green[700],
-                onTap: () => _onTagTap(context, va['name'] ?? ''),
-              ),
-            ),
+            ..._buildVaChips(context),
             if (work.hasSubtitle == true)
               TagChip(
                 text: '字幕',
@@ -62,7 +59,62 @@ class WorkInfoHeader extends StatelessWidget {
               ),
           ],
         ),
+        if (workInfo != null) ...[
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 16,
+            children: [
+              if (workInfo!.price != null)
+                Text(
+                  '${workInfo!.price} JPY',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              if (workInfo!.sourceUrl != null)
+                GestureDetector(
+                  onTap: () => _launchUrl(workInfo!.sourceUrl!),
+                  child: Text(
+                    'DLsite',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Colors.blue,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ],
       ],
     );
+  }
+
+  List<Widget> _buildVaChips(BuildContext context) {
+    if (workInfo?.vas != null && workInfo!.vas!.isNotEmpty) {
+      return workInfo!.vas!.map(
+        (va) => TagChip(
+          text: va.name ?? '',
+          backgroundColor: Colors.green.withOpacity(0.2),
+          textColor: Colors.green[700],
+          onTap: () => _onTagTap(context, va.name ?? ''),
+        ),
+      ).toList();
+    }
+    return work.vas?.map(
+      (va) => TagChip(
+        text: va['name'] ?? '',
+        backgroundColor: Colors.green.withOpacity(0.2),
+        textColor: Colors.green[700],
+        onTap: () => _onTagTap(context, va['name'] ?? ''),
+      ),
+    ).toList() ?? [];
+  }
+
+  Future<void> _launchUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
   }
 } 

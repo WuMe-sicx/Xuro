@@ -72,12 +72,8 @@ mixin _$Work {
   String? get thumbnailCoverUrl => throw _privateConstructorUsedError;
   String? get mainCoverUrl => throw _privateConstructorUsedError;
 
-  /// Serializes this Work to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of Work
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $WorkCopyWith<Work> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -136,8 +132,6 @@ class _$WorkCopyWithImpl<$Res, $Val extends Work>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of Work
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -306,8 +300,6 @@ class _$WorkCopyWithImpl<$Res, $Val extends Work>
     ) as $Val);
   }
 
-  /// Create a copy of Work
-  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $TranslationInfoCopyWith<$Res>? get translationInfo {
@@ -320,8 +312,6 @@ class _$WorkCopyWithImpl<$Res, $Val extends Work>
     });
   }
 
-  /// Create a copy of Work
-  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $CircleCopyWith<$Res>? get circle {
@@ -391,8 +381,6 @@ class __$$WorkImplCopyWithImpl<$Res>
   __$$WorkImplCopyWithImpl(_$WorkImpl _value, $Res Function(_$WorkImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of Work
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -798,7 +786,7 @@ class _$WorkImpl implements _Work {
                 other.mainCoverUrl == mainCoverUrl));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hashAll([
         runtimeType,
@@ -836,9 +824,7 @@ class _$WorkImpl implements _Work {
         mainCoverUrl
       ]);
 
-  /// Create a copy of Work
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$WorkImplCopyWith<_$WorkImpl> get copyWith =>
@@ -972,11 +958,8 @@ abstract class _Work implements Work {
   String? get thumbnailCoverUrl;
   @override
   String? get mainCoverUrl;
-
-  /// Create a copy of Work
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$WorkImplCopyWith<_$WorkImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

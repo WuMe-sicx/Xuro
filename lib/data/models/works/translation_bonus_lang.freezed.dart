@@ -33,12 +33,8 @@ mixin _$TranslationBonusLang {
   @JsonKey(name: 'recipient_available_count')
   int? get recipientAvailableCount => throw _privateConstructorUsedError;
 
-  /// Serializes this TranslationBonusLang to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of TranslationBonusLang
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $TranslationBonusLangCopyWith<TranslationBonusLang> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -71,8 +67,6 @@ class _$TranslationBonusLangCopyWithImpl<$Res,
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of TranslationBonusLang
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -144,8 +138,6 @@ class __$$TranslationBonusLangImplCopyWithImpl<$Res>
       $Res Function(_$TranslationBonusLangImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of TranslationBonusLang
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -251,14 +243,12 @@ class _$TranslationBonusLangImpl implements _TranslationBonusLang {
                 other.recipientAvailableCount == recipientAvailableCount));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(runtimeType, price, status, priceTax,
       childCount, priceInTax, recipientMax, recipientAvailableCount);
 
-  /// Create a copy of TranslationBonusLang
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$TranslationBonusLangImplCopyWith<_$TranslationBonusLangImpl>
@@ -307,11 +297,8 @@ abstract class _TranslationBonusLang implements TranslationBonusLang {
   @override
   @JsonKey(name: 'recipient_available_count')
   int? get recipientAvailableCount;
-
-  /// Create a copy of TranslationBonusLang
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$TranslationBonusLangImplCopyWith<_$TranslationBonusLangImpl>
       get copyWith => throw _privateConstructorUsedError;
 }

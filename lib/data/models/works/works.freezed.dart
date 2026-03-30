@@ -23,12 +23,8 @@ mixin _$Works {
   List<Work>? get works => throw _privateConstructorUsedError;
   Pagination? get pagination => throw _privateConstructorUsedError;
 
-  /// Serializes this Works to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of Works
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $WorksCopyWith<Works> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -52,8 +48,6 @@ class _$WorksCopyWithImpl<$Res, $Val extends Works>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of Works
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -72,8 +66,6 @@ class _$WorksCopyWithImpl<$Res, $Val extends Works>
     ) as $Val);
   }
 
-  /// Create a copy of Works
-  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $PaginationCopyWith<$Res>? get pagination {
@@ -108,8 +100,6 @@ class __$$WorksImplCopyWithImpl<$Res>
       _$WorksImpl _value, $Res Function(_$WorksImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of Works
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -165,14 +155,12 @@ class _$WorksImpl implements _Works {
                 other.pagination == pagination));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType, const DeepCollectionEquality().hash(_works), pagination);
 
-  /// Create a copy of Works
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$WorksImplCopyWith<_$WorksImpl> get copyWith =>
@@ -196,11 +184,8 @@ abstract class _Works implements Works {
   List<Work>? get works;
   @override
   Pagination? get pagination;
-
-  /// Create a copy of Works
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$WorksImplCopyWith<_$WorksImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

@@ -9,6 +9,10 @@ import 'package:asmrapp/utils/logger.dart';
 import 'package:asmrapp/data/services/interceptors/auth_interceptor.dart';
 import 'package:asmrapp/data/models/playlists_with_exist_statu/playlist.dart';
 import 'package:asmrapp/data/models/my_lists/my_playlists/my_playlists.dart';
+import 'package:asmrapp/data/models/tags/tag_item.dart';
+import 'package:asmrapp/data/models/circles/circle_item.dart';
+import 'package:asmrapp/data/models/vas/voice_actor.dart';
+import 'package:asmrapp/data/models/works/work_info.dart';
 
 
 class WorksResponse {
@@ -35,7 +39,7 @@ class ApiService {
       final response = await _dio.get(
         '/tracks/$workId', 
         queryParameters: {
-          'v': '1',
+          'v': '2',
         },
         cancelToken: cancelToken,  // 添加 cancelToken 支持
       );
@@ -450,6 +454,85 @@ class ApiService {
       }
 
       throw Exception('获取播放列表失败: ${response.statusCode}');
+    } on DioException catch (e) {
+      AppLogger.error('网络请求失败', e, e.stackTrace);
+      throw Exception('网络请求失败: ${e.message}');
+    } catch (e, stackTrace) {
+      AppLogger.error('解析数据失败', e, stackTrace);
+      throw Exception('解析数据失败: $e');
+    }
+  }
+
+  /// 获取所有标签列表
+  Future<List<TagItem>> getTags() async {
+    try {
+      final response = await _dio.get('/tags/');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data;
+        return data.map((item) => TagItem.fromJson(item)).toList();
+      }
+
+      throw Exception('获取标签列表失败: ${response.statusCode}');
+    } on DioException catch (e) {
+      AppLogger.error('网络请求失败', e, e.stackTrace);
+      throw Exception('网络请求失败: ${e.message}');
+    } catch (e, stackTrace) {
+      AppLogger.error('解析数据失败', e, stackTrace);
+      throw Exception('解析数据失败: $e');
+    }
+  }
+
+  /// 获取所有社团列表
+  Future<List<CircleItem>> getCircles() async {
+    try {
+      final response = await _dio.get('/circles/');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data;
+        return data.map((item) => CircleItem.fromJson(item)).toList();
+      }
+
+      throw Exception('获取社团列表失败: ${response.statusCode}');
+    } on DioException catch (e) {
+      AppLogger.error('网络请求失败', e, e.stackTrace);
+      throw Exception('网络请求失败: ${e.message}');
+    } catch (e, stackTrace) {
+      AppLogger.error('解析数据失败', e, stackTrace);
+      throw Exception('解析数据失败: $e');
+    }
+  }
+
+  /// 获取所有声优列表
+  Future<List<VoiceActor>> getVoiceActors() async {
+    try {
+      final response = await _dio.get('/vas/');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data;
+        return data.map((item) => VoiceActor.fromJson(item)).toList();
+      }
+
+      throw Exception('获取声优列表失败: ${response.statusCode}');
+    } on DioException catch (e) {
+      AppLogger.error('网络请求失败', e, e.stackTrace);
+      throw Exception('网络请求失败: ${e.message}');
+    } catch (e, stackTrace) {
+      AppLogger.error('解析数据失败', e, stackTrace);
+      throw Exception('解析数据失败: $e');
+    }
+  }
+
+  /// 获取作品详细信息
+  Future<WorkInfo> getWorkInfo(String workId, {CancelToken? cancelToken}) async {
+    try {
+      final response = await _dio.get('/workInfo/$workId', cancelToken: cancelToken);
+
+      if (response.statusCode == 200) {
+        return WorkInfo.fromJson(response.data);
+      }
+
+      throw Exception('获取作品详情失败: ${response.statusCode}');
     } on DioException catch (e) {
       AppLogger.error('网络请求失败', e, e.stackTrace);
       throw Exception('网络请求失败: ${e.message}');

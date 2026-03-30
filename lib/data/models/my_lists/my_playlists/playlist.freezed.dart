@@ -39,12 +39,8 @@ mixin _$Playlist {
   dynamic get latestWorkId => throw _privateConstructorUsedError;
   String? get mainCoverUrl => throw _privateConstructorUsedError;
 
-  /// Serializes this Playlist to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of Playlist
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $PlaylistCopyWith<Playlist> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -79,8 +75,6 @@ class _$PlaylistCopyWithImpl<$Res, $Val extends Playlist>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of Playlist
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -181,8 +175,6 @@ class __$$PlaylistImplCopyWithImpl<$Res>
       _$PlaylistImpl _value, $Res Function(_$PlaylistImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of Playlist
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -335,7 +327,7 @@ class _$PlaylistImpl implements _Playlist {
                 other.mainCoverUrl == mainCoverUrl));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -352,9 +344,7 @@ class _$PlaylistImpl implements _Playlist {
       const DeepCollectionEquality().hash(latestWorkId),
       mainCoverUrl);
 
-  /// Create a copy of Playlist
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$PlaylistImplCopyWith<_$PlaylistImpl> get copyWith =>
@@ -416,11 +406,8 @@ abstract class _Playlist implements Playlist {
   dynamic get latestWorkId;
   @override
   String? get mainCoverUrl;
-
-  /// Create a copy of Playlist
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$PlaylistImplCopyWith<_$PlaylistImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

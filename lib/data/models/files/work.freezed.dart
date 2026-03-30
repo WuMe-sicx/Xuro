@@ -26,12 +26,8 @@ mixin _$Work {
   @JsonKey(name: 'source_type')
   String? get sourceType => throw _privateConstructorUsedError;
 
-  /// Serializes this Work to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of Work
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $WorkCopyWith<Work> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -56,8 +52,6 @@ class _$WorkCopyWithImpl<$Res, $Val extends Work>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of Work
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -102,8 +96,6 @@ class __$$WorkImplCopyWithImpl<$Res>
   __$$WorkImplCopyWithImpl(_$WorkImpl _value, $Res Function(_$WorkImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of Work
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -165,13 +157,11 @@ class _$WorkImpl implements _Work {
                 other.sourceType == sourceType));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(runtimeType, id, sourceId, sourceType);
 
-  /// Create a copy of Work
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$WorkImplCopyWith<_$WorkImpl> get copyWith =>
@@ -201,11 +191,8 @@ abstract class _Work implements Work {
   @override
   @JsonKey(name: 'source_type')
   String? get sourceType;
-
-  /// Create a copy of Work
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$WorkImplCopyWith<_$WorkImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

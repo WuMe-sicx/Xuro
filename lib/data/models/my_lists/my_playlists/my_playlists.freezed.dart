@@ -23,12 +23,8 @@ mixin _$MyPlaylists {
   List<Playlist>? get playlists => throw _privateConstructorUsedError;
   Pagination? get pagination => throw _privateConstructorUsedError;
 
-  /// Serializes this MyPlaylists to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of MyPlaylists
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $MyPlaylistsCopyWith<MyPlaylists> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -54,8 +50,6 @@ class _$MyPlaylistsCopyWithImpl<$Res, $Val extends MyPlaylists>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of MyPlaylists
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -74,8 +68,6 @@ class _$MyPlaylistsCopyWithImpl<$Res, $Val extends MyPlaylists>
     ) as $Val);
   }
 
-  /// Create a copy of MyPlaylists
-  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $PaginationCopyWith<$Res>? get pagination {
@@ -111,8 +103,6 @@ class __$$MyPlaylistsImplCopyWithImpl<$Res>
       _$MyPlaylistsImpl _value, $Res Function(_$MyPlaylistsImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of MyPlaylists
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -170,14 +160,12 @@ class _$MyPlaylistsImpl implements _MyPlaylists {
                 other.pagination == pagination));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType, const DeepCollectionEquality().hash(_playlists), pagination);
 
-  /// Create a copy of MyPlaylists
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$MyPlaylistsImplCopyWith<_$MyPlaylistsImpl> get copyWith =>
@@ -203,11 +191,8 @@ abstract class _MyPlaylists implements MyPlaylists {
   List<Playlist>? get playlists;
   @override
   Pagination? get pagination;
-
-  /// Create a copy of MyPlaylists
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$MyPlaylistsImplCopyWith<_$MyPlaylistsImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

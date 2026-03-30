@@ -27,12 +27,8 @@ mixin _$I18n {
   @JsonKey(name: 'zh-cn')
   ZhCn? get zhCn => throw _privateConstructorUsedError;
 
-  /// Serializes this I18n to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of I18n
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $I18nCopyWith<I18n> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -61,8 +57,6 @@ class _$I18nCopyWithImpl<$Res, $Val extends I18n>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of I18n
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -86,8 +80,6 @@ class _$I18nCopyWithImpl<$Res, $Val extends I18n>
     ) as $Val);
   }
 
-  /// Create a copy of I18n
-  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $EnUsCopyWith<$Res>? get enUs {
@@ -100,8 +92,6 @@ class _$I18nCopyWithImpl<$Res, $Val extends I18n>
     });
   }
 
-  /// Create a copy of I18n
-  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $JaJpCopyWith<$Res>? get jaJp {
@@ -114,8 +104,6 @@ class _$I18nCopyWithImpl<$Res, $Val extends I18n>
     });
   }
 
-  /// Create a copy of I18n
-  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $ZhCnCopyWith<$Res>? get zhCn {
@@ -156,8 +144,6 @@ class __$$I18nImplCopyWithImpl<$Res>
   __$$I18nImplCopyWithImpl(_$I18nImpl _value, $Res Function(_$I18nImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of I18n
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -218,13 +204,11 @@ class _$I18nImpl implements _I18n {
             (identical(other.zhCn, zhCn) || other.zhCn == zhCn));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(runtimeType, enUs, jaJp, zhCn);
 
-  /// Create a copy of I18n
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$I18nImplCopyWith<_$I18nImpl> get copyWith =>
@@ -255,11 +239,8 @@ abstract class _I18n implements I18n {
   @override
   @JsonKey(name: 'zh-cn')
   ZhCn? get zhCn;
-
-  /// Create a copy of I18n
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$I18nImplCopyWith<_$I18nImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

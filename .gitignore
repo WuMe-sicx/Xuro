@@ -45,3 +45,5 @@ app.*.map.json
 # 添加以下内容
 **/android/key.properties
 **/android/app/upload-keystore.jks
+
+/discuss

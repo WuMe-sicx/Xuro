@@ -23,12 +23,8 @@ mixin _$MarkLists {
   List<Playlist>? get playlists => throw _privateConstructorUsedError;
   Pagination? get pagination => throw _privateConstructorUsedError;
 
-  /// Serializes this MarkLists to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of MarkLists
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $MarkListsCopyWith<MarkLists> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -53,8 +49,6 @@ class _$MarkListsCopyWithImpl<$Res, $Val extends MarkLists>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of MarkLists
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -73,8 +67,6 @@ class _$MarkListsCopyWithImpl<$Res, $Val extends MarkLists>
     ) as $Val);
   }
 
-  /// Create a copy of MarkLists
-  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $PaginationCopyWith<$Res>? get pagination {
@@ -110,8 +102,6 @@ class __$$MarkListsImplCopyWithImpl<$Res>
       _$MarkListsImpl _value, $Res Function(_$MarkListsImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of MarkLists
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -169,14 +159,12 @@ class _$MarkListsImpl implements _MarkLists {
                 other.pagination == pagination));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType, const DeepCollectionEquality().hash(_playlists), pagination);
 
-  /// Create a copy of MarkLists
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$MarkListsImplCopyWith<_$MarkListsImpl> get copyWith =>
@@ -202,11 +190,8 @@ abstract class _MarkLists implements MarkLists {
   List<Playlist>? get playlists;
   @override
   Pagination? get pagination;
-
-  /// Create a copy of MarkLists
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$MarkListsImplCopyWith<_$MarkListsImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

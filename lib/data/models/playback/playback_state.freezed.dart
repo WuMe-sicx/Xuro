@@ -29,12 +29,8 @@ mixin _$PlaybackState {
   int get position => throw _privateConstructorUsedError; // 使用毫秒存储
   String get timestamp => throw _privateConstructorUsedError;
 
-  /// Serializes this PlaybackState to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of PlaybackState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $PlaybackStateCopyWith<PlaybackState> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -70,8 +66,6 @@ class _$PlaybackStateCopyWithImpl<$Res, $Val extends PlaybackState>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of PlaybackState
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -120,8 +114,6 @@ class _$PlaybackStateCopyWithImpl<$Res, $Val extends PlaybackState>
     ) as $Val);
   }
 
-  /// Create a copy of PlaybackState
-  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $WorkCopyWith<$Res> get work {
@@ -130,8 +122,6 @@ class _$PlaybackStateCopyWithImpl<$Res, $Val extends PlaybackState>
     });
   }
 
-  /// Create a copy of PlaybackState
-  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $FilesCopyWith<$Res> get files {
@@ -140,8 +130,6 @@ class _$PlaybackStateCopyWithImpl<$Res, $Val extends PlaybackState>
     });
   }
 
-  /// Create a copy of PlaybackState
-  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $ChildCopyWith<$Res> get currentFile {
@@ -185,8 +173,6 @@ class __$$PlaybackStateImplCopyWithImpl<$Res>
       _$PlaybackStateImpl _value, $Res Function(_$PlaybackStateImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of PlaybackState
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -302,7 +288,7 @@ class _$PlaybackStateImpl implements _PlaybackState {
                 other.timestamp == timestamp));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -315,9 +301,7 @@ class _$PlaybackStateImpl implements _PlaybackState {
       position,
       timestamp);
 
-  /// Create a copy of PlaybackState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$PlaybackStateImplCopyWith<_$PlaybackStateImpl> get copyWith =>
@@ -358,14 +342,11 @@ abstract class _PlaybackState implements PlaybackState {
   @override
   PlayMode get playMode;
   @override
-  int get position; // 使用毫秒存储
-  @override
+  int get position;
+  @override // 使用毫秒存储
   String get timestamp;
-
-  /// Create a copy of PlaybackState
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$PlaybackStateImplCopyWith<_$PlaybackStateImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

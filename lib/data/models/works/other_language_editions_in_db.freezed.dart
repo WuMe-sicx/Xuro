@@ -31,12 +31,8 @@ mixin _$OtherLanguageEditionsInDb {
   @JsonKey(name: 'source_type')
   String? get sourceType => throw _privateConstructorUsedError;
 
-  /// Serializes this OtherLanguageEditionsInDb to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of OtherLanguageEditionsInDb
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $OtherLanguageEditionsInDbCopyWith<OtherLanguageEditionsInDb> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -67,8 +63,6 @@ class _$OtherLanguageEditionsInDbCopyWithImpl<$Res,
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of OtherLanguageEditionsInDb
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -136,8 +130,6 @@ class __$$OtherLanguageEditionsInDbImplCopyWithImpl<$Res>
       $Res Function(_$OtherLanguageEditionsInDbImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of OtherLanguageEditionsInDb
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -228,14 +220,12 @@ class _$OtherLanguageEditionsInDbImpl implements _OtherLanguageEditionsInDb {
                 other.sourceType == sourceType));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType, id, lang, title, sourceId, isOriginal, sourceType);
 
-  /// Create a copy of OtherLanguageEditionsInDb
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$OtherLanguageEditionsInDbImplCopyWith<_$OtherLanguageEditionsInDbImpl>
@@ -278,11 +268,8 @@ abstract class _OtherLanguageEditionsInDb implements OtherLanguageEditionsInDb {
   @override
   @JsonKey(name: 'source_type')
   String? get sourceType;
-
-  /// Create a copy of OtherLanguageEditionsInDb
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$OtherLanguageEditionsInDbImplCopyWith<_$OtherLanguageEditionsInDbImpl>
       get copyWith => throw _privateConstructorUsedError;
 }

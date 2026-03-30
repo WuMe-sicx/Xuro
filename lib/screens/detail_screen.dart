@@ -25,7 +25,7 @@ class DetailScreen extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) => DetailViewModel(
         work: work,
-      )..loadFiles(),
+      )..loadFiles()..loadWorkInfo(),
       child: Scaffold(
         appBar: AppBar(
           title: Text(work.sourceId ?? ''),
@@ -42,7 +42,12 @@ class DetailScreen extends StatelessWidget {
                 releaseDate: work.release,
                 heroTag: 'work-cover-${work.id}',
               ),
-              WorkInfo(work: work),
+              Consumer<DetailViewModel>(
+                builder: (context, viewModel, _) => WorkInfo(
+                  work: work,
+                  workInfo: viewModel.workInfo,
+                ),
+              ),
               Consumer<DetailViewModel>(
                 builder: (context, viewModel, _) => WorkActionButtons(
                   hasRecommendations: viewModel.hasRecommendations,

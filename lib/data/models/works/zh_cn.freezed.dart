@@ -23,12 +23,8 @@ mixin _$ZhCn {
   String? get name => throw _privateConstructorUsedError;
   List<dynamic>? get history => throw _privateConstructorUsedError;
 
-  /// Serializes this ZhCn to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of ZhCn
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $ZhCnCopyWith<ZhCn> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -50,8 +46,6 @@ class _$ZhCnCopyWithImpl<$Res, $Val extends ZhCn>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of ZhCn
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -88,8 +82,6 @@ class __$$ZhCnImplCopyWithImpl<$Res>
   __$$ZhCnImplCopyWithImpl(_$ZhCnImpl _value, $Res Function(_$ZhCnImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of ZhCn
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -143,14 +135,12 @@ class _$ZhCnImpl implements _ZhCn {
             const DeepCollectionEquality().equals(other._history, _history));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType, name, const DeepCollectionEquality().hash(_history));
 
-  /// Create a copy of ZhCn
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$ZhCnImplCopyWith<_$ZhCnImpl> get copyWith =>
@@ -174,11 +164,8 @@ abstract class _ZhCn implements ZhCn {
   String? get name;
   @override
   List<dynamic>? get history;
-
-  /// Create a copy of ZhCn
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$ZhCnImplCopyWith<_$ZhCnImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

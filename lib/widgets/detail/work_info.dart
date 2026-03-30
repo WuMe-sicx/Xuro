@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:asmrapp/data/models/works/work.dart';
 import 'package:asmrapp/data/models/works/tag.dart';
+import 'package:asmrapp/data/models/works/work_info.dart' as model;
 import 'package:asmrapp/widgets/common/tag_chip.dart';
 import 'package:asmrapp/widgets/detail/work_info_header.dart';
 import 'package:asmrapp/utils/logger.dart';
 
 class WorkInfo extends StatelessWidget {
   final Work work;
+  final model.WorkInfo? workInfo;
 
   const WorkInfo({
     super.key,
     required this.work,
+    this.workInfo,
   });
 
   String _getLocalizedTagName(Tag tag) {
@@ -40,7 +43,7 @@ class WorkInfo extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          WorkInfoHeader(work: work),
+          WorkInfoHeader(work: work, workInfo: workInfo),
           const SizedBox(height: 8),
           if (work.tags != null && work.tags!.isNotEmpty)
             Wrap(

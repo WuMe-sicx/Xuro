@@ -30,12 +30,8 @@ mixin _$LanguageEdition {
   @JsonKey(name: 'display_order')
   int? get displayOrder => throw _privateConstructorUsedError;
 
-  /// Serializes this LanguageEdition to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of LanguageEdition
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $LanguageEditionCopyWith<LanguageEdition> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -65,8 +61,6 @@ class _$LanguageEditionCopyWithImpl<$Res, $Val extends LanguageEdition>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of LanguageEdition
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -131,8 +125,6 @@ class __$$LanguageEditionImplCopyWithImpl<$Res>
       _$LanguageEditionImpl _value, $Res Function(_$LanguageEditionImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of LanguageEdition
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -223,14 +215,12 @@ class _$LanguageEditionImpl implements _LanguageEdition {
                 other.displayOrder == displayOrder));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType, lang, label, workno, editionId, editionType, displayOrder);
 
-  /// Create a copy of LanguageEdition
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$LanguageEditionImplCopyWith<_$LanguageEditionImpl> get copyWith =>
@@ -273,11 +263,8 @@ abstract class _LanguageEdition implements LanguageEdition {
   @override
   @JsonKey(name: 'display_order')
   int? get displayOrder;
-
-  /// Create a copy of LanguageEdition
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$LanguageEditionImplCopyWith<_$LanguageEditionImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

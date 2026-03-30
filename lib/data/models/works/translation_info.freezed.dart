@@ -48,12 +48,8 @@ mixin _$TranslationInfo {
   @JsonKey(name: 'production_trade_price_rate')
   int? get productionTradePriceRate => throw _privateConstructorUsedError;
 
-  /// Serializes this TranslationInfo to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of TranslationInfo
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $TranslationInfoCopyWith<TranslationInfo> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -95,8 +91,6 @@ class _$TranslationInfoCopyWithImpl<$Res, $Val extends TranslationInfo>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of TranslationInfo
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -203,8 +197,6 @@ class __$$TranslationInfoImplCopyWithImpl<$Res>
       _$TranslationInfoImpl _value, $Res Function(_$TranslationInfoImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of TranslationInfo
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -393,7 +385,7 @@ class _$TranslationInfoImpl implements _TranslationInfo {
                 other.productionTradePriceRate == productionTradePriceRate));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -410,9 +402,7 @@ class _$TranslationInfoImpl implements _TranslationInfo {
       isTranslationBonusChild,
       productionTradePriceRate);
 
-  /// Create a copy of TranslationInfo
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$TranslationInfoImplCopyWith<_$TranslationInfoImpl> get copyWith =>
@@ -489,11 +479,8 @@ abstract class _TranslationInfo implements TranslationInfo {
   @override
   @JsonKey(name: 'production_trade_price_rate')
   int? get productionTradePriceRate;
-
-  /// Create a copy of TranslationInfo
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$TranslationInfoImplCopyWith<_$TranslationInfoImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

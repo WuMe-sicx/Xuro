@@ -4,10 +4,10 @@ import 'package:asmrapp/common/constants/strings.dart';
 import 'package:asmrapp/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:asmrapp/presentation/widgets/auth/login_dialog.dart';
 import 'package:asmrapp/screens/favorites_screen.dart';
-import 'package:asmrapp/screens/settings/cache_manager_screen.dart';
-import 'package:asmrapp/core/theme/theme_controller.dart';
-import 'package:asmrapp/core/platform/wakelock_controller.dart';
-import 'package:get_it/get_it.dart';
+import 'package:asmrapp/screens/settings/settings_screen.dart';
+import 'package:asmrapp/screens/browse/tags_screen.dart';
+import 'package:asmrapp/screens/browse/circles_screen.dart';
+import 'package:asmrapp/screens/browse/voice_actors_screen.dart';
 
 class DrawerMenu extends StatelessWidget {
   const DrawerMenu({super.key});
@@ -85,48 +85,57 @@ class DrawerMenu extends StatelessWidget {
                 );
               },
             ),
+            const Divider(),
             ListTile(
-              leading: const Icon(Icons.settings),
-              title: const Text(Strings.settings),
-              onTap: () {
-                Navigator.pop(context);
-                // TODO: 导航到设置页面
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.storage),
-              title: const Text('缓存管理'),
+              leading: const Icon(Icons.label_outline),
+              title: const Text('标签'),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const CacheManagerScreen(),
+                    builder: (context) => const TagsScreen(),
                   ),
                 );
               },
             ),
-              Divider(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                height: 1,
-              ),
-            Consumer<ThemeController>(
-              builder: (context, themeController, _) {
-                return ListTile(
-                  leading: Icon(_getThemeIcon(themeController.themeMode)),
-                  title: Text(_getThemeText(themeController.themeMode)),
-                  onTap: () => themeController.toggleThemeMode(),
+            ListTile(
+              leading: const Icon(Icons.group_outlined),
+              title: const Text('社团'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CirclesScreen(),
+                  ),
                 );
               },
             ),
-            ListenableBuilder(
-              listenable: GetIt.I<WakeLockController>(),
-              builder: (context, _) {
-                final controller = GetIt.I<WakeLockController>();
-                return SwitchListTile(
-                  title: const Text('屏幕常亮'),
-                  value: controller.enabled,
-                  onChanged: (_) => controller.toggle(),
+            ListTile(
+              leading: const Icon(Icons.mic_outlined),
+              title: const Text('声优'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const VoiceActorsScreen(),
+                  ),
+                );
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.settings),
+              title: const Text(Strings.settings),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SettingsScreen(),
+                  ),
                 );
               },
             ),
@@ -134,27 +143,5 @@ class DrawerMenu extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  IconData _getThemeIcon(ThemeMode mode) {
-    switch (mode) {
-      case ThemeMode.system:
-        return Icons.brightness_auto;
-      case ThemeMode.light:
-        return Icons.brightness_high;
-      case ThemeMode.dark:
-        return Icons.brightness_2;
-    }
-  }
-
-  String _getThemeText(ThemeMode mode) {
-    switch (mode) {
-      case ThemeMode.system:
-        return '跟随系统主题';
-      case ThemeMode.light:
-        return '浅色模式';
-      case ThemeMode.dark:
-        return '深色模式';
-    }
   }
 }

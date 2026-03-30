@@ -23,12 +23,8 @@ mixin _$EnUs {
   String? get name => throw _privateConstructorUsedError;
   List<dynamic>? get history => throw _privateConstructorUsedError;
 
-  /// Serializes this EnUs to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of EnUs
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $EnUsCopyWith<EnUs> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -50,8 +46,6 @@ class _$EnUsCopyWithImpl<$Res, $Val extends EnUs>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of EnUs
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -88,8 +82,6 @@ class __$$EnUsImplCopyWithImpl<$Res>
   __$$EnUsImplCopyWithImpl(_$EnUsImpl _value, $Res Function(_$EnUsImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of EnUs
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -143,14 +135,12 @@ class _$EnUsImpl implements _EnUs {
             const DeepCollectionEquality().equals(other._history, _history));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType, name, const DeepCollectionEquality().hash(_history));
 
-  /// Create a copy of EnUs
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$EnUsImplCopyWith<_$EnUsImpl> get copyWith =>
@@ -174,11 +164,8 @@ abstract class _EnUs implements EnUs {
   String? get name;
   @override
   List<dynamic>? get history;
-
-  /// Create a copy of EnUs
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$EnUsImplCopyWith<_$EnUsImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

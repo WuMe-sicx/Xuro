@@ -37,12 +37,8 @@ mixin _$Playlist {
   int? get worksCount => throw _privateConstructorUsedError;
   bool? get exist => throw _privateConstructorUsedError;
 
-  /// Serializes this Playlist to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of Playlist
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $PlaylistCopyWith<Playlist> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -76,8 +72,6 @@ class _$PlaylistCopyWithImpl<$Res, $Val extends Playlist>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of Playlist
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -172,8 +166,6 @@ class __$$PlaylistImplCopyWithImpl<$Res>
       _$PlaylistImpl _value, $Res Function(_$PlaylistImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of Playlist
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -314,7 +306,7 @@ class _$PlaylistImpl implements _Playlist {
             (identical(other.exist, exist) || other.exist == exist));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -330,9 +322,7 @@ class _$PlaylistImpl implements _Playlist {
       worksCount,
       exist);
 
-  /// Create a copy of Playlist
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$PlaylistImplCopyWith<_$PlaylistImpl> get copyWith =>
@@ -390,11 +380,8 @@ abstract class _Playlist implements Playlist {
   int? get worksCount;
   @override
   bool? get exist;
-
-  /// Create a copy of Playlist
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$PlaylistImplCopyWith<_$PlaylistImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
