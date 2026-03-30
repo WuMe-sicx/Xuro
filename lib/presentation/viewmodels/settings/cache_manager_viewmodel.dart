@@ -53,7 +53,7 @@ class CacheManagerViewModel extends ChangeNotifier {
       _isLoading = true;
       notifyListeners();
       
-      await AudioCacheManager.cleanCache();
+      await AudioCacheManager.clearAllCache();
       await loadCacheSize();
       _error = null;
     } catch (e) {
@@ -90,16 +90,16 @@ class CacheManagerViewModel extends ChangeNotifier {
       notifyListeners();
       
       await Future.wait([
-        AudioCacheManager.cleanCache(),
+        AudioCacheManager.clearAllCache(),
         SubtitleCacheManager.clearCache(),
       ]);
-      
-      await loadCacheSize();
+
       _error = null;
     } catch (e) {
       AppLogger.error('清理缓存失败', e);
       _error = '清理失败: $e';
     } finally {
+      await loadCacheSize();
       _isLoading = false;
       notifyListeners();
     }

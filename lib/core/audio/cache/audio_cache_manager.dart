@@ -72,6 +72,38 @@ class AudioCacheManager {
     }
   }
 
+  /// 清空所有音频缓存（用户主动清理时调用）
+  /// 返回删除结果，如有文件无法删除则抛出异常
+  static Future<void> clearAllCache() async {
+    final cacheDir = await _getCacheDir();
+    final entities = await cacheDir.list().toList();
+
+    var deleted = 0;
+    var failed = 0;
+
+    for (var entity in entities) {
+      try {
+        if (entity is File) {
+          await entity.delete();
+          deleted++;
+        } else if (entity is Directory) {
+          await entity.delete(recursive: true);
+          deleted++;
+        }
+      } catch (e) {
+        failed++;
+        AppLogger.warning('无法删除缓存文件: ${entity.path}, 可能正在使用中');
+      }
+    }
+
+    if (failed == 0) {
+      AppLogger.debug('音频缓存已清空，共删除 $deleted 个文件');
+    } else {
+      AppLogger.warning('音频缓存部分清理: 成功 $deleted, 失败 $failed');
+      throw Exception('部分缓存文件无法删除（$failed 个），可能正在播放中');
+    }
+  }
+
   /// 获取缓存大小
   static Future<int> getCacheSize() async {
     try {
