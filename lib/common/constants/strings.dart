@@ -35,4 +35,29 @@ class Strings {
   static const String home = '主页';
   static const String favorites = '我的收藏';
   static const String settings = '设置';
+
+  // Settings sections
+  static const String appearance = '外观';
+  static const String network = '网络';
+  static const String content = '内容';
+  static const String playback = '播放';
+  static const String storage = '存储';
+  static const String about = '关于';
+
+  // Settings items
+  static const String followSystem = '跟随系统';
+  static const String lightMode = '浅色模式';
+  static const String darkMode = '深色模式';
+  static const String smartPath = '智能路径';
+  static const String smartPathDesc = '打开作品后，自动展开包含音频的文件夹';
+  static const String audioFormatPreference = '音频格式偏好';
+  static const String screenKeepAwake = '屏幕常亮';
+  static const String screenKeepAwakeDesc = '播放时保持屏幕开启';
+  static const String cacheManager = '缓存管理';
+  static const String themeAutoDesc = '自动切换深浅色模式';
+
+  // About section
+  static const String versionInfo = '版本信息';
+  static const String openSourceLicenses = '开源许可';
+  static const String feedback = '问题反馈';
 }

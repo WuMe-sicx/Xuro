@@ -20,6 +20,10 @@ class AppColors {
     error: Color(0xFFB3261E),
     errorContainer: Color(0xFFF9DEDC),
     onError: Colors.white,
+    // 扩展令牌
+    onSurfaceVariant: Color(0xFF49454F),
+    primaryContainer: Color(0xFFEADDFF),
+    outlineVariant: Color(0xFFCAC4D0),
   );
 
   // 暗色主题颜色
@@ -27,16 +31,20 @@ class AppColors {
     // 基础色调
     primary: Color(0xFFD0BCFF),
     onPrimary: Color(0xFF381E72),
-    
+
     // 表面颜色
     surface: Color(0xFF1C1B1F),
     onSurface: Colors.white,
     surfaceContainerHighest: Color(0xFF2B2B2B),
-    
+
     // 错误状态颜色
     error: Color(0xFFF2B8B5),
     errorContainer: Color(0xFF8C1D18),
     onError: Color(0xFF601410),
+    // 扩展令牌
+    onSurfaceVariant: Color(0xFFCAC4D0),
+    primaryContainer: Color(0xFF4F378B),
+    outlineVariant: Color(0xFF49454F),
   );
 
   // === Surface层级令牌 (Design Tokens) ===
