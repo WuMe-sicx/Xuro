@@ -53,10 +53,32 @@ class DrawerMenu extends StatelessWidget {
                     authVM.isLoggedIn ? authVM.username ?? '' : '登录',
                   ),
                   onTap: () {
-                    Navigator.pop(context);
                     if (authVM.isLoggedIn) {
-                      authVM.logout();
+                      showDialog(
+                        context: context,
+                        builder: (dialogContext) => AlertDialog(
+                          title: const Text('提示'),
+                          content: const Text('确认退出登录？'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(dialogContext),
+                              child: const Text('取消'),
+                            ),
+                            TextButton(
+                              onPressed: () async {
+                                await authVM.logout();
+                                if (!dialogContext.mounted) return;
+                                Navigator.pop(dialogContext);
+                                if (!context.mounted) return;
+                                Navigator.pop(context);
+                              },
+                              child: const Text('退出登录'),
+                            ),
+                          ],
+                        ),
+                      );
                     } else {
+                      Navigator.pop(context);
                       _showLoginDialog(context);
                     }
                   },
