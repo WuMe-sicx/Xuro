@@ -10,16 +10,21 @@ import 'dart:async';
 import 'package:asmrapp/core/subtitle/subtitle_loader.dart';
 import 'package:asmrapp/core/audio/events/playback_event_hub.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:get_it/get_it.dart';
+import 'package:asmrapp/core/subtitle/subtitle_import_service.dart';
 
 class PlayerViewModel extends ChangeNotifier {
   final IAudioPlayerService _audioService;
   final PlaybackEventHub _eventHub;
   final ISubtitleService _subtitleService;
   final _subtitleLoader = SubtitleLoader();
+  final _importService = GetIt.I<SubtitleImportService>();
 
   bool _isPlaying = false;
   bool _isBuffering = false;
   String? _errorMessage;
+  bool _isUserImportedSubtitle = false;
+  int _loadVersion = 0;
   Duration? _position;
   Duration? _duration;
   Subtitle? _currentSubtitle;
@@ -147,6 +152,7 @@ class PlayerViewModel extends ChangeNotifier {
   bool get isPlaying => _isPlaying;
   bool get isBuffering => _isBuffering;
   String? get errorMessage => _errorMessage;
+  bool get isUserImportedSubtitle => _isUserImportedSubtitle;
   Duration? get position => _position;
   Duration? get duration => _duration;
   Subtitle? get currentSubtitle => _currentSubtitle;
@@ -196,11 +202,36 @@ class PlayerViewModel extends ChangeNotifier {
     _eventHub.emit(RequestInitialStateEvent());
   }
 
-  // 修改字幕加载方法，返回 Future 以便等待加载完成
   Future<void> _loadSubtitleIfAvailable(PlaybackContext context) async {
+    final version = ++_loadVersion;
+    final workId = context.work.id?.toString();
+    final fileName = context.currentFile.title;
+
+    // 1. 用户导入优先
+    if (workId != null && fileName != null) {
+      final entry = await _importService.findImported(workId, fileName);
+      if (_loadVersion != version) return;
+      if (entry != null) {
+        final subtitleList = await _importService.loadLocalSubtitle(entry.subtitlePath);
+        if (_loadVersion != version) return;
+        if (subtitleList != null) {
+          await _subtitleService.loadSubtitleFromContent(subtitleList);
+          if (_loadVersion != version) return;
+          _isUserImportedSubtitle = true;
+          notifyListeners();
+          return;
+        }
+        // Local file missing/corrupted → remove invalid association
+        await _importService.removeImportedSubtitle(workId, fileName);
+        if (_loadVersion != version) return;
+      }
+    }
+
+    // 2. 自动匹配（原有逻辑）
+    _isUserImportedSubtitle = false;
     final subtitleFile = _subtitleLoader.findSubtitleFile(
       context.currentFile,
-      context.files
+      context.files,
     );
     if (subtitleFile?.mediaDownloadUrl != null) {
       await _subtitleService.loadSubtitle(subtitleFile!.mediaDownloadUrl!);
@@ -208,6 +239,43 @@ class PlayerViewModel extends ChangeNotifier {
       _subtitleService.clearSubtitle();
       AppLogger.debug('未找到字幕文件，清除现有字幕');
     }
+  }
+
+  /// Import a subtitle file for the current audio.
+  Future<ImportResult> importSubtitle() async {
+    final context = currentContext;
+    if (context == null) return ImportResult.cancelled;
+
+    final workId = context.work.id?.toString();
+    final fileName = context.currentFile.title;
+    if (workId == null || fileName == null) return ImportResult.cancelled;
+
+    final response = await _importService.importSubtitle(workId, fileName);
+    if (response.result == ImportResult.success && response.subtitleList != null) {
+      // Verify we're still on the same track
+      final currentWorkId = currentContext?.work.id?.toString();
+      final currentFileName = currentContext?.currentFile.title;
+      if (currentWorkId == workId && currentFileName == fileName) {
+        await _subtitleService.loadSubtitleFromContent(response.subtitleList!);
+        _isUserImportedSubtitle = true;
+        notifyListeners();
+      }
+    }
+    return response.result;
+  }
+
+  /// Remove imported subtitle and fall back to auto-match.
+  Future<void> removeImportedSubtitle() async {
+    final context = currentContext;
+    if (context == null) return;
+
+    final workId = context.work.id?.toString();
+    final fileName = context.currentFile.title;
+    if (workId == null || fileName == null) return;
+
+    await _importService.removeImportedSubtitle(workId, fileName);
+    _isUserImportedSubtitle = false;
+    await _loadSubtitleIfAvailable(context);
   }
 
   AudioTrackInfo? get currentTrackInfo => _audioService.currentTrack;

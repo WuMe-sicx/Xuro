@@ -9,6 +9,8 @@ import 'package:asmrapp/screens/detail_screen.dart';
 import 'package:asmrapp/widgets/lyrics/components/player_lyric_view.dart';
 import 'package:asmrapp/widgets/player/player_work_info.dart';
 import 'package:asmrapp/core/platform/wakelock_controller.dart';
+import 'package:asmrapp/common/constants/strings.dart';
+import 'package:asmrapp/core/subtitle/subtitle_import_service.dart';
 
 class PlayerScreen extends StatefulWidget {
   const PlayerScreen({super.key});
@@ -162,6 +164,56 @@ class _PlayerScreenState extends State<PlayerScreen> {
                   ),
                 );
               }
+            },
+          ),
+          // Subtitle import menu
+          ListenableBuilder(
+            listenable: _viewModel,
+            builder: (context, _) {
+              return PopupMenuButton<String>(
+                icon: Icon(
+                  Icons.subtitles,
+                  color: _viewModel.isUserImportedSubtitle
+                      ? Theme.of(context).colorScheme.primary
+                      : null,
+                ),
+                onSelected: (value) async {
+                  if (value == 'import') {
+                    final result = await _viewModel.importSubtitle();
+                    if (!context.mounted) return;
+                    final message = switch (result) {
+                      ImportResult.success => Strings.importSuccess,
+                      ImportResult.cancelled => null,
+                      ImportResult.invalidFormat => Strings.importInvalidFormat,
+                      ImportResult.fileTooLarge => Strings.importFileTooLarge,
+                      ImportResult.parseFailed => Strings.importParseFailed,
+                      ImportResult.ioError => Strings.importIoError,
+                    };
+                    if (message != null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(message)),
+                      );
+                    }
+                  } else if (value == 'remove') {
+                    await _viewModel.removeImportedSubtitle();
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text(Strings.subtitleRemoved)),
+                    );
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'import',
+                    child: Text(Strings.importSubtitle),
+                  ),
+                  if (_viewModel.isUserImportedSubtitle)
+                    const PopupMenuItem(
+                      value: 'remove',
+                      child: Text(Strings.removeImportedSubtitle),
+                    ),
+                ],
+              );
             },
           ),
           IconButton(

@@ -34,6 +34,12 @@ class SubtitleService implements ISubtitleService {
   }
   
   @override
+  Future<void> loadSubtitleFromContent(SubtitleList subtitleList) async {
+    clearSubtitle();
+    _stateManager.setSubtitleList(subtitleList);
+  }
+
+  @override
   void updatePosition(Duration position) {
     _stateManager.updatePosition(position);
   }

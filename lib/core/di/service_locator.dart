@@ -21,6 +21,12 @@ import '../../core/platform/lyric_overlay_controller.dart';
 import '../../core/platform/lyric_overlay_manager.dart';
 import '../../core/platform/wakelock_controller.dart';
 import 'package:asmrapp/core/settings/app_settings_service.dart';
+import 'package:asmrapp/core/database/database_service.dart';
+import 'package:asmrapp/core/subtitle/storage/i_user_subtitle_repository.dart';
+import 'package:asmrapp/core/subtitle/storage/user_subtitle_repository.dart';
+import 'package:asmrapp/core/subtitle/import/i_file_picker_service.dart';
+import 'package:asmrapp/core/subtitle/import/file_picker_service.dart';
+import 'package:asmrapp/core/subtitle/subtitle_import_service.dart';
 
 final getIt = GetIt.instance;
 
@@ -32,6 +38,25 @@ Future<void> setupServiceLocator() async {
 
   // 注册 SharedPreferences 实例
   getIt.registerSingleton<SharedPreferences>(prefs);
+
+  // 数据库服务
+  getIt.registerLazySingleton<DatabaseService>(() => DatabaseService());
+
+  // 用户字幕存储
+  getIt.registerLazySingleton<IUserSubtitleRepository>(
+    () => UserSubtitleRepository(getIt<DatabaseService>()),
+  );
+
+  // 文件选择器
+  getIt.registerLazySingleton<IFilePickerService>(() => FilePickerService());
+
+  // 字幕导入服务
+  getIt.registerLazySingleton<SubtitleImportService>(
+    () => SubtitleImportService(
+      picker: getIt<IFilePickerService>(),
+      repository: getIt<IUserSubtitleRepository>(),
+    ),
+  );
 
   // 注册 PlaybackStateRepository
   getIt.registerLazySingleton<IPlaybackStateRepository>(
