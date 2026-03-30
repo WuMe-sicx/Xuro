@@ -1,3 +1,4 @@
+import 'package:asmrapp/core/theme/app_animations.dart';
 import 'package:asmrapp/screens/contents/favorites_content.dart';
 import 'package:flutter/material.dart';
 import 'package:asmrapp/widgets/mini_player/mini_player.dart';
@@ -74,8 +75,8 @@ class _MainScreenState extends State<MainScreen> {
   void _onTabTapped(int index) {
     _pageController.animateToPage(
       index,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
+      duration: AppAnimations.medium,
+      curve: AppAnimations.standard,
     );
   }
 

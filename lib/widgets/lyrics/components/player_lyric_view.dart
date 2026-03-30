@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:asmrapp/core/theme/app_animations.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
@@ -88,8 +89,8 @@ class _PlayerLyricViewState extends State<PlayerLyricView> {
       // 正常播放时使用平滑滚动动画
       _itemScrollController.scrollTo(
         index: current.subtitle.index,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOutQuart,
+        duration: AppAnimations.medium,
+        curve: AppAnimations.smoothScroll,
         alignment: 0.5,
       );
     }

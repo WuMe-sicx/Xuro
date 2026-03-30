@@ -1,3 +1,4 @@
+import 'package:asmrapp/core/theme/app_animations.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:asmrapp/presentation/viewmodels/recommend_viewmodel.dart';
@@ -70,8 +71,8 @@ class _RecommendContentState extends State<RecommendContent> with AutomaticKeepA
               left: 0,
               right: 0,
               child: AnimatedSlide(
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeInOut,
+                duration: AppAnimations.short,
+                curve: AppAnimations.standard,
                 offset: Offset(0, viewModel.filterPanelExpanded ? 0 : -1),
                 child: FilterWithKeyword(
                   hasSubtitle: viewModel.hasSubtitle,

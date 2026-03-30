@@ -1,3 +1,4 @@
+import 'package:asmrapp/core/theme/app_animations.dart';
 import 'package:asmrapp/screens/player_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:asmrapp/presentation/viewmodels/player_viewmodel.dart';
@@ -28,7 +29,7 @@ class MiniPlayer extends StatelessWidget {
                   // 创建一个曲线动画
                   final curvedAnimation = CurvedAnimation(
                     parent: animation,
-                    curve: Curves.easeOutQuart,
+                    curve: AppAnimations.smoothScroll,
                   );
                   
                   return Stack(
@@ -57,7 +58,7 @@ class MiniPlayer extends StatelessWidget {
                     ],
                   );
                 },
-                transitionDuration: const Duration(milliseconds: 400),
+                transitionDuration: AppAnimations.long,
               ),
             );
           },

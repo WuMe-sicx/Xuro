@@ -1,4 +1,5 @@
 import 'package:asmrapp/core/platform/lyric_overlay_manager.dart';
+import 'package:asmrapp/core/theme/app_animations.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:asmrapp/presentation/viewmodels/player_viewmodel.dart';
@@ -32,9 +33,9 @@ class _PlayerScreenState extends State<PlayerScreen> {
 
   Widget _buildContent() {
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 400),
-      switchInCurve: Curves.easeOutQuart,
-      switchOutCurve: Curves.easeInQuart,
+      duration: AppAnimations.long,
+      switchInCurve: AppAnimations.smoothScroll,
+      switchOutCurve: AppAnimations.exit,
       transitionBuilder: (Widget child, Animation<double> animation) {
         final isLyrics = (child as dynamic).key == const ValueKey('lyrics');
         

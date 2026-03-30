@@ -1,3 +1,4 @@
+import 'package:asmrapp/core/theme/app_animations.dart';
 import 'package:flutter/material.dart';
 import 'package:asmrapp/data/models/works/work.dart';
 import 'package:asmrapp/presentation/layouts/work_layout_strategy.dart';
@@ -32,8 +33,8 @@ class GridContent extends StatelessWidget {
     if (scrollController?.hasClients ?? false) {
       scrollController!.animateTo(
         0,
-        duration: config?.scrollDuration ?? const Duration(milliseconds: 300),
-        curve: config?.scrollCurve ?? Curves.easeOut,
+        duration: config?.scrollDuration ?? AppAnimations.medium,
+        curve: config?.scrollCurve ?? AppAnimations.enter,
       );
     }
   }

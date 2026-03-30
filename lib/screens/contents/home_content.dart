@@ -1,3 +1,4 @@
+import 'package:asmrapp/core/theme/app_animations.dart';
 import 'package:asmrapp/widgets/filter/filter_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -71,8 +72,8 @@ class _HomeContentState extends State<HomeContent>
               left: 0,
               right: 0,
               child: AnimatedSlide(
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeInOut,
+                duration: AppAnimations.short,
+                curve: AppAnimations.standard,
                 offset: Offset(0, viewModel.filterPanelExpanded ? 0 : -1),
                 child: Container(
                   decoration: BoxDecoration(

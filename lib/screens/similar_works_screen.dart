@@ -1,3 +1,4 @@
+import 'package:asmrapp/core/theme/app_animations.dart';
 import 'package:asmrapp/widgets/filter/filter_with_keyword.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -50,8 +51,8 @@ class _SimilarWorksScreenState extends State<SimilarWorksScreen> {
     if (_scrollController.hasClients) {
       _scrollController.animateTo(
         0,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
+        duration: AppAnimations.medium,
+        curve: AppAnimations.enter,
       );
     }
   }
@@ -106,8 +107,8 @@ class _SimilarWorksScreenState extends State<SimilarWorksScreen> {
                   left: 0,
                   right: 0,
                   child: AnimatedSlide(
-                    duration: const Duration(milliseconds: 200),
-                    curve: Curves.easeInOut,
+                    duration: AppAnimations.short,
+                    curve: AppAnimations.standard,
                     offset: Offset(0, viewModel.filterPanelExpanded ? 0 : -1),
                     child: FilterWithKeyword(
                       hasSubtitle: viewModel.hasSubtitle,

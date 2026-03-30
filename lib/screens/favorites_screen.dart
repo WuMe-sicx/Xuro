@@ -1,3 +1,4 @@
+import 'package:asmrapp/core/theme/app_animations.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:asmrapp/widgets/drawer_menu.dart';
@@ -43,8 +44,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     if (_scrollController.hasClients) {
       _scrollController.animateTo(
         0,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
+        duration: AppAnimations.medium,
+        curve: AppAnimations.enter,
       );
     }
   }

@@ -1,3 +1,4 @@
+import 'package:asmrapp/core/theme/app_animations.dart';
 import 'package:flutter/material.dart';
 
 class GridConfig {
@@ -12,8 +13,8 @@ class GridConfig {
     this.physics,
     this.enablePagination = true,
     this.showLoadingOnEmpty = true,
-    this.scrollDuration = const Duration(milliseconds: 300),
-    this.scrollCurve = Curves.easeOut,
+    this.scrollDuration = AppAnimations.medium,
+    this.scrollCurve = AppAnimations.enter,
     this.padding,
   });
 

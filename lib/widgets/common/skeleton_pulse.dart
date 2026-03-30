@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:asmrapp/core/theme/app_animations.dart';
 
 /// Lightweight skeleton loading widget using simple opacity pulse.
 /// Replaces Shimmer for better performance (no per-frame gradient computation).
@@ -27,7 +28,7 @@ class _SkeletonPulseState extends State<SkeletonPulse>
       vsync: this,
     )..repeat(reverse: true);
     _animation = Tween<double>(begin: 0.3, end: 0.7).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+      CurvedAnimation(parent: _controller, curve: AppAnimations.standard),
     );
   }
 
@@ -39,9 +40,11 @@ class _SkeletonPulseState extends State<SkeletonPulse>
 
   @override
   Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: _animation,
-      child: widget.child,
+    return RepaintBoundary(
+      child: FadeTransition(
+        opacity: _animation,
+        child: widget.child,
+      ),
     );
   }
 }

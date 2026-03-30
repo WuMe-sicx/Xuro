@@ -15,14 +15,16 @@ class MiniPlayerProgress extends StatelessWidget {
         final duration = viewModel.duration?.inMilliseconds.toDouble() ?? 0.0;
         final progress = duration > 0 ? position / duration : 0.0;
 
-        return SizedBox(
-          height: 2,
-          child: LinearProgressIndicator(
-            value: progress,
-            backgroundColor:
-                Theme.of(context).colorScheme.surfaceContainerHighest,
-            valueColor: AlwaysStoppedAnimation<Color>(
-              Theme.of(context).colorScheme.primary,
+        return RepaintBoundary(
+          child: SizedBox(
+            height: 2,
+            child: LinearProgressIndicator(
+              value: progress,
+              backgroundColor:
+                  Theme.of(context).colorScheme.surfaceContainerHighest,
+              valueColor: AlwaysStoppedAnimation<Color>(
+                Theme.of(context).colorScheme.primary,
+              ),
             ),
           ),
         );

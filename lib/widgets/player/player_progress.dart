@@ -22,58 +22,65 @@ class PlayerProgress extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = GetIt.I<PlayerViewModel>();
-    
+
     return ListenableBuilder(
       listenable: viewModel,
       builder: (context, _) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
-          child: Column(
-            children: [
-              SliderTheme(
-                data: SliderTheme.of(context).copyWith(
-                  trackHeight: 2,
-                  thumbShape: const RoundSliderThumbShape(
-                    enabledThumbRadius: 6,
+        return RepaintBoundary(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Column(
+              children: [
+                SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    trackHeight: 2,
+                    thumbShape: const RoundSliderThumbShape(
+                      enabledThumbRadius: 6,
+                    ),
+                  ),
+                  child: Slider(
+                    value: _ensureValueInRange(
+                        viewModel.position?.inMilliseconds.toDouble() ?? 0,
+                        0,
+                        viewModel.duration?.inMilliseconds.toDouble() ?? 1),
+                    min: 0,
+                    max: viewModel.duration?.inMilliseconds.toDouble() ?? 1,
+                    onChanged: (value) {
+                      viewModel.seek(Duration(milliseconds: value.round()));
+                    },
                   ),
                 ),
-                child: Slider(
-                  value: _ensureValueInRange(
-                    viewModel.position?.inMilliseconds.toDouble() ?? 0,
-                    0,
-                    viewModel.duration?.inMilliseconds.toDouble() ?? 1
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        _formatDuration(viewModel.position),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withOpacity(0.7),
+                            ),
+                      ),
+                      Text(
+                        _formatDuration(viewModel.duration),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withOpacity(0.7),
+                            ),
+                      ),
+                    ],
                   ),
-                  min: 0,
-                  max: viewModel.duration?.inMilliseconds.toDouble() ?? 1,
-                  onChanged: (value) {
-                    viewModel.seek(Duration(milliseconds: value.round()));
-                  },
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      _formatDuration(viewModel.position),
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                      ),
-                    ),
-                    Text(
-                      _formatDuration(viewModel.duration),
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },
     );
   }
-} 
+}

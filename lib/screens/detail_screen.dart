@@ -1,3 +1,4 @@
+import 'package:asmrapp/core/theme/app_animations.dart';
 import 'package:asmrapp/widgets/mini_player/mini_player.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -60,7 +61,7 @@ class DetailScreen extends StatelessWidget {
                         transitionsBuilder: (context, animation, secondaryAnimation, child) {
                           const begin = Offset(1.0, 0.0);
                           const end = Offset.zero;
-                          const curve = Curves.easeInOut;
+                          const curve = AppAnimations.standard;
                           var tween = Tween(begin: begin, end: end).chain(
                             CurveTween(curve: curve),
                           );
