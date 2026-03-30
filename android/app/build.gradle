@@ -53,6 +53,9 @@ android {
             shrinkResources true  // 改为 false 可以禁用资源压缩
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+}
+    tasks.withType(JavaCompile) {
+        options.compilerArgs << '-Xlint:-options'
     }
 }
 

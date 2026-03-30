@@ -46,6 +46,7 @@ class WakeLockController extends ChangeNotifier {
     }
   }
 
+  @override
   Future<void> dispose() async {
     try {
       await WakelockPlus.disable();

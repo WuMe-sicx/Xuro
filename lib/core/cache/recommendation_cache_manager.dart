@@ -9,7 +9,7 @@ class RecommendationCacheManager {
   RecommendationCacheManager._internal();
 
   // 使用 LinkedHashMap 便于按访问顺序管理缓存
-  final _cache = LinkedHashMap<String, _CacheItem>();
+  final _cache = <String, _CacheItem>{};
   
   // 缓存配置
   static const int _maxCacheSize = 1000; // 最大缓存条目数

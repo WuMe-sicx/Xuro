@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:asmrapp/presentation/viewmodels/recommend_viewmodel.dart';
 import 'package:asmrapp/presentation/layouts/work_layout_strategy.dart';
 import 'package:asmrapp/widgets/work_grid/enhanced_work_grid_view.dart';
-import 'package:asmrapp/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:asmrapp/widgets/filter/filter_with_keyword.dart';
 
 class RecommendContent extends StatefulWidget {

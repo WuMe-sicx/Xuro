@@ -13,13 +13,8 @@ class AppColors {
     
     // 表面颜色
     surface: Colors.white,
-    surfaceVariant: Color(0xFFF4F4F4),
     onSurface: Colors.black87,
     surfaceContainerHighest: Color(0xFFE6E6E6),
-    
-    // 背景颜色
-    background: Colors.white,
-    onBackground: Colors.black87,
     
     // 错误状态颜色
     error: Color(0xFFB3261E),
@@ -35,13 +30,8 @@ class AppColors {
     
     // 表面颜色
     surface: Color(0xFF1C1B1F),
-    surfaceVariant: Color(0xFF2B2930),
     onSurface: Colors.white,
     surfaceContainerHighest: Color(0xFF2B2B2B),
-    
-    // 背景颜色
-    background: Color(0xFF1C1B1F),
-    onBackground: Colors.white,
     
     // 错误状态颜色
     error: Color(0xFFF2B8B5),

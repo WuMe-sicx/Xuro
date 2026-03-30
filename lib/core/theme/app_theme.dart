@@ -13,7 +13,7 @@ class AppTheme {
     colorScheme: AppColors.lightColorScheme,
     
     // Card主题
-    cardTheme: const CardTheme(
+    cardTheme: const CardThemeData(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(12)),
@@ -35,7 +35,7 @@ class AppTheme {
     colorScheme: AppColors.darkColorScheme,
     
     // Card主题
-    cardTheme: const CardTheme(
+    cardTheme: const CardThemeData(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(12)),

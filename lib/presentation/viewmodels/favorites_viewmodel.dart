@@ -2,23 +2,26 @@ import 'package:flutter/foundation.dart';
 import 'package:asmrapp/data/models/works/work.dart';
 import 'package:asmrapp/data/models/works/pagination.dart';
 import 'package:asmrapp/data/services/api_service.dart';
+import 'package:asmrapp/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:asmrapp/utils/logger.dart';
 import 'package:get_it/get_it.dart';
 
 class FavoritesViewModel extends ChangeNotifier {
   final ApiService _apiService;
+  final AuthViewModel _authViewModel;
   List<Work> _works = [];
   bool _isLoading = false;
   String? _error;
   Pagination? _pagination;
   int _currentPage = 1;
 
-  FavoritesViewModel() : _apiService = GetIt.I<ApiService>();
+  FavoritesViewModel(this._authViewModel) : _apiService = GetIt.I<ApiService>();
 
   List<Work> get works => _works;
   bool get isLoading => _isLoading;
   String? get error => _error;
   int get currentPage => _currentPage;
+  int? get totalCount => _pagination?.totalCount;
   int? get totalPages =>
       _pagination?.totalCount != null && _pagination?.pageSize != null
           ? (_pagination!.totalCount! / _pagination!.pageSize!).ceil()
@@ -28,6 +31,12 @@ class FavoritesViewModel extends ChangeNotifier {
   Future<void> loadPage(int page) async {
     if (_isLoading) return;
     if (page < 1 || (totalPages != null && page > totalPages!)) return;
+
+    if (!_authViewModel.isLoggedIn) {
+      _error = '请先登录';
+      notifyListeners();
+      return;
+    }
 
     _isLoading = true;
     _error = null;

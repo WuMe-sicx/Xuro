@@ -155,7 +155,7 @@ class _PlaylistSelectionDialogState extends State<PlaylistSelectionDialog> {
               ),
             ),
             duration: const Duration(seconds: 1),
-            backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
             showCloseIcon: true,
             closeIconColor: Theme.of(context).colorScheme.onSurface,
             behavior: SnackBarBehavior.floating,

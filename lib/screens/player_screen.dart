@@ -206,8 +206,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
             ),
             Container(
               padding: const EdgeInsets.fromLTRB(12, 0, 12, 32),
-              child: Column(
-                children: const [
+              child: const Column(
+                children: [
                   PlayerProgress(),
                   SizedBox(height: 8),
                   SizedBox(height: 8),

@@ -32,7 +32,7 @@ class VttParser extends BaseSubtitleParser {
           index++;
           String text = '';
           while (index < lines.length && lines[index].trim().isNotEmpty) {
-            text += lines[index].trim() + '\n';
+            text += '${lines[index].trim()}\n';
             index++;
           }
           
@@ -54,7 +54,7 @@ class VttParser extends BaseSubtitleParser {
   
   Duration _parseTimeString(String timeString) {
     final parts = timeString.split(':');
-    if (parts.length != 3) throw FormatException('Invalid time format');
+    if (parts.length != 3) throw const FormatException('Invalid time format');
     
     final seconds = parts[2].split('.');
     return Duration(

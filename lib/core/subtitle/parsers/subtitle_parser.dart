@@ -14,7 +14,7 @@ abstract class BaseSubtitleParser implements SubtitleParser {
   @override
   SubtitleList parse(String content) {
     if (!canParse(content)) {
-      throw FormatException('不支持的字幕格式');
+      throw const FormatException('不支持的字幕格式');
     }
     return doParse(content);
   }

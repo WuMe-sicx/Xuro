@@ -1,4 +1,4 @@
-import 'package:asmrapp/screens/contents/playlists_content.dart';
+import 'package:asmrapp/screens/contents/favorites_content.dart';
 import 'package:flutter/material.dart';
 import 'package:asmrapp/widgets/mini_player/mini_player.dart';
 import 'package:asmrapp/widgets/drawer_menu.dart';
@@ -11,7 +11,7 @@ import 'package:asmrapp/presentation/viewmodels/home_viewmodel.dart';
 import 'package:asmrapp/presentation/viewmodels/popular_viewmodel.dart';
 import 'package:asmrapp/presentation/viewmodels/recommend_viewmodel.dart';
 import 'package:asmrapp/presentation/viewmodels/auth_viewmodel.dart';
-import 'package:asmrapp/presentation/viewmodels/playlists_viewmodel.dart';
+import 'package:asmrapp/presentation/viewmodels/favorites_viewmodel.dart';
 
 /// MainScreen 是应用的主界面，负责管理底部导航栏和对应的内容页面。
 /// 它采用了集中式的状态管理架构，所有子页面的 ViewModel 都在这里初始化和提供。
@@ -36,7 +36,7 @@ class _MainScreenState extends State<MainScreen> {
   late final HomeViewModel _homeViewModel;
   late final PopularViewModel _popularViewModel;
   late final RecommendViewModel _recommendViewModel;
-  late final PlaylistsViewModel _playlistsViewModel;
+  late final FavoritesViewModel _favoritesViewModel;
 
   final _titles = const ['收藏', '主页', '为你推荐', '热门作品'];
 
@@ -44,7 +44,7 @@ class _MainScreenState extends State<MainScreen> {
   // 注意：这些页面不应该创建自己的 ViewModel 实例
   // 而是应该通过 Provider.of 或 context.read 获取 MainScreen 提供的实例
   final _pages = const [
-    PlaylistsContent(),
+    FavoritesContent(),
     HomeContent(),
     RecommendContent(),
     PopularContent(),
@@ -60,7 +60,9 @@ class _MainScreenState extends State<MainScreen> {
     _recommendViewModel = RecommendViewModel(
       Provider.of<AuthViewModel>(context, listen: false),
     );
-    _playlistsViewModel = PlaylistsViewModel();
+    _favoritesViewModel = FavoritesViewModel(
+      Provider.of<AuthViewModel>(context, listen: false),
+    );
   }
 
   void _onPageChanged(int index) {
@@ -84,7 +86,7 @@ class _MainScreenState extends State<MainScreen> {
     _homeViewModel.dispose();
     _popularViewModel.dispose();
     _recommendViewModel.dispose();
-    _playlistsViewModel.dispose();
+    _favoritesViewModel.dispose();
     super.dispose();
   }
 
@@ -97,22 +99,24 @@ class _MainScreenState extends State<MainScreen> {
         ChangeNotifierProvider.value(value: _homeViewModel),
         ChangeNotifierProvider.value(value: _popularViewModel),
         ChangeNotifierProvider.value(value: _recommendViewModel),
-        ChangeNotifierProvider.value(value: _playlistsViewModel),
+        ChangeNotifierProvider.value(value: _favoritesViewModel),
       ],
       child: Builder(
         builder: (context) {
           // 根据当前页面获取对应的总数
-          final totalCount = _currentIndex == 1
-              ? context.watch<HomeViewModel>().pagination?.totalCount
-              : _currentIndex == 2
-                  ? context.watch<RecommendViewModel>().pagination?.totalCount
-                  : _currentIndex == 3
-                      ? context.watch<PopularViewModel>().pagination?.totalCount
-                      : null;
+          final totalCount = _currentIndex == 0
+              ? context.watch<FavoritesViewModel>().totalCount
+              : _currentIndex == 1
+                  ? context.watch<HomeViewModel>().pagination?.totalCount
+                  : _currentIndex == 2
+                      ? context.watch<RecommendViewModel>().pagination?.totalCount
+                      : _currentIndex == 3
+                          ? context.watch<PopularViewModel>().pagination?.totalCount
+                          : null;
 
           // 构建标题文本
           final title = totalCount != null
-              ? '${_titles[_currentIndex]} (${totalCount})'
+              ? '${_titles[_currentIndex]} ($totalCount)'
               : _titles[_currentIndex];
 
           return Scaffold(

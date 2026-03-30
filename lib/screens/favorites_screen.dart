@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:asmrapp/widgets/drawer_menu.dart';
+import 'package:asmrapp/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:asmrapp/presentation/viewmodels/favorites_viewmodel.dart';
 import 'package:asmrapp/presentation/layouts/work_layout_strategy.dart';
 import 'package:asmrapp/widgets/pagination_controls.dart';
@@ -17,16 +18,22 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   final _layoutStrategy = const WorkLayoutStrategy();
   final _scrollController = ScrollController();
   late FavoritesViewModel _viewModel;
+  bool _initialized = false;
 
   @override
-  void initState() {
-    super.initState();
-    _viewModel = FavoritesViewModel();
-    _viewModel.loadFavorites();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_initialized) {
+      _initialized = true;
+      final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
+      _viewModel = FavoritesViewModel(authViewModel);
+      _viewModel.loadFavorites();
+    }
   }
 
   @override
   void dispose() {
+    _viewModel.dispose();
     _scrollController.dispose();
     super.dispose();
   }

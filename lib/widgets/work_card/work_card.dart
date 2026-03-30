@@ -21,7 +21,7 @@ class WorkCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       elevation: isDark ? 0 : 1,
       color: isDark 
-          ? Theme.of(context).colorScheme.surfaceVariant
+          ? Theme.of(context).colorScheme.surfaceContainerHighest
           : Theme.of(context).colorScheme.surface,
       child: InkWell(
         onTap: onTap,

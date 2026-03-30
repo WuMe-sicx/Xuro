@@ -107,7 +107,7 @@ class DrawerMenu extends StatelessWidget {
               },
             ),
               Divider(
-                color: Theme.of(context).colorScheme.surfaceVariant,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 height: 1,
               ),
             Consumer<ThemeController>(

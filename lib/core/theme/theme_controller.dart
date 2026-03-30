@@ -33,7 +33,7 @@ class ThemeController extends ChangeNotifier {
 
   // 切换到下一个主题模式
   Future<void> toggleThemeMode() async {
-    final modes = ThemeMode.values;
+    const modes = ThemeMode.values;
     final currentIndex = modes.indexOf(_themeMode);
     final nextIndex = (currentIndex + 1) % modes.length;
     await setThemeMode(modes[nextIndex]);

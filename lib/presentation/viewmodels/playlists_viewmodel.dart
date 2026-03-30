@@ -1,6 +1,5 @@
 import 'package:asmrapp/data/models/works/work.dart';
 import 'package:flutter/foundation.dart';
-import 'package:asmrapp/data/models/my_lists/my_playlists/my_playlists.dart';
 import 'package:asmrapp/data/models/my_lists/my_playlists/playlist.dart';
 import 'package:asmrapp/data/models/my_lists/my_playlists/pagination.dart';
 import 'package:asmrapp/data/services/api_service.dart';

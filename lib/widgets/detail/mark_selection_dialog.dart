@@ -40,11 +40,11 @@ class MarkSelectionDialog extends StatelessWidget {
                   Navigator.of(context).pop();
                 }
               },
-              fillColor: MaterialStateProperty.resolveWith((states) {
-                if (states.contains(MaterialState.disabled)) {
+              fillColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.disabled)) {
                   return isDark ? Colors.white24 : Colors.black26;
                 }
-                if (states.contains(MaterialState.selected)) {
+                if (states.contains(WidgetState.selected)) {
                   return isDark ? Colors.white70 : Colors.black87;
                 }
                 return isDark ? Colors.white38 : Colors.black45;
