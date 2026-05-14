@@ -37,6 +37,20 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- Disable Impeller on Android: falls back to the Skia renderer.
+             Reason: on Xiaomi HyperOS 3 / Android 16 + Adreno GPU we observed
+             a long-session crash (~13 min uptime) with `Vulkan: ErrorDeviceLost`
+             followed by SIGSEGV in libvulkan.so::CmdEndRenderPass+4. The crash
+             stack is entirely inside libflutter.so's Impeller raster path with
+             zero Dart frames — driver-level GPU fault, not an app code bug.
+             Skia is Flutter's battle-tested long-default backend on Android
+             and avoids the Vulkan path that's unstable on this device family.
+             To re-evaluate after upgrading Flutter SDK (3.29+ has many Adreno
+             Impeller fixes); see docs/todos/active/20260515-upgrade-flutter-sdk.md
+             and docs/todos/done/20260515-disable-impeller-android.md (after archive). -->
+        <meta-data
+            android:name="io.flutter.embedding.android.EnableImpeller"
+            android:value="false" />
         <service
           android:name="com.ryanheise.audioservice.AudioService"
           android:foregroundServiceType="mediaPlayback"
