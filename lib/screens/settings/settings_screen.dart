@@ -43,6 +43,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           children: [
             _appearanceSection(),
             const SizedBox(height: 24),
+            _colorVariantSection(),
+            const SizedBox(height: 24),
             _networkSection(),
             const SizedBox(height: 24),
             _contentSection(context),
@@ -96,6 +98,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ],
       ),
     );
+  }
+
+  Widget _colorVariantSection() {
+    return Builder(builder: (context) {
+      final settings = GetIt.I<AppSettingsService>();
+      return ListenableBuilder(
+        listenable: settings,
+        builder: (context, _) => SettingsGroup(
+          header: Strings.colorVariantTitle,
+          footer: Strings.colorVariantDesc,
+          children: [
+            SettingsTile.selection(
+              title: Strings.colorVariantBlue,
+              leading: Icons.circle,
+              selected: settings.colorVariant == ColorVariant.blue,
+              onTap: () => settings.setColorVariant(ColorVariant.blue),
+            ),
+            SettingsTile.selection(
+              title: Strings.colorVariantMono,
+              leading: Icons.circle,
+              selected: settings.colorVariant == ColorVariant.mono,
+              onTap: () => settings.setColorVariant(ColorVariant.mono),
+            ),
+            SettingsTile.selection(
+              title: Strings.colorVariantGreen,
+              leading: Icons.circle,
+              selected: settings.colorVariant == ColorVariant.green,
+              onTap: () => settings.setColorVariant(ColorVariant.green),
+            ),
+          ],
+        ),
+      );
+    });
   }
 
   Widget _networkSection() {

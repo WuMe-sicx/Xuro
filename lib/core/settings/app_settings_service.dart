@@ -1,12 +1,23 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// Top-level accent color variants. Surfaces stay neutral (white/black) across
+/// all variants — only the `primary` token rotates. Persisted by
+/// [AppSettingsService.colorVariant].
+enum ColorVariant {
+  blue,
+  mono,
+  green,
+}
+
 class AppSettingsService extends ChangeNotifier {
   static const String _serverUrlKey = 'server_url';
   static const String _smartPathKey = 'smart_path_enabled';
   static const String _audioFormatOrderKey = 'audio_format_order';
+  static const String _colorVariantKey = 'color_variant';
 
   static const String defaultServerUrl = 'https://api.asmr.one/api';
+  static const ColorVariant defaultColorVariant = ColorVariant.blue;
   static const List<String> defaultAudioFormatOrder = [
     'mp3', 'flac', 'wav', 'opus', 'm4a', 'aac'
   ];
@@ -24,12 +35,18 @@ class AppSettingsService extends ChangeNotifier {
   late String _serverUrl;
   late bool _smartPathEnabled;
   late List<String> _audioFormatOrder;
+  late ColorVariant _colorVariant;
 
   AppSettingsService(this._prefs) {
     _serverUrl = _prefs.getString(_serverUrlKey) ?? defaultServerUrl;
     _smartPathEnabled = _prefs.getBool(_smartPathKey) ?? true;
     final savedOrder = _prefs.getStringList(_audioFormatOrderKey);
     _audioFormatOrder = savedOrder ?? List.from(defaultAudioFormatOrder);
+    final savedVariant = _prefs.getString(_colorVariantKey);
+    _colorVariant = ColorVariant.values.firstWhere(
+      (v) => v.name == savedVariant,
+      orElse: () => defaultColorVariant,
+    );
   }
 
   // === Server URL ===
@@ -67,5 +84,15 @@ class AppSettingsService extends ChangeNotifier {
 
   Future<void> resetAudioFormatOrder() async {
     await setAudioFormatOrder(List.from(defaultAudioFormatOrder));
+  }
+
+  // === Color Variant ===
+  ColorVariant get colorVariant => _colorVariant;
+
+  Future<void> setColorVariant(ColorVariant variant) async {
+    if (_colorVariant == variant) return;
+    _colorVariant = variant;
+    notifyListeners();
+    await _prefs.setString(_colorVariantKey, variant.name);
   }
 }

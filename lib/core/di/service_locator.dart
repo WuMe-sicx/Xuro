@@ -95,7 +95,7 @@ Future<void> setupServiceLocator() async {
 
   // 添加 AuthService 注册
   getIt.registerLazySingleton<AuthService>(
-    () => AuthService(),
+    () => AuthService(settings: getIt<AppSettingsService>()),
   );
 
   // 添加 AuthRepository 注册

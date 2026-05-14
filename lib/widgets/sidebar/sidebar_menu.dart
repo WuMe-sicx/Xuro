@@ -1,10 +1,10 @@
-import 'dart:ui';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:xuro/common/constants/strings.dart';
+import 'package:xuro/core/settings/app_settings_service.dart';
+import 'package:xuro/core/theme/app_colors.dart';
 import 'package:xuro/core/theme/theme_controller.dart';
 import 'package:xuro/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:xuro/presentation/widgets/auth/login_dialog.dart';
@@ -16,6 +16,13 @@ import 'package:xuro/screens/settings/settings_screen.dart';
 import 'package:xuro/widgets/sidebar/sidebar_group.dart';
 import 'package:xuro/widgets/sidebar/sidebar_header.dart';
 import 'package:xuro/widgets/sidebar/sidebar_tile.dart';
+
+/// Single neutral gray used for ALL sidebar menu icon backgrounds. The
+/// previous design had 8 different brand-style colors per icon; the
+/// "two color" simplification collapses them to one neutral so the only
+/// chromatic accents in the drawer are the avatar / arrow / footer dot,
+/// which all draw from `Theme.of(context).colorScheme.primary`.
+const Color _kIconBgGray = Color(0xFF8E8E93);
 
 class SidebarMenu extends StatelessWidget {
   const SidebarMenu({super.key});
@@ -86,10 +93,20 @@ class SidebarMenu extends StatelessWidget {
             _drawerMobileMaxWidth,
           );
 
-    // Force dark, glassy palette inside the drawer regardless of app theme so
-    // the visual identity stays consistent in both light and dark mode.
+    // Force dark, glassy palette inside the drawer regardless of app theme.
+    //
+    // IMPORTANT: do NOT just `copyWith(brightness: Brightness.dark)` — that
+    // only flips the brightness flag and keeps the LIGHT variant's primary,
+    // which on a near-black drawer background turns the avatar / glow / footer
+    // dot invisible (e.g. mono variant in light mode → primary stays black).
+    // Build the local Theme from the explicit dark ColorScheme of the active
+    // ColorVariant so the accent rotates correctly across blue/mono/green.
+    final variant = context.watch<AppSettingsService>().colorVariant;
     return Theme(
-      data: Theme.of(context).copyWith(brightness: Brightness.dark),
+      data: Theme.of(context).copyWith(
+        brightness: Brightness.dark,
+        colorScheme: AppColors.darkSchemeFor(variant),
+      ),
       child: Drawer(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -108,11 +125,15 @@ class SidebarMenu extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
+              // Note: an earlier version stacked a fullscreen
+              // BackdropFilter(blur 18) + 18% black overlay on top of
+              // _DrawerBackground. PerfDog showed that the very first
+              // open of the drawer cost ~256ms on real Android (Impeller
+              // offscreen layer + shader). The blur was visually a no-op
+              // because _DrawerBackground is opaque, and the 18% darken
+              // has been folded into the gradient stops below — so the
+              // BackdropFilter has been removed outright.
               const _DrawerBackground(),
-              BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-                child: Container(color: Colors.black.withValues(alpha: 0.18)),
-              ),
               const _RightEdgeHighlight(),
               SafeArea(
                 child: CustomScrollView(
@@ -129,14 +150,14 @@ class SidebarMenu extends StatelessWidget {
                               SidebarTile(
                                 icon: CupertinoIcons.heart_fill,
                                 iconColor: Colors.white,
-                                iconBackgroundColor: const Color(0xFFFF3B30),
+                                iconBackgroundColor: _kIconBgGray,
                                 title: Strings.favorites,
                                 onTap: () => _navigateToFavorites(context),
                               ),
                               SidebarTile(
                                 icon: CupertinoIcons.clock_fill,
                                 iconColor: Colors.white,
-                                iconBackgroundColor: const Color(0xFF8E5CFF),
+                                iconBackgroundColor: _kIconBgGray,
                                 title: Strings.recentPlay,
                                 onTap: () => _showComingSoon(
                                   context,
@@ -153,7 +174,7 @@ class SidebarMenu extends StatelessWidget {
                               SidebarTile(
                                 icon: CupertinoIcons.tag_fill,
                                 iconColor: Colors.white,
-                                iconBackgroundColor: const Color(0xFF2F8CFF),
+                                iconBackgroundColor: _kIconBgGray,
                                 title: Strings.tags,
                                 onTap: () =>
                                     _navigate(context, const TagsScreen()),
@@ -161,7 +182,7 @@ class SidebarMenu extends StatelessWidget {
                               SidebarTile(
                                 icon: Icons.group,
                                 iconColor: Colors.white,
-                                iconBackgroundColor: const Color(0xFF2DC472),
+                                iconBackgroundColor: _kIconBgGray,
                                 title: Strings.circles,
                                 onTap: () =>
                                     _navigate(context, const CirclesScreen()),
@@ -169,7 +190,7 @@ class SidebarMenu extends StatelessWidget {
                               SidebarTile(
                                 icon: CupertinoIcons.mic_fill,
                                 iconColor: Colors.white,
-                                iconBackgroundColor: const Color(0xFFFF8A1F),
+                                iconBackgroundColor: _kIconBgGray,
                                 title: Strings.voiceActors,
                                 onTap: () => _navigate(
                                   context,
@@ -179,7 +200,7 @@ class SidebarMenu extends StatelessWidget {
                               SidebarTile(
                                 icon: Icons.bar_chart_rounded,
                                 iconColor: Colors.white,
-                                iconBackgroundColor: const Color(0xFFB05CFF),
+                                iconBackgroundColor: _kIconBgGray,
                                 title: Strings.ranking,
                                 onTap: () =>
                                     _showComingSoon(context, Strings.ranking),
@@ -196,8 +217,7 @@ class SidebarMenu extends StatelessWidget {
                                   SidebarTile(
                                     icon: CupertinoIcons.settings,
                                     iconColor: Colors.white,
-                                    iconBackgroundColor:
-                                        const Color(0xFF8E8E93),
+                                    iconBackgroundColor: _kIconBgGray,
                                     title: Strings.settings,
                                     onTap: () => _navigate(
                                       context,
@@ -207,8 +227,7 @@ class SidebarMenu extends StatelessWidget {
                                   SidebarTile(
                                     icon: CupertinoIcons.moon_stars_fill,
                                     iconColor: Colors.white,
-                                    iconBackgroundColor:
-                                        const Color(0xFF5C6BFF),
+                                    iconBackgroundColor: _kIconBgGray,
                                     title: Strings.darkModeMenu,
                                     onTap: themeController.toggleThemeMode,
                                     trailing: _ThemeModeBadge(
@@ -220,8 +239,7 @@ class SidebarMenu extends StatelessWidget {
                                   SidebarTile(
                                     icon: CupertinoIcons.info_circle_fill,
                                     iconColor: Colors.white,
-                                    iconBackgroundColor:
-                                        const Color(0xFF38B6FF),
+                                    iconBackgroundColor: _kIconBgGray,
                                     title: Strings.aboutUs,
                                     onTap: () => _navigate(
                                       context,
@@ -255,37 +273,41 @@ class _DrawerBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Neutral dark gradient — no hue. Works equally for blue / mono / green
+    // accent variants. The two soft glows below are tinted with the active
+    // theme's primary so the drawer picks up the user's chosen accent.
+    final accent = Theme.of(context).colorScheme.primary;
     return DecoratedBox(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(0xFF0E0B1F), // deep navy-black
-            Color(0xFF1A1136), // navy-purple
-            Color(0xFF241445), // purple-black
+            Color(0xFF0A0A0A), // near-black
+            Color(0xFF111111),
+            Color(0xFF161616),
           ],
           stops: [0.0, 0.55, 1.0],
         ),
       ),
       child: Stack(
         children: [
-          // Faint purple aurora glow at the top.
+          // Faint accent aurora glow at the top.
           Positioned(
             top: -120,
             left: -80,
             child: _SoftGlow(
               size: 320,
-              color: const Color(0xFF7C5CFF).withValues(alpha: 0.30),
+              color: accent.withValues(alpha: 0.22),
             ),
           ),
-          // Faint blue glow near bottom.
+          // Fainter accent glow near bottom (lower alpha for asymmetry).
           Positioned(
             bottom: -140,
             right: -60,
             child: _SoftGlow(
               size: 280,
-              color: const Color(0xFF3D7BFF).withValues(alpha: 0.18),
+              color: accent.withValues(alpha: 0.12),
             ),
           ),
         ],
@@ -397,6 +419,7 @@ class _SidebarFooterState extends State<_SidebarFooter> {
           final label = snapshot.hasData
               ? 'Xuro v${snapshot.data!.version}'
               : 'Xuro';
+          final accent = Theme.of(context).colorScheme.primary;
           return Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -405,10 +428,10 @@ class _SidebarFooterState extends State<_SidebarFooter> {
                 height: 6,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: const Color(0xFF7C5CFF),
+                  color: accent,
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF7C5CFF).withValues(alpha: 0.7),
+                      color: accent.withValues(alpha: 0.7),
                       blurRadius: 8,
                     ),
                   ],

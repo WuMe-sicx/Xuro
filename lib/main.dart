@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:xuro/common/constants/strings.dart';
 import 'package:xuro/core/audio/cache/audio_cache_manager.dart';
 import 'package:xuro/core/cache/cache_lifecycle_manager.dart';
+import 'package:xuro/core/settings/app_settings_service.dart';
 import 'package:xuro/presentation/viewmodels/auth_viewmodel.dart';
 import 'core/di/service_locator.dart';
 import 'package:provider/provider.dart';
@@ -37,13 +38,17 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => getIt<ThemeController>(),
         ),
+        ChangeNotifierProvider.value(
+          value: getIt<AppSettingsService>(),
+        ),
       ],
-      child: Consumer<ThemeController>(
-        builder: (context, themeController, child) {
+      child: Consumer2<ThemeController, AppSettingsService>(
+        builder: (context, themeController, settings, child) {
+          final variant = settings.colorVariant;
           return MaterialApp(
             title: Strings.appName,
-            theme: AppTheme.light,
-            darkTheme: AppTheme.dark,
+            theme: AppTheme.light(variant),
+            darkTheme: AppTheme.dark(variant),
             themeMode: themeController.themeMode,
             home: const MainScreen(),
             routes: {

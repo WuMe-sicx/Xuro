@@ -5,28 +5,22 @@ import 'package:xuro/common/constants/strings.dart';
 import 'package:xuro/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:xuro/presentation/widgets/auth/login_dialog.dart';
 
-class SidebarHeader extends StatelessWidget {
+class SidebarHeader extends StatefulWidget {
   const SidebarHeader({super.key});
 
-  /// Closes the drawer, then opens [builder] via the root navigator so it
-  /// inherits the global app theme rather than the local dark `Theme`
-  /// override applied inside the drawer.
-  void _closeDrawerThenShowDialog(
-    BuildContext context,
-    WidgetBuilder builder,
-  ) {
-    final rootNavigator = Navigator.of(context, rootNavigator: true);
-    Navigator.pop(context); // close drawer
-    showDialog(
-      context: rootNavigator.context,
-      useRootNavigator: true,
-      builder: builder,
-    );
-  }
+  @override
+  State<SidebarHeader> createState() => _SidebarHeaderState();
+}
 
-  void _showLogoutDialog(BuildContext context, AuthViewModel authVM) {
+class _SidebarHeaderState extends State<SidebarHeader> {
+  // Guards against fast double-taps during the drawer's pop animation. Once
+  // a tap has scheduled a dialog, ignore further taps until that dialog has
+  // closed; otherwise multiple post-frame callbacks could each push their
+  // own dialog onto the root navigator.
+  bool _dialogScheduled = false;
+
+  void _showLogoutDialog(AuthViewModel authVM) {
     _closeDrawerThenShowDialog(
-      context,
       (dialogContext) => AlertDialog(
         title: const Text('提示'),
         content: const Text('确认退出登录？'),
@@ -38,6 +32,12 @@ class SidebarHeader extends StatelessWidget {
           TextButton(
             onPressed: () async {
               await authVM.logout();
+              // Use dialogContext.mounted (not NavigatorState.mounted) — we
+              // need to know whether THIS dialog route is still showing, not
+              // just whether the root navigator exists. If the user dismissed
+              // the dialog (back button / barrier tap) during the await, this
+              // check returns false and we skip the pop, avoiding accidentally
+              // popping the underlying page.
               if (!dialogContext.mounted) return;
               Navigator.pop(dialogContext);
             },
@@ -53,8 +53,39 @@ class SidebarHeader extends StatelessWidget {
     );
   }
 
-  void _showLoginDialog(BuildContext context) {
-    _closeDrawerThenShowDialog(context, (_) => const LoginDialog());
+  void _showLoginDialog() {
+    _closeDrawerThenShowDialog((_) => const LoginDialog());
+  }
+
+  /// Closes the drawer, then opens [builder] via the root navigator so it
+  /// inherits the global app theme rather than the local dark `Theme`
+  /// override applied inside the drawer.
+  ///
+  /// The pop and the showDialog are intentionally split across two frames via
+  /// [WidgetsBinding.instance.addPostFrameCallback]. Doing both in the same
+  /// frame on the same navigator caused intermittent symptoms in the wild —
+  /// the drawer would close but the dialog would never appear (so the user
+  /// "couldn't log out"), and occasionally the route transition would crash.
+  void _closeDrawerThenShowDialog(WidgetBuilder builder) {
+    if (_dialogScheduled) return;
+    _dialogScheduled = true;
+
+    final rootNavigator = Navigator.of(context, rootNavigator: true);
+    Navigator.maybePop(context); // close drawer if it's still open
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!rootNavigator.mounted) {
+        if (mounted) _dialogScheduled = false;
+        return;
+      }
+      showDialog<void>(
+        context: rootNavigator.context,
+        useRootNavigator: true,
+        builder: builder,
+      ).whenComplete(() {
+        if (mounted) _dialogScheduled = false;
+      });
+    });
   }
 
   @override
@@ -77,9 +108,9 @@ class SidebarHeader extends StatelessWidget {
               behavior: HitTestBehavior.opaque,
               onTap: () {
                 if (isLoggedIn) {
-                  _showLogoutDialog(context, authVM);
+                  _showLogoutDialog(authVM);
                 } else {
-                  _showLoginDialog(context);
+                  _showLoginDialog();
                 }
               },
               child: Container(
@@ -100,7 +131,10 @@ class SidebarHeader extends StatelessWidget {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF6750A4).withValues(alpha: 0.18),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withValues(alpha: 0.18),
                       blurRadius: 22,
                       offset: const Offset(0, 8),
                     ),
@@ -157,22 +191,24 @@ class _ProfileAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final accent = Theme.of(context).colorScheme.primary;
+    // Hand-roll a gradient from the accent to a darker variant of itself,
+    // so all 3 color variants (blue / mono / green) get a coherent depth
+    // effect instead of a fixed purple gradient.
+    final accentDark = Color.lerp(accent, Colors.black, 0.45)!;
     return Container(
       width: 54,
       height: 54,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF7C5CFF),
-            Color(0xFF3D2C8F),
-          ],
+          colors: [accent, accentDark],
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF7C5CFF).withValues(alpha: 0.45),
+            color: accent.withValues(alpha: 0.45),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -217,21 +253,22 @@ class _ArrowButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final accent = Theme.of(context).colorScheme.primary;
     return Container(
       width: 34,
       height: 34,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: Colors.white.withValues(alpha: 0.10),
+        color: accent.withValues(alpha: 0.12),
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.18),
+          color: accent.withValues(alpha: 0.30),
           width: 0.6,
         ),
       ),
       child: Icon(
         CupertinoIcons.arrow_right,
         size: 16,
-        color: Colors.white.withValues(alpha: 0.85),
+        color: accent,
       ),
     );
   }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:xuro/common/constants/strings.dart';
 import 'package:xuro/presentation/viewmodels/auth_viewmodel.dart';
+import 'package:xuro/presentation/widgets/auth/register_dialog.dart';
 import 'package:xuro/utils/logger.dart';
 
 class LoginDialog extends StatefulWidget {
@@ -25,10 +27,10 @@ class _LoginDialogState extends State<LoginDialog> {
   Future<void> _handleLogin() async {
     final name = _nameController.text.trim();
     AppLogger.info('LoginDialog: 尝试登录: name=$name');
-    
+
     final authVM = context.read<AuthViewModel>();
     await authVM.login(name, _passwordController.text);
-    
+
     if (mounted) {
       if (authVM.error == null) {
         AppLogger.info('LoginDialog: 登录成功，关闭对话框');
@@ -37,6 +39,17 @@ class _LoginDialogState extends State<LoginDialog> {
         AppLogger.error('LoginDialog: 登录失败: ${authVM.error}');
       }
     }
+  }
+
+  void _switchToRegister() {
+    final navigator = Navigator.of(context);
+    context.read<AuthViewModel>().clearError();
+    navigator.pop();
+    showDialog(
+      context: navigator.context,
+      useRootNavigator: true,
+      builder: (_) => const RegisterDialog(),
+    );
   }
 
   @override
@@ -88,6 +101,13 @@ class _LoginDialogState extends State<LoginDialog> {
               }
               return const SizedBox.shrink();
             },
+          ),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton(
+              onPressed: _switchToRegister,
+              child: const Text(Strings.registerCta),
+            ),
           ),
         ],
       ),

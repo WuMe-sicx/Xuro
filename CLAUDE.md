@@ -54,6 +54,8 @@ fvm flutter build ios --no-codesign
 
 **Environment:** Dart SDK >=3.2.3 <4.0.0, Flutter 3.27.0 (FVM-pinned), Android min SDK 21 / target 33, Java 17.
 
+**Renderer (Android):** Impeller is **disabled** via `io.flutter.embedding.android.EnableImpeller=false` in `android/app/src/main/AndroidManifest.xml` — Android builds use the Skia backend. Reason: real-device `Vulkan: ErrorDeviceLost` → `SIGSEGV in libvulkan.so::CmdEndRenderPass+4` long-session crashes on Xiaomi HyperOS 3 / Android 16 + Adreno (driver-level GPU fault, zero Dart frames). Don't re-enable Impeller without first upgrading the Flutter SDK (3.29+ has many Adreno fixes) and re-running a 30+ min real-device session — see `docs/todos/active/20260515-upgrade-flutter-sdk.md`. iOS continues to use Impeller (default and stable there).
+
 ## Architecture
 
 Clean Architecture with three layers, using **Provider (ChangeNotifier)** for state management and **GetIt** for dependency injection.
@@ -65,7 +67,7 @@ Clean Architecture with three layers, using **Provider (ChangeNotifier)** for st
   - `audio/` - Audio playback system: `IAudioPlayerService` interface + implementation, PlaybackEventHub (event bus pattern), state persistence, notification handling
   - `subtitle/` - Subtitle/lyric system: `ISubtitleService` interface, parsers (VTT etc.), subtitle loader with caching
   - `platform/` - Platform-specific: `ILyricOverlayController` (Android floating lyric window, dummy on other platforms), WakeLockController
-  - `theme/` - ThemeController with light/dark mode, AppTheme definitions
+  - `theme/` - Theme is determined by **two axes**: `ThemeMode` (light/dark/system, owned by `ThemeController`) × `ColorVariant` (blue/mono/green, owned by `AppSettingsService`). `AppColors.lightSchemeFor(variant)` / `darkSchemeFor(variant)` produce 6 hand-rolled `ColorScheme`s; surfaces are neutral, only `primary` / `onPrimary` / `primaryContainer` rotate. Do not use `ColorScheme.fromSeed` here — it would derive secondary/tertiary in another hue and break the "two-color" simplification.
   - `cache/` - RecommendationCacheManager
   - `database/` - `database_service.dart` (local persistence)
   - `image/cache/` - Image cache layer used by network image widgets
@@ -73,8 +75,8 @@ Clean Architecture with three layers, using **Provider (ChangeNotifier)** for st
 
 - **`lib/data/`** - Data layer
   - `models/` - Freezed immutable data classes (auto-generated `.freezed.dart` + `.g.dart` files)
-  - `services/api_service.dart` - Dio HTTP client hitting `https://api.asmr.one/api`
-  - `services/auth_service.dart` - Authentication
+  - `services/api_service.dart` - Dio HTTP client; baseUrl is read from `AppSettingsService.serverUrl` and updated when the user switches nodes
+  - `services/auth_service.dart` - Login (`/auth/me`) and register (`/auth/reg`); also injects `AppSettingsService` so auth requests follow the user's selected node. Defines `RegisteredButNotLoggedInException` for the case where account creation succeeds but the auto-login fallback fails — callers must distinguish this from a register failure
   - `services/interceptors/auth_interceptor.dart` - Dio auth interceptor
   - `repositories/` - Repository implementations (AuthRepository, audio state)
 
@@ -83,11 +85,11 @@ Clean Architecture with three layers, using **Provider (ChangeNotifier)** for st
   - `viewmodels/player_viewmodel.dart` - Central player state, depends on AudioService + SubtitleService + EventHub
   - `layouts/` - `work_layout_config.dart` / `work_layout_strategy.dart` (responsive grid sizing — see ui-design-spec §5)
   - `models/filter_state.dart` - UI-only state object for the filter panel
-  - `widgets/auth/` - Auth UI widgets (e.g., `LoginDialog`)
+  - `widgets/auth/` - Auth UI widgets: `LoginDialog` and `RegisterDialog`. They cross-link via root navigator (`useRootNavigator: true`) so the sidebar's local dark `Theme` doesn't leak into the dialog, and call `AuthViewModel.clearError()` on the way out to avoid stale error text in the freshly opened dialog
 
 - **`lib/screens/`** - Full-page screens. `MainScreen` is the tab-based root. `contents/` holds the tab content widgets; `browse/` holds tag/circle/voice-actor lists; `settings/` holds the settings tree
 
-- **`lib/widgets/`** - Reusable UI components (work cards, player controls, lyrics, mini player, filters, sidebar drawer). The sidebar (`widgets/sidebar/`) is a glassmorphism-styled drawer with its own dark palette enforced via a local `Theme` override — don't expect it to follow the global ColorScheme
+- **`lib/widgets/`** - Reusable UI components (work cards, player controls, lyrics, mini player, filters, sidebar drawer). The sidebar (`widgets/sidebar/`) is a glassmorphism-styled drawer with its own dark palette enforced via a local `Theme` override — don't expect it to follow the global ColorScheme. **When forcing dark inside the drawer, do NOT just `copyWith(brightness: dark)`** — that flips the brightness flag but keeps the light variant's `primary`, which makes accents invisible (e.g. mono variant in light mode → primary stays black, glow/avatar/footer dot disappear on near-black background). Instead use `copyWith(brightness: dark, colorScheme: AppColors.darkSchemeFor(variant))` and read the variant from `context.watch<AppSettingsService>().colorVariant`. `SidebarHeader` launches dialogs via `addPostFrameCallback` (same-frame `Navigator.pop` + `showDialog` on the same navigator caused intermittent crashes / "no-show" in production) and uses a `_dialogScheduled` reentrancy flag — preserve both when adding new actions to that widget. **Don't add a fullscreen `BackdropFilter` to this drawer**: the underlying gradient is opaque so any blur is a visual no-op, but it caused a 256ms first-open jank on real Android (PerfDog evidence in `docs/todos/done/20260515-sidebar-first-open-jank.md`). All chromatic accents (avatar / arrow / footer dot / glows / card shadow) draw from `Theme.of(context).colorScheme.primary`; menu icon backgrounds are a single neutral `_kIconBgGray` so the only color in the drawer is the active variant's accent.
 
 - **`lib/utils/`** - Cross-cutting utilities: `logger.dart`, `file_size_formatter.dart`
 
@@ -107,7 +109,15 @@ Clean Architecture with three layers, using **Provider (ChangeNotifier)** for st
 
 ### API
 
-All API calls go through `ApiService` using Dio, base URL `https://api.asmr.one/api`. Auth handled by `AuthInterceptor`. Key endpoints: `/works`, `/tracks/{id}`, `/search/{keyword}`, `/review`, `/recommender/*`, `/playlist/*`.
+Two Dio clients, both pointed at the user-selected node:
+- `ApiService` — content endpoints (`/works`, `/tracks/{id}`, `/search/{keyword}`, `/review`, `/recommender/*`, `/playlist/*`, `/tags/`, `/circles/`, `/vas/`, `/workInfo/{id}`). Auth header added by `AuthInterceptor`.
+- `AuthService` — `/auth/me` (login) and `/auth/reg` (register). Owns its own Dio instance, no auth interceptor.
+
+Both services subscribe to `AppSettingsService` and rotate `dio.options.baseUrl` when the user switches nodes. Available nodes (defined in `AppSettingsService.serverOptions`):
+- `https://api.asmr.one/api` (主站, default)
+- `https://api.asmr-100.com/api` / `-200` / `-300` (mirror nodes)
+
+When adding a new HTTP-touching service, follow the `_onSettingsChanged` pattern in `ApiService`/`AuthService` — don't hardcode the host.
 
 ## CI/CD
 

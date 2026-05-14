@@ -61,6 +61,40 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
+  Future<void> register(
+    String name,
+    String password, {
+    String? recommenderUuid,
+  }) async {
+    if (_isLoading) return;
+
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      AppLogger.info('AuthViewModel: 开始注册流程');
+      _authData = await _authService.register(
+        name,
+        password,
+        recommenderUuid: recommenderUuid,
+      );
+
+      await _authRepository.saveAuthData(_authData!);
+
+      AppLogger.info(
+        '注册成功: name=${_authData?.user?.name}, group=${_authData?.user?.group}',
+      );
+    } catch (e) {
+      AppLogger.error('AuthViewModel: 注册失败', e);
+      _error = e.toString();
+      _authData = null;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> logout() async {
     AppLogger.info('AuthViewModel: 执行登出');
     AppLogger.info('''
@@ -78,6 +112,14 @@ class AuthViewModel extends ChangeNotifier {
   bool get isLoggedIn => _authData?.user != null;
   bool get isLoading => _isLoading;
   String? get error => _error;
+
+  /// Clears the last login/register error so a freshly opened dialog doesn't
+  /// inherit a stale message from a previous attempt.
+  void clearError() {
+    if (_error == null) return;
+    _error = null;
+    notifyListeners();
+  }
   String? get username => _authData?.user?.name;
   String? get token => _authData?.token;
   String? get group => _authData?.user?.group;

@@ -86,4 +86,26 @@ class Strings {
   static const String originalRepoUrl = 'https://github.com/asmroneapp/Yuro';
   static const String telegramChannel = 'Telegram 频道';
   static const String telegramChannelUrl = 'https://t.me/XuroAsmr';
+
+  // Auth — register
+  static const String register = '注册';
+  static const String registerTitle = '注册账号';
+  static const String registerCta = '没有账号？去注册';
+  static const String haveAccountCta = '已有账号？去登录';
+  static const String username = '用户名';
+  static const String password = '密码';
+  static const String passwordConfirm = '确认密码';
+  static const String nameTooShort = '用户名至少 5 位';
+  static const String passwordTooShort = '密码至少 5 位';
+  static const String passwordMismatch = '两次输入的密码不一致';
+  static const String registerSuccess = '注册成功，已自动登录';
+  static const String registerOkButLoginFailed =
+      '注册成功，但自动登录失败，请用刚才的账号密码登录';
+
+  // Settings — color variant
+  static const String colorVariantTitle = '主色调';
+  static const String colorVariantDesc = '切换 App 主色，深色 / 浅色模式独立生效';
+  static const String colorVariantBlue = '蓝';
+  static const String colorVariantMono = '黑';
+  static const String colorVariantGreen = '绿';
 }
