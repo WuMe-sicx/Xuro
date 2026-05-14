@@ -35,6 +35,24 @@ class Strings {
   static const String home = '主页';
   static const String favorites = '我的收藏';
   static const String settings = '设置';
+  static const String drawerSectionContent = '内容';
+  static const String drawerSectionDiscover = '发现';
+  static const String drawerSectionSystem = '系统';
+  static const String recentPlay = '最近播放';
+  static const String tags = '标签';
+  static const String circles = '社团';
+  static const String voiceActors = '声优';
+  static const String ranking = '排行榜';
+  static const String darkModeMenu = '深色模式';
+  static const String aboutUs = '关于我们';
+  static const String comingSoon = '敬请期待';
+  static const String loginCta = '立即登录';
+  static const String loginCtaSubtitle = '同步收藏与记录';
+  static const String loggedInFallback = '已登录';
+  static const String loggedInSubtitle = '点击管理账户';
+  static const String themeModeLight = '浅色';
+  static const String themeModeDark = '深色';
+  static const String themeModeSystem = '系统';
 
   // Settings sections
   static const String appearance = '外观';

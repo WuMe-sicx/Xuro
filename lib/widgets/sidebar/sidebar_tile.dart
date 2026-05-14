@@ -11,6 +11,7 @@ class SidebarTile extends StatefulWidget {
     required this.title,
     required this.onTap,
     this.showSeparator = true,
+    this.trailing,
   });
 
   final IconData icon;
@@ -19,6 +20,9 @@ class SidebarTile extends StatefulWidget {
   final String title;
   final VoidCallback onTap;
   final bool showSeparator;
+
+  /// Custom trailing widget. Defaults to a thin chevron when null.
+  final Widget? trailing;
 
   @override
   State<SidebarTile> createState() => _SidebarTileState();
@@ -29,78 +33,107 @@ class _SidebarTileState extends State<SidebarTile> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return Semantics(
       button: true,
       label: widget.title,
       child: GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTapDown: (_) => setState(() => _isPressed = true),
-      onTapUp: (_) {
-        setState(() => _isPressed = false);
-        widget.onTap();
-      },
-      onTapCancel: () => setState(() => _isPressed = false),
-      child: AnimatedContainer(
-        duration: AppAnimations.micro,
-        color: _isPressed
-            ? colorScheme.onSurface.withValues(alpha: 0.06)
-            : Colors.transparent,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 11),
-                child: Row(
-                  children: [
-                    // Colored icon square
-                    Container(
-                      width: 30,
-                      height: 30,
-                      decoration: BoxDecoration(
-                        color: widget.iconBackgroundColor,
-                        borderRadius: BorderRadius.circular(7),
+        behavior: HitTestBehavior.opaque,
+        onTapDown: (_) => setState(() => _isPressed = true),
+        onTapUp: (_) {
+          setState(() => _isPressed = false);
+          widget.onTap();
+        },
+        onTapCancel: () => setState(() => _isPressed = false),
+        child: AnimatedContainer(
+          duration: AppAnimations.micro,
+          color: _isPressed
+              ? Colors.white.withValues(alpha: 0.06)
+              : Colors.transparent,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Row(
+                    children: [
+                      _ColoredIconBadge(
+                        icon: widget.icon,
+                        iconColor: widget.iconColor,
+                        backgroundColor: widget.iconBackgroundColor,
                       ),
-                      child: Icon(
-                        widget.icon,
-                        color: widget.iconColor,
-                        size: 18,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        widget.title,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w400,
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Text(
+                          widget.title,
+                          style: const TextStyle(
+                            fontSize: 15.5,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                            letterSpacing: 0.1,
+                          ),
                         ),
                       ),
-                    ),
-                    Icon(
-                      CupertinoIcons.chevron_right,
-                      size: 14,
-                      color: colorScheme.onSurface.withValues(alpha: 0.3),
-                    ),
-                  ],
+                      widget.trailing ??
+                          Icon(
+                            CupertinoIcons.chevron_right,
+                            size: 13,
+                            color: Colors.white.withValues(alpha: 0.35),
+                          ),
+                    ],
+                  ),
                 ),
-              ),
-              if (widget.showSeparator)
-                Divider(
-                  height: 1,
-                  thickness: 0.5,
-                  // Inset starts after leading area: 30(icon) + 12(gap) = 42
-                  indent: 42,
-                  endIndent: 0,
-                  color: colorScheme.onSurface.withValues(alpha: 0.1),
-                ),
-            ],
+                if (widget.showSeparator)
+                  Container(
+                    height: 0.5,
+                    margin: const EdgeInsets.only(left: 46),
+                    color: Colors.white.withValues(alpha: 0.06),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
-    ));
+    );
+  }
+}
+
+class _ColoredIconBadge extends StatelessWidget {
+  const _ColoredIconBadge({
+    required this.icon,
+    required this.iconColor,
+    required this.backgroundColor,
+  });
+
+  final IconData icon;
+  final Color iconColor;
+  final Color backgroundColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            backgroundColor,
+            Color.lerp(backgroundColor, Colors.black, 0.18) ?? backgroundColor,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(9),
+        boxShadow: [
+          BoxShadow(
+            color: backgroundColor.withValues(alpha: 0.35),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Icon(icon, color: iconColor, size: 18),
+    );
   }
 }
