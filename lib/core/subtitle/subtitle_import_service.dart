@@ -81,30 +81,76 @@ class SubtitleImportService {
         return const ImportResponse(ImportResult.parseFailed);
       }
 
-      // 5. Compute destination path and clean up old file if re-importing
+      // 5. Atomic write. rename(2) on the same filesystem is atomic, so
+      //    destPath is never half-written. To keep the invariant "any
+      //    failure ⇒ the user's existing subtitle is unchanged" even for a
+      //    same-path re-import (where rename would overwrite the old file),
+      //    the old destPath file is moved aside to a backup first and
+      //    restored if copy/rename/upsert fails.
       final destPath = await _getDestPath(workId, fileName, ext);
       final existingEntry = await _repository.find(workId, fileName);
-      if (existingEntry != null && existingEntry.subtitlePath != destPath) {
-        final oldFile = File(existingEntry.subtitlePath);
-        if (await oldFile.exists()) {
-          await oldFile.delete();
-          AppLogger.debug('删除旧的导入字幕文件: ${existingEntry.subtitlePath}');
+      final tmpPath = '$destPath.import_tmp';
+      final bakPath = '$destPath.import_bak';
+      final tmpFile = File(tmpPath);
+      final bakFile = File(bakPath);
+      var backedUp = false;
+      try {
+        // Stage new content first; if this fails nothing has been disturbed.
+        await file.copy(tmpPath);
+
+        // Move any existing destPath file aside so it can be restored.
+        if (await File(destPath).exists()) {
+          await File(destPath).rename(bakPath);
+          backedUp = true;
         }
+
+        await tmpFile.rename(destPath);
+
+        // 6. Persist association to SQLite (destPath now holds full content)
+        final entry = UserSubtitleEntry(
+          workId: workId,
+          fileName: fileName,
+          subtitlePath: destPath,
+          originalName: originalName,
+          format: ext.replaceFirst('.', ''),
+          createdAt: DateTime.now().millisecondsSinceEpoch,
+        );
+        await _repository.upsert(entry);
+
+        // Success → drop the backup of the just-replaced same-path file.
+        if (backedUp) {
+          try {
+            if (await bakFile.exists()) await bakFile.delete();
+          } catch (_) {}
+        }
+      } catch (e) {
+        // Clean up the temp file and restore the user's previous subtitle
+        // so a failure never destroys existing data.
+        try {
+          if (await tmpFile.exists()) await tmpFile.delete();
+        } catch (_) {}
+        if (backedUp) {
+          try {
+            await bakFile.rename(destPath);
+          } catch (_) {}
+        }
+        rethrow;
       }
 
-      // 6. Copy to app-private storage
-      await file.copy(destPath);
-
-      // 7. Persist association to SQLite
-      final entry = UserSubtitleEntry(
-        workId: workId,
-        fileName: fileName,
-        subtitlePath: destPath,
-        originalName: originalName,
-        format: ext.replaceFirst('.', ''),
-        createdAt: DateTime.now().millisecondsSinceEpoch,
-      );
-      await _repository.upsert(entry);
+      // 7. Only after full success: drop the old file if it lived at a
+      //    different path (ext change). Best-effort — an orphan here is
+      //    harmless since the DB already points to the new file.
+      if (existingEntry != null && existingEntry.subtitlePath != destPath) {
+        try {
+          final oldFile = File(existingEntry.subtitlePath);
+          if (await oldFile.exists()) {
+            await oldFile.delete();
+            AppLogger.debug('删除旧的导入字幕文件: ${existingEntry.subtitlePath}');
+          }
+        } catch (e) {
+          AppLogger.warning('旧字幕文件清理失败（已成功导入新字幕，孤儿无害）: $e');
+        }
+      }
 
       AppLogger.debug('字幕导入成功: $originalName -> $workId/$fileName');
       return ImportResponse(ImportResult.success, subtitleList);
@@ -138,18 +184,39 @@ class SubtitleImportService {
     }
   }
 
-  /// Remove imported subtitle: delete local file + DB entry.
+  /// Remove imported subtitle. DB row is removed FIRST (consistency-critical:
+  /// a stale row pointing at a missing file makes the app think a subtitle
+  /// still exists), then the local file is best-effort deleted (an orphan
+  /// file is harmless disk waste and never blocks/rolls back the DB removal).
   Future<void> removeImportedSubtitle(String workId, String fileName) async {
+    String? filePath;
     try {
       final entry = await _repository.find(workId, fileName);
-      if (entry != null) {
-        final file = File(entry.subtitlePath);
-        if (await file.exists()) await file.delete();
-      }
-      await _repository.remove(workId, fileName);
-      AppLogger.debug('已移除导入字幕: $workId/$fileName');
+      filePath = entry?.subtitlePath;
     } catch (e) {
-      AppLogger.error('移除导入字幕失败', e);
+      AppLogger.error('查询待移除字幕关联失败', e);
+    }
+
+    var dbRemoved = false;
+    try {
+      await _repository.remove(workId, fileName);
+      dbRemoved = true;
+    } catch (e) {
+      AppLogger.error('移除字幕 DB 关联失败（一致性关键），保留本地文件以免产生指向缺失文件的失效行', e);
+    }
+
+    // 仅在 DB 行确实删除后才删本地文件：否则会留下"文件已删、DB 行还在"
+    // 的失效行（app 会误判字幕仍存在）；DB 删失败时保留文件，关联仍可用。
+    if (dbRemoved && filePath != null) {
+      try {
+        final file = File(filePath);
+        if (await file.exists()) await file.delete();
+      } catch (e) {
+        AppLogger.warning('移除字幕本地文件失败（DB 关联已删，孤儿无害）: $e');
+      }
+    }
+    if (dbRemoved) {
+      AppLogger.debug('已移除导入字幕: $workId/$fileName');
     }
   }
 

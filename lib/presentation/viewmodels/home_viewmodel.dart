@@ -2,20 +2,22 @@ import 'dart:convert';
 import 'package:xuro/presentation/viewmodels/base/paginated_works_viewmodel.dart';
 import 'package:xuro/data/services/api_service.dart';
 import 'package:get_it/get_it.dart';
+import 'package:xuro/core/settings/app_settings_service.dart';
 import 'package:xuro/presentation/models/filter_state.dart';
 import 'package:xuro/utils/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeViewModel extends PaginatedWorksViewModel {
+  // home_filter_state（排序）是本页私有、单写者，无跨 VM 竞态，沿用本地
+  // prefs 持久化；共享的字幕筛选收敛到 AppSettingsService。
   static const String _filterStateKey = 'home_filter_state';
-  static const String _subtitleFilterKey = 'subtitle_filter';
-  
+
+  final AppSettingsService _settings = GetIt.I<AppSettingsService>();
   bool _filterPanelExpanded = false;
-  bool _hasSubtitle = false;
   FilterState _filterState = const FilterState();
-  
+
   bool get filterPanelExpanded => _filterPanelExpanded;
-  bool get hasSubtitle => _hasSubtitle;
+  bool get hasSubtitle => _settings.hasSubtitleFilter;
   FilterState get filterState => _filterState;
 
   HomeViewModel() : super(GetIt.I<ApiService>());
@@ -23,7 +25,6 @@ class HomeViewModel extends PaginatedWorksViewModel {
   @override
   Future<void> onInit() async {
     await _loadFilterState();
-    await _loadSubtitleFilter();
   }
 
   Future<void> _loadFilterState() async {
@@ -36,25 +37,6 @@ class HomeViewModel extends PaginatedWorksViewModel {
       }
     } catch (e) {
       AppLogger.error('加载筛选状态失败', e);
-    }
-  }
-
-  Future<void> _loadSubtitleFilter() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      _hasSubtitle = prefs.getBool(_subtitleFilterKey) ?? false;
-      notifyListeners();
-    } catch (e) {
-      AppLogger.error('加载字幕筛选状态失败', e);
-    }
-  }
-
-  Future<void> _saveSubtitleFilter() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool(_subtitleFilterKey, _hasSubtitle);
-    } catch (e) {
-      AppLogger.error('保存字幕筛选状态失败', e);
     }
   }
 
@@ -73,8 +55,7 @@ class HomeViewModel extends PaginatedWorksViewModel {
   }
 
   void updateSubtitle(bool value) {
-    _hasSubtitle = value;
-    _saveSubtitleFilter();
+    _settings.setHasSubtitleFilter(value);
     notifyListeners();
     refresh();
   }
@@ -113,15 +94,10 @@ class HomeViewModel extends PaginatedWorksViewModel {
   Future<WorksResponse> fetchPage(int page) {
     return apiService.getWorks(
       page: page,
-      hasSubtitle: _hasSubtitle,
+      hasSubtitle: hasSubtitle,
       order: _filterState.orderField,
       sort: _filterState.sortValue,
     );
   }
 
-  @override
-  void dispose() {
-    _saveFilterState();
-    super.dispose();
-  }
 }

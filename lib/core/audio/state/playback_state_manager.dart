@@ -22,7 +22,14 @@ class PlaybackStateManager {
 
   final List<StreamSubscription> _subscriptions = [];
   Timer? _saveDebounceTimer;
-  static const _saveInterval = Duration(seconds: 5);
+  static const _saveInterval = Duration(seconds: 20);
+
+  // 持久化串行化 + tombstone：所有 save/clear 进同一条 Future 链，保证
+  // stop() 的 remove 一定排在任何在途 save 之后；_persistSuppressed 让
+  // stop 后、下一个非空播放上下文设置前的任何 save 变为 no-op，避免把
+  // 已主动停止的内容写回 prefs。
+  Future<void> _persistChain = Future<void>.value();
+  bool _persistSuppressed = false;
 
   PlaybackStateManager({
     required AudioPlayer player,
@@ -95,6 +102,8 @@ class PlaybackStateManager {
   void updateContext(PlaybackContext? context) {
     _currentContext = context;
     if (context != null) {
+      // 有新播放内容，解除 stop 设置的持久化抑制。
+      _persistSuppressed = false;
       _eventHub.emit(PlaybackContextEvent(context));
     }
   }
@@ -132,31 +141,57 @@ class PlaybackStateManager {
     _eventHub.emit(PlaybackClearedEvent());
   }
 
-  // 状态持久化
-  Future<void> saveState() async {
-    if (_currentContext == null) return;
+  // 状态持久化（全部经 _persistChain 串行化，消除 save/clear 写入竞态）
+  Future<void> saveState() {
+    if (_persistSuppressed) return _persistChain;
+    final context = _currentContext;
+    if (context == null) return _persistChain;
 
-    try {
-      final state = PlaybackState(
-        work: _currentContext!.work,
-        files: _currentContext!.files,
-        currentFile: _currentContext!.currentFile,
-        playlist: _currentContext!.playlist,
-        currentIndex: _currentContext!.currentIndex,
-        playMode: _currentContext!.playMode,
-        position: (_player.position).inMilliseconds,
-        timestamp: DateTime.now().toIso8601String(),
-      );
-      
-      await _stateRepository.saveState(state);
-    } catch (e, stack) {
-      AudioErrorHandler.handleError(
-        AudioErrorType.state,
-        '保存播放状态',
-        e,
-        stack,
-      );
-    }
+    // 调用时刻就快照上下文与播放位置：链体执行时 _currentContext 可能已被
+    // stop() 置空，快照保证写入的是请求那一刻的真实状态。
+    final positionMs = _player.position.inMilliseconds;
+    _persistChain = _persistChain.then((_) async {
+      // 入链后、执行前若已 stop，丢弃本次写入。
+      if (_persistSuppressed) return;
+      try {
+        final state = PlaybackState(
+          work: context.work,
+          files: context.files,
+          currentFile: context.currentFile,
+          playMode: context.playMode,
+          position: positionMs,
+          timestamp: DateTime.now().toIso8601String(),
+        );
+        await _stateRepository.saveState(state);
+      } catch (e, stack) {
+        AudioErrorHandler.handleError(
+          AudioErrorType.state,
+          '保存播放状态',
+          e,
+          stack,
+        );
+      }
+    });
+    return _persistChain;
+  }
+
+  Future<void> clearSavedState() {
+    // 同步置位：此后调用的 saveState() 立即变 no-op；remove 排到链尾，
+    // 必然晚于任何已入链的 save 完成，保证 remove 是最后一次写入。
+    _persistSuppressed = true;
+    _persistChain = _persistChain.then((_) async {
+      try {
+        await _stateRepository.clearState();
+      } catch (e, stack) {
+        AudioErrorHandler.handleError(
+          AudioErrorType.state,
+          '清除播放状态',
+          e,
+          stack,
+        );
+      }
+    });
+    return _persistChain;
   }
 
   Future<PlaybackState?> loadState() async {
@@ -186,6 +221,10 @@ class PlaybackStateManager {
   }
 
   void dispose() {
+    // 取消 timer 前尽力把最后状态落盘（best-effort，dispose 不可 await）。
+    if (_currentContext != null) {
+      saveState();
+    }
     _saveDebounceTimer?.cancel();
     for (var subscription in _subscriptions) {
       subscription.cancel();

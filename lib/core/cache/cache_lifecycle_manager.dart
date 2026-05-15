@@ -19,7 +19,8 @@ class CacheLifecycleManager with WidgetsBindingObserver {
     if (_initialized) return;
     _initialized = true;
     WidgetsBinding.instance.addObserver(this);
-    _triggerCleanup();
+    // 启动清理延后到首帧之后，避免 stat-heavy 扫描与首帧渲染争抢主隔离区。
+    WidgetsBinding.instance.addPostFrameCallback((_) => _triggerCleanup());
   }
 
   /// 注销观察者

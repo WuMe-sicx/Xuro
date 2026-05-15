@@ -37,34 +37,54 @@ class AudioCacheManager {
     }
   }
 
-  /// 清理过期和超量的缓存
+  /// 清理过期和超量的缓存（真 LRU：删最旧直到总量 ≤ 上限）
   static Future<void> cleanCache() async {
     try {
       final cacheDir = await _getCacheDir();
-      final files = await cacheDir.list().toList();
-      
-      // 按修改时间排序
-      files.sort((a, b) {
-        return a.statSync().modified.compareTo(b.statSync().modified);
-      });
+      final entities = await cacheDir.list().toList();
 
-      var totalSize = 0;
-      for (var file in files) {
-        if (file is File) {
-          final stat = await file.stat();
-          
-          // 检查是否过期
-          if (DateTime.now().difference(stat.modified) > _cacheExpiration) {
-            await file.delete();
-            continue;
-          }
+      // 一次性异步收集 (file, stat)，避免在 sort comparator 里同步 statSync
+      // 造成 O(N log N) 次阻塞文件系统调用拖垮主隔离区。
+      final entries = <({File file, FileStat stat})>[];
+      for (final e in entities) {
+        if (e is! File) continue;
+        try {
+          entries.add((file: e, stat: await e.stat()));
+        } catch (_) {
+          // 文件可能正被占用或已被删除，跳过。
+        }
+      }
 
-          totalSize += stat.size;
-          
-          // 如果总大小超过限制,删除最旧的文件
-          if (totalSize > _maxCacheSize) {
-            await file.delete();
+      final now = DateTime.now();
+
+      // 1) 先删过期文件，其余进入存活集合。
+      final live = <({File file, FileStat stat})>[];
+      for (final entry in entries) {
+        if (now.difference(entry.stat.modified) > _cacheExpiration) {
+          try {
+            await entry.file.delete();
+          } catch (_) {
+            // 占用中删不掉：文件仍在磁盘，必须计入容量；它 modified 最旧，
+            // 会排到 live 队首，在 LRU 阶段优先重试删除。不能直接丢弃，
+            // 否则容量统计偏小、实际占用可能远超上限。
+            live.add(entry);
           }
+        } else {
+          live.add(entry);
+        }
+      }
+
+      // 2) 真 LRU：按 modified 升序（最旧在前），从最旧开始删，
+      //    每删一个回退 totalSize，直到总量不超上限。
+      live.sort((a, b) => a.stat.modified.compareTo(b.stat.modified));
+      var totalSize = live.fold<int>(0, (sum, e) => sum + e.stat.size);
+      for (final entry in live) {
+        if (totalSize <= _maxCacheSize) break;
+        try {
+          await entry.file.delete();
+          totalSize -= entry.stat.size;
+        } catch (_) {
+          // 占用中跳过，继续尝试下一个较旧文件。
         }
       }
     } catch (e) {

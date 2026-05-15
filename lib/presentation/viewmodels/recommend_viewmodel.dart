@@ -7,11 +7,11 @@ import 'package:xuro/data/services/exceptions/network_exception.dart';
 import 'package:xuro/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:xuro/utils/logger.dart';
 import 'package:get_it/get_it.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:xuro/core/settings/app_settings_service.dart';
 
 class RecommendViewModel extends ChangeNotifier {
-  static const _subtitleFilterKey = 'subtitle_filter'; // 与 PopularViewModel 使用相同的 key 实现全局共享
   final ApiService _apiService;
+  final AppSettingsService _settings;
   final AuthViewModel _authViewModel;
   List<Work> _works = [];
   bool _isLoading = false;
@@ -19,33 +19,13 @@ class RecommendViewModel extends ChangeNotifier {
   bool _isLoginError = false;
   Pagination? _pagination;
   int _currentPage = 1;
-  bool _hasSubtitle = false;
   bool _filterPanelExpanded = false;
 
-  RecommendViewModel(this._authViewModel) : _apiService = GetIt.I<ApiService>() {
-    _loadFilterState();
-  }
-
-  // 加载筛选状态
-  Future<void> _loadFilterState() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      _hasSubtitle = prefs.getBool(_subtitleFilterKey) ?? false;
-      // 首次加载时应用筛选状态
-      loadRecommendations(refresh: true);
-    } catch (e) {
-      AppLogger.error('加载筛选状态失败', e);
-    }
-  }
-
-  // 保存筛选状态
-  Future<void> _saveFilterState() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool(_subtitleFilterKey, _hasSubtitle);
-    } catch (e) {
-      AppLogger.error('保存筛选状态失败', e);
-    }
+  RecommendViewModel(this._authViewModel)
+      : _apiService = GetIt.I<ApiService>(),
+        _settings = GetIt.I<AppSettingsService>() {
+    // 共享筛选值由 AppSettingsService 同步提供，构造即可直接首载。
+    loadRecommendations(refresh: true);
   }
 
   // Getters
@@ -61,15 +41,14 @@ class RecommendViewModel extends ChangeNotifier {
       _pagination?.totalCount != null && _pagination?.pageSize != null
           ? (_pagination!.totalCount! / _pagination!.pageSize!).ceil()
           : null;
-  bool get hasSubtitle => _hasSubtitle;
+  bool get hasSubtitle => _settings.hasSubtitleFilter;
   bool get filterPanelExpanded => _filterPanelExpanded;
 
   Pagination? get pagination => _pagination;
 
   // 切换字幕筛选
   void toggleSubtitleFilter() {
-    _hasSubtitle = !_hasSubtitle;
-    _saveFilterState(); // 保存状态
+    _settings.setHasSubtitleFilter(!_settings.hasSubtitleFilter);
     notifyListeners();
     loadRecommendations(refresh: true); // 刷新列表
   }
@@ -109,7 +88,7 @@ class RecommendViewModel extends ChangeNotifier {
       final response = await _apiService.getRecommendations(
         uuid: uuid,
         page: page,
-        hasSubtitle: _hasSubtitle, // 添加字幕筛选参数
+        hasSubtitle: hasSubtitle, // 添加字幕筛选参数
       );
       _works = response.works;
       _pagination = response.pagination;
@@ -135,9 +114,4 @@ class RecommendViewModel extends ChangeNotifier {
     await loadPage(1);
   }
 
-  @override
-  void dispose() {
-    _saveFilterState(); // 在销毁时保存状态
-    super.dispose();
-  }
 } 

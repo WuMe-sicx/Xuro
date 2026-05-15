@@ -23,8 +23,6 @@ mixin _$PlaybackState {
   Work get work => throw _privateConstructorUsedError;
   Files get files => throw _privateConstructorUsedError;
   Child get currentFile => throw _privateConstructorUsedError;
-  List<Child> get playlist => throw _privateConstructorUsedError;
-  int get currentIndex => throw _privateConstructorUsedError;
   PlayMode get playMode => throw _privateConstructorUsedError;
   int get position => throw _privateConstructorUsedError; // 使用毫秒存储
   String get timestamp => throw _privateConstructorUsedError;
@@ -45,8 +43,6 @@ abstract class $PlaybackStateCopyWith<$Res> {
       {Work work,
       Files files,
       Child currentFile,
-      List<Child> playlist,
-      int currentIndex,
       PlayMode playMode,
       int position,
       String timestamp});
@@ -72,8 +68,6 @@ class _$PlaybackStateCopyWithImpl<$Res, $Val extends PlaybackState>
     Object? work = null,
     Object? files = null,
     Object? currentFile = null,
-    Object? playlist = null,
-    Object? currentIndex = null,
     Object? playMode = null,
     Object? position = null,
     Object? timestamp = null,
@@ -91,14 +85,6 @@ class _$PlaybackStateCopyWithImpl<$Res, $Val extends PlaybackState>
           ? _value.currentFile
           : currentFile // ignore: cast_nullable_to_non_nullable
               as Child,
-      playlist: null == playlist
-          ? _value.playlist
-          : playlist // ignore: cast_nullable_to_non_nullable
-              as List<Child>,
-      currentIndex: null == currentIndex
-          ? _value.currentIndex
-          : currentIndex // ignore: cast_nullable_to_non_nullable
-              as int,
       playMode: null == playMode
           ? _value.playMode
           : playMode // ignore: cast_nullable_to_non_nullable
@@ -151,8 +137,6 @@ abstract class _$$PlaybackStateImplCopyWith<$Res>
       {Work work,
       Files files,
       Child currentFile,
-      List<Child> playlist,
-      int currentIndex,
       PlayMode playMode,
       int position,
       String timestamp});
@@ -179,8 +163,6 @@ class __$$PlaybackStateImplCopyWithImpl<$Res>
     Object? work = null,
     Object? files = null,
     Object? currentFile = null,
-    Object? playlist = null,
-    Object? currentIndex = null,
     Object? playMode = null,
     Object? position = null,
     Object? timestamp = null,
@@ -198,14 +180,6 @@ class __$$PlaybackStateImplCopyWithImpl<$Res>
           ? _value.currentFile
           : currentFile // ignore: cast_nullable_to_non_nullable
               as Child,
-      playlist: null == playlist
-          ? _value._playlist
-          : playlist // ignore: cast_nullable_to_non_nullable
-              as List<Child>,
-      currentIndex: null == currentIndex
-          ? _value.currentIndex
-          : currentIndex // ignore: cast_nullable_to_non_nullable
-              as int,
       playMode: null == playMode
           ? _value.playMode
           : playMode // ignore: cast_nullable_to_non_nullable
@@ -229,12 +203,9 @@ class _$PlaybackStateImpl implements _PlaybackState {
       {required this.work,
       required this.files,
       required this.currentFile,
-      required final List<Child> playlist,
-      required this.currentIndex,
       required this.playMode,
       required this.position,
-      required this.timestamp})
-      : _playlist = playlist;
+      required this.timestamp});
 
   factory _$PlaybackStateImpl.fromJson(Map<String, dynamic> json) =>
       _$$PlaybackStateImplFromJson(json);
@@ -245,16 +216,6 @@ class _$PlaybackStateImpl implements _PlaybackState {
   final Files files;
   @override
   final Child currentFile;
-  final List<Child> _playlist;
-  @override
-  List<Child> get playlist {
-    if (_playlist is EqualUnmodifiableListView) return _playlist;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_playlist);
-  }
-
-  @override
-  final int currentIndex;
   @override
   final PlayMode playMode;
   @override
@@ -265,7 +226,7 @@ class _$PlaybackStateImpl implements _PlaybackState {
 
   @override
   String toString() {
-    return 'PlaybackState(work: $work, files: $files, currentFile: $currentFile, playlist: $playlist, currentIndex: $currentIndex, playMode: $playMode, position: $position, timestamp: $timestamp)';
+    return 'PlaybackState(work: $work, files: $files, currentFile: $currentFile, playMode: $playMode, position: $position, timestamp: $timestamp)';
   }
 
   @override
@@ -277,9 +238,6 @@ class _$PlaybackStateImpl implements _PlaybackState {
             (identical(other.files, files) || other.files == files) &&
             (identical(other.currentFile, currentFile) ||
                 other.currentFile == currentFile) &&
-            const DeepCollectionEquality().equals(other._playlist, _playlist) &&
-            (identical(other.currentIndex, currentIndex) ||
-                other.currentIndex == currentIndex) &&
             (identical(other.playMode, playMode) ||
                 other.playMode == playMode) &&
             (identical(other.position, position) ||
@@ -291,15 +249,7 @@ class _$PlaybackStateImpl implements _PlaybackState {
   @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
-      runtimeType,
-      work,
-      files,
-      currentFile,
-      const DeepCollectionEquality().hash(_playlist),
-      currentIndex,
-      playMode,
-      position,
-      timestamp);
+      runtimeType, work, files, currentFile, playMode, position, timestamp);
 
   @JsonKey(ignore: true)
   @override
@@ -320,8 +270,6 @@ abstract class _PlaybackState implements PlaybackState {
       {required final Work work,
       required final Files files,
       required final Child currentFile,
-      required final List<Child> playlist,
-      required final int currentIndex,
       required final PlayMode playMode,
       required final int position,
       required final String timestamp}) = _$PlaybackStateImpl;
@@ -335,10 +283,6 @@ abstract class _PlaybackState implements PlaybackState {
   Files get files;
   @override
   Child get currentFile;
-  @override
-  List<Child> get playlist;
-  @override
-  int get currentIndex;
   @override
   PlayMode get playMode;
   @override

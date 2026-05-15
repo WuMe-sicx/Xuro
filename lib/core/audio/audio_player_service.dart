@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'package:get_it/get_it.dart';
 import 'package:xuro/utils/logger.dart';
+import 'package:xuro/core/subtitle/i_subtitle_service.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:audio_session/audio_session.dart';
 import './i_audio_player_service.dart';
@@ -52,6 +54,7 @@ class AudioPlayerService implements IAudioPlayerService {
       _notificationService = AudioNotificationService(
         _player,
         _eventHub,
+        GetIt.I<ISubtitleService>(),
       );
       _playlist = ConcatenatingAudioSource(children: []);
 
@@ -96,6 +99,8 @@ class AudioPlayerService implements IAudioPlayerService {
   Future<void> pause() async {
     await ready;
     await _playbackController.pause();
+    // 暂停是用户离开/切后台的强信号，立即 flush 一次，避免依赖 20s 节流。
+    await _stateManager.saveState();
   }
 
   @override
@@ -109,6 +114,8 @@ class AudioPlayerService implements IAudioPlayerService {
     await ready;
     await _playbackController.stop();
     _stateManager.clearState();
+    // 停止 = 用户主动结束，清掉持久化，避免下次启动误恢复已停止内容。
+    await _stateManager.clearSavedState();
   }
 
   @override
@@ -161,12 +168,6 @@ class AudioPlayerService implements IAudioPlayerService {
       }
 
       AppLogger.debug('已加载保存的状态: workId=${state.work.id}');
-      AppLogger.debug('播放列表信息: 长度=${state.playlist.length}, 索引=${state.currentIndex}');
-
-      if (state.playlist.isEmpty) {
-        AppLogger.debug('保存的播放列表为空，跳过恢复');
-        return;
-      }
 
       final context = PlaybackContext(
         work: state.work,
@@ -174,6 +175,14 @@ class AudioPlayerService implements IAudioPlayerService {
         currentFile: state.currentFile,
         playMode: state.playMode,
       );
+
+      AppLogger.debug(
+          '播放列表信息: 长度=${context.playlist.length}, 索引=${context.currentIndex}');
+
+      if (context.playlist.isEmpty) {
+        AppLogger.debug('恢复的播放列表为空，跳过恢复');
+        return;
+      }
 
       try {
         await _playbackController.setPlaybackContext(

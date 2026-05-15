@@ -24,6 +24,17 @@ class PlaybackStateRepository implements IPlaybackStateRepository {
   }
 
   @override
+  Future<void> clearState() async {
+    try {
+      await _prefs.remove(_key);
+      AppLogger.debug('播放状态已清除');
+    } catch (e) {
+      AppLogger.error('清除播放状态失败', e);
+      rethrow;
+    }
+  }
+
+  @override
   Future<PlaybackState?> loadState() async {
     try {
       final data = _prefs.getString(_key);

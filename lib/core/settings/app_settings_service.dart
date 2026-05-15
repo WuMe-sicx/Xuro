@@ -15,6 +15,10 @@ class AppSettingsService extends ChangeNotifier {
   static const String _smartPathKey = 'smart_path_enabled';
   static const String _audioFormatOrderKey = 'audio_format_order';
   static const String _colorVariantKey = 'color_variant';
+  static const String _lyricOverlayUnlockedKey = 'lyric_overlay_unlocked';
+  // 跨多个列表 ViewModel 共享的「仅看带字幕作品」筛选。收敛到此单点，
+  // 取代各 VM 自行 SharedPreferences.getInstance() + dispose 回写陈旧值。
+  static const String _subtitleFilterKey = 'subtitle_filter';
 
   static const String defaultServerUrl = 'https://api.asmr.one/api';
   static const ColorVariant defaultColorVariant = ColorVariant.blue;
@@ -36,6 +40,8 @@ class AppSettingsService extends ChangeNotifier {
   late bool _smartPathEnabled;
   late List<String> _audioFormatOrder;
   late ColorVariant _colorVariant;
+  late bool _lyricOverlayUnlocked;
+  late bool _hasSubtitleFilter;
 
   AppSettingsService(this._prefs) {
     _serverUrl = _prefs.getString(_serverUrlKey) ?? defaultServerUrl;
@@ -47,6 +53,8 @@ class AppSettingsService extends ChangeNotifier {
       (v) => v.name == savedVariant,
       orElse: () => defaultColorVariant,
     );
+    _lyricOverlayUnlocked = _prefs.getBool(_lyricOverlayUnlockedKey) ?? false;
+    _hasSubtitleFilter = _prefs.getBool(_subtitleFilterKey) ?? false;
   }
 
   // === Server URL ===
@@ -69,6 +77,16 @@ class AppSettingsService extends ChangeNotifier {
     await _prefs.setBool(_smartPathKey, enabled);
   }
 
+  // === Subtitle Filter (shared across list ViewModels) ===
+  bool get hasSubtitleFilter => _hasSubtitleFilter;
+
+  Future<void> setHasSubtitleFilter(bool value) async {
+    if (_hasSubtitleFilter == value) return;
+    _hasSubtitleFilter = value;
+    notifyListeners();
+    await _prefs.setBool(_subtitleFilterKey, value);
+  }
+
   // === Audio Format Order ===
   List<String> get audioFormatOrder => List.unmodifiable(_audioFormatOrder);
 
@@ -84,6 +102,17 @@ class AppSettingsService extends ChangeNotifier {
 
   Future<void> resetAudioFormatOrder() async {
     await setAudioFormatOrder(List.from(defaultAudioFormatOrder));
+  }
+
+  // === Lyric Overlay Lock ===
+  /// `true` → 悬浮歌词可拖动调整位置；`false` → 锁定（点穿，默认）。
+  bool get lyricOverlayUnlocked => _lyricOverlayUnlocked;
+
+  Future<void> setLyricOverlayUnlocked(bool unlocked) async {
+    if (_lyricOverlayUnlocked == unlocked) return;
+    _lyricOverlayUnlocked = unlocked;
+    notifyListeners();
+    await _prefs.setBool(_lyricOverlayUnlockedKey, unlocked);
   }
 
   // === Color Variant ===

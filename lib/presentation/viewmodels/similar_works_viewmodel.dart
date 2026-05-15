@@ -4,22 +4,24 @@ import 'package:xuro/data/models/works/pagination.dart';
 import 'package:xuro/data/services/api_service.dart';
 import 'package:xuro/utils/logger.dart';
 import 'package:get_it/get_it.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:xuro/core/settings/app_settings_service.dart';
 
 class SimilarWorksViewModel extends ChangeNotifier {
-  static const _subtitleFilterKey = 'subtitle_filter'; // 与其他 ViewModel 使用相同的 key
   final ApiService _apiService;
+  final AppSettingsService _settings;
   final Work work;
   List<Work> _works = [];
   bool _isLoading = false;
   String? _error;
   Pagination? _pagination;
   int _currentPage = 1;
-  bool _hasSubtitle = false;
   bool _filterPanelExpanded = false;
 
-  SimilarWorksViewModel(this.work) : _apiService = GetIt.I<ApiService>() {
-    _loadFilterState();
+  SimilarWorksViewModel(this.work)
+      : _apiService = GetIt.I<ApiService>(),
+        _settings = GetIt.I<AppSettingsService>() {
+    // 共享筛选值由 AppSettingsService 同步提供，构造即可直接首载。
+    loadSimilarWorks(refresh: true);
   }
 
   // Getters
@@ -27,40 +29,16 @@ class SimilarWorksViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
   int get currentPage => _currentPage;
-  bool get hasSubtitle => _hasSubtitle;
+  bool get hasSubtitle => _settings.hasSubtitleFilter;
   bool get filterPanelExpanded => _filterPanelExpanded;
   int? get totalPages =>
       _pagination?.totalCount != null && _pagination?.pageSize != null
           ? (_pagination!.totalCount! / _pagination!.pageSize!).ceil()
           : null;
 
-  // 加载筛选状态
-  Future<void> _loadFilterState() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      _hasSubtitle = prefs.getBool(_subtitleFilterKey) ?? false;
-      notifyListeners();
-      // 首次加载时应用筛选状态
-      loadSimilarWorks(refresh: true);
-    } catch (e) {
-      AppLogger.error('加载筛选状态失败', e);
-    }
-  }
-
-  // 保存筛选状态
-  Future<void> _saveFilterState() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool(_subtitleFilterKey, _hasSubtitle);
-    } catch (e) {
-      AppLogger.error('保存筛选状态失败', e);
-    }
-  }
-
   // 切换字幕筛选
   void toggleSubtitleFilter() {
-    _hasSubtitle = !_hasSubtitle;
-    _saveFilterState();
+    _settings.setHasSubtitleFilter(!_settings.hasSubtitleFilter);
     notifyListeners();
     loadSimilarWorks(refresh: true);
   }
@@ -90,7 +68,7 @@ class SimilarWorksViewModel extends ChangeNotifier {
       final response = await _apiService.getItemNeighbors(
         itemId: work.id.toString(),
         page: page,
-        hasSubtitle: _hasSubtitle, // 添加字幕筛选参数
+        hasSubtitle: hasSubtitle, // 添加字幕筛选参数
       );
       _works = response.works;
       _pagination = response.pagination;
@@ -110,9 +88,4 @@ class SimilarWorksViewModel extends ChangeNotifier {
     await loadPage(1);
   }
 
-  @override
-  void dispose() {
-    _saveFilterState();
-    super.dispose();
-  }
 } 
