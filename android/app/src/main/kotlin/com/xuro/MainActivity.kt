@@ -13,6 +13,6 @@ class MainActivity: AudioServiceActivity() {
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             "com.xuro/lyric_overlay"
-        ).setMethodCallHandler(LyricOverlayPlugin(this))
+        ).setMethodCallHandler(LyricOverlayPlugin(applicationContext))
     }
 }

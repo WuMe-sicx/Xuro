@@ -206,7 +206,14 @@ class PlayerViewModel extends ChangeNotifier {
       if (_isPlaying) {
         await _audioService.pause();
       } else {
-        await _audioService.resume();
+        // just_audio's play() Future only completes when playback later
+        // pauses/stops, so awaiting resume() here would pin _isToggling and
+        // make the next pause tap a no-op. Fire it; playbackState events
+        // drive the UI. resume()/play() has no internal error wrapper, so
+        // route failures to the existing PlaybackErrorEvent path.
+        unawaited(_audioService.resume().catchError((Object e, StackTrace st) {
+          _eventHub.emit(PlaybackErrorEvent('resume', e, st));
+        }));
       }
     } finally {
       _isToggling = false;

@@ -2,12 +2,14 @@ import 'dart:async';
 import 'package:xuro/core/audio/events/playback_event_hub.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:xuro/utils/logger.dart';
 
 class AudioPlayerHandler extends BaseAudioHandler {
   final AudioPlayer _player;
   final PlaybackEventHub _eventHub;
   StreamSubscription? _stateSubscription;
+  StreamSubscription? _progressSubscription;
 
   AudioPlayerHandler(this._player, this._eventHub) {
     AppLogger.debug('AudioPlayerHandler 初始化');
@@ -40,6 +42,27 @@ class AudioPlayerHandler extends BaseAudioHandler {
       );
       playbackState.add(state);
     });
+
+    // The state stream above only fires on play/pause/buffer transitions, so
+    // the lock-screen seekbar would freeze mid-track. Re-emit the last state
+    // with a fresh position (throttled to 1s) so it advances.
+    _progressSubscription = _eventHub.playbackProgress
+        .throttleTime(const Duration(seconds: 1))
+        .listen((event) {
+      // copyWith auto-stamps updateTime = now, so the seekbar extrapolates
+      // position between throttled emissions.
+      playbackState.add(playbackState.value.copyWith(
+        updatePosition: event.position,
+        bufferedPosition: _player.bufferedPosition,
+      ));
+    });
+  }
+
+  /// Cancel EventHub subscriptions when the notification service tears down,
+  /// so a stale handler can't keep pushing lock-screen state.
+  Future<void> cancelSubscriptions() async {
+    await _stateSubscription?.cancel();
+    await _progressSubscription?.cancel();
   }
 
   @override

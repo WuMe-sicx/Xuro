@@ -325,7 +325,6 @@ class _PlayerScreenState extends State<PlayerScreen> {
                 children: [
                   PlayerProgress(),
                   SizedBox(height: 8),
-                  SizedBox(height: 8),
                   PlayerControls(),
                 ],
               ),

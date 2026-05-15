@@ -1,21 +1,25 @@
 import 'dart:async';
 
 import 'package:xuro/core/platform/i_lyric_overlay_controller.dart';
+import 'package:xuro/core/settings/app_settings_service.dart';
 import 'package:xuro/core/subtitle/i_subtitle_service.dart';
 import 'package:flutter/material.dart';
 
 class LyricOverlayManager {
   final ILyricOverlayController _controller;
   final ISubtitleService _subtitleService;
+  final AppSettingsService _settings;
   StreamSubscription? _subscription;
   bool _isShowing = false;
   bool _isEditable = false;
-  
+
   LyricOverlayManager({
     required ILyricOverlayController controller,
     required ISubtitleService subtitleService,
+    required AppSettingsService settings,
   }) : _controller = controller,
-       _subtitleService = subtitleService;
+       _subtitleService = subtitleService,
+       _settings = settings;
 
   Future<void> initialize() async {
     await _controller.initialize();
@@ -52,6 +56,8 @@ class LyricOverlayManager {
     if (currentSubtitle != null) {
       await _controller.updateLyric(currentSubtitle.subtitle.text);
     }
+    // 显示后统一以持久化偏好为准（锁定 / 解锁拖动）。
+    await setEditable(_settings.lyricOverlayUnlocked);
   }
 
   Future<void> hide() async {
@@ -75,6 +81,14 @@ class LyricOverlayManager {
   }
 
   Future<void> toggleEditable() => setEditable(!_isEditable);
+
+  /// 持久化「解锁悬浮歌词位置」偏好，并在悬浮窗显示时立即应用。
+  Future<void> setUnlockedPreference(bool unlocked) async {
+    await _settings.setLyricOverlayUnlocked(unlocked);
+    if (_isShowing) {
+      await setEditable(unlocked);
+    }
+  }
 
   /// 处理显示悬浮歌词的完整流程
   Future<void> showWithPermissionCheck(BuildContext context) async {

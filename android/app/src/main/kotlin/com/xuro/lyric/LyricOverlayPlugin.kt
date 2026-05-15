@@ -11,6 +11,7 @@ import io.flutter.plugin.common.MethodChannel.Result
 
 class LyricOverlayPlugin(private val context: Context) : MethodCallHandler {
     private var service: LyricOverlayService? = null
+    private var isBound = false
     private val serviceIntent by lazy { Intent(context, LyricOverlayService::class.java) }
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
@@ -26,8 +27,14 @@ class LyricOverlayPlugin(private val context: Context) : MethodCallHandler {
         when (call.method) {
             "initialize" -> {
                 try {
-                    context.startService(serviceIntent)
-                    context.bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
+                    // 仅 bindService：纯绑定服务（无 startForeground），由
+                    // BIND_AUTO_CREATE 懒创建、随绑定存活、随 unbindService 销毁。
+                    // 不调用 startService —— 它是此用法下唯一受 Android 12+ 后台
+                    // 启动限制约束且冗余的调用（启动期进程在后台会抛
+                    // BackgroundServiceStartNotAllowedException）。
+                    isBound = context.bindService(
+                        serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE
+                    )
                     result.success(null)
                 } catch (e: Exception) {
                     result.error(
@@ -58,8 +65,10 @@ class LyricOverlayPlugin(private val context: Context) : MethodCallHandler {
                 result.success(null)
             }
             "dispose" -> {
-                context.unbindService(serviceConnection)
-                context.stopService(serviceIntent)
+                if (isBound) {
+                    context.unbindService(serviceConnection)
+                    isBound = false
+                }
                 service = null
                 result.success(null)
             }

@@ -75,11 +75,13 @@ lib/
 ## 开发准则
 
 我们维护了一套完整的开发准则以确保代码质量和一致性：
-- [开发准则](docs/guidelines_zh.md)
+- [开发工作流（强制）](docs/dev_workflow.md) —— 任何功能开发前先写 TODO，完成时执行 `/init`
+- [开发准则](docs/guidelines_zh.md) —— 架构、代码风格、UI/UX 规范
+- [TODO 文档目录](docs/todos/) —— 任务跟踪与模板
 
 ## 贡献指南
 
-在提交贡献之前，请阅读我们的[开发准则](docs/guidelines_zh.md)。
+在提交贡献之前，请按 [开发工作流](docs/dev_workflow.md) 建立 TODO 文档，并遵循 [开发准则](docs/guidelines_zh.md)。
 
 ## 许可证
 

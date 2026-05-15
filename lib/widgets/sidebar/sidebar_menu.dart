@@ -11,6 +11,7 @@ import 'package:xuro/presentation/widgets/auth/login_dialog.dart';
 import 'package:xuro/screens/browse/circles_screen.dart';
 import 'package:xuro/screens/browse/tags_screen.dart';
 import 'package:xuro/screens/browse/voice_actors_screen.dart';
+import 'package:xuro/screens/about_screen.dart';
 import 'package:xuro/screens/favorites_screen.dart';
 import 'package:xuro/screens/settings/settings_screen.dart';
 import 'package:xuro/widgets/sidebar/sidebar_group.dart';
@@ -133,7 +134,7 @@ class SidebarMenu extends StatelessWidget {
               // because _DrawerBackground is opaque, and the 18% darken
               // has been folded into the gradient stops below — so the
               // BackdropFilter has been removed outright.
-              const _DrawerBackground(),
+              _DrawerBackground(variant: variant),
               const _RightEdgeHighlight(),
               SafeArea(
                 child: CustomScrollView(
@@ -243,7 +244,7 @@ class SidebarMenu extends StatelessWidget {
                                     title: Strings.aboutUs,
                                     onTap: () => _navigate(
                                       context,
-                                      const SettingsScreen(),
+                                      const AboutScreen(),
                                     ),
                                     showSeparator: false,
                                   ),
@@ -269,25 +270,36 @@ class SidebarMenu extends StatelessWidget {
 }
 
 class _DrawerBackground extends StatelessWidget {
-  const _DrawerBackground();
+  const _DrawerBackground({required this.variant});
+
+  final ColorVariant variant;
+
+  // Shared neutral near-black gradient for blue / green. The mono (单色调)
+  // variant gets a deeper, pure-black gradient so the monochrome theme reads
+  // as stark black instead of the slightly-warm shared near-black.
+  static const _sharedColors = [
+    Color(0xFF0A0A0A), // near-black
+    Color(0xFF111111),
+    Color(0xFF161616),
+  ];
+  static const _monoColors = [
+    Color(0xFF000000), // pure black
+    Color(0xFF050505),
+    Color(0xFF0A0A0A),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    // Neutral dark gradient — no hue. Works equally for blue / mono / green
-    // accent variants. The two soft glows below are tinted with the active
-    // theme's primary so the drawer picks up the user's chosen accent.
+    // The two soft glows below are tinted with the active theme's primary so
+    // the drawer picks up the user's chosen accent.
     final accent = Theme.of(context).colorScheme.primary;
     return DecoratedBox(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF0A0A0A), // near-black
-            Color(0xFF111111),
-            Color(0xFF161616),
-          ],
-          stops: [0.0, 0.55, 1.0],
+          colors: variant == ColorVariant.mono ? _monoColors : _sharedColors,
+          stops: const [0.0, 0.55, 1.0],
         ),
       ),
       child: Stack(

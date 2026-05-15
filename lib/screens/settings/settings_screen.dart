@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:get_it/get_it.dart';
-import 'package:package_info_plus/package_info_plus.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:xuro/common/constants/strings.dart';
 import 'package:xuro/core/theme/theme_controller.dart';
 import 'package:xuro/core/platform/wakelock_controller.dart';
+import 'package:xuro/core/platform/lyric_overlay_manager.dart';
 import 'package:xuro/core/settings/app_settings_service.dart';
 import 'package:xuro/screens/settings/cache_manager_screen.dart';
 import 'package:xuro/screens/settings/audio_format_order_dialog.dart';
 import 'package:xuro/screens/settings/widgets/settings_group.dart';
 import 'package:xuro/screens/settings/widgets/settings_tile.dart';
 import 'package:xuro/screens/settings/widgets/settings_theme.dart';
-import 'package:xuro/presentation/widgets/update/update_dialog.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -22,14 +20,6 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  late final Future<PackageInfo> _packageInfoFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _packageInfoFuture = PackageInfo.fromPlatform();
-  }
-
   @override
   Widget build(BuildContext context) {
     final bgColor = SettingsTheme.pageBackground(context);
@@ -52,24 +42,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 24),
             _playbackSection(),
             const SizedBox(height: 24),
-            _storageSection(context),
+            _lyricOverlaySection(),
             const SizedBox(height: 24),
-            _aboutSection(context),
+            _storageSection(context),
           ],
         ),
       ),
     );
-  }
-
-  Future<void> _openUrl(BuildContext context, String url) async {
-    final uri = Uri.parse(url);
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text(Strings.cannotOpenLink)),
-        );
-      }
-    }
   }
 
   Widget _appearanceSection() {
@@ -206,6 +185,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
   }
 
+  Widget _lyricOverlaySection() {
+    return Builder(builder: (context) {
+      final settings = GetIt.I<AppSettingsService>();
+      final manager = GetIt.I<LyricOverlayManager>();
+      return ListenableBuilder(
+        listenable: settings,
+        builder: (context, _) => SettingsGroup(
+          header: Strings.lyricOverlaySection,
+          footer: Strings.lyricOverlayUnlockDesc,
+          children: [
+            SettingsTile.toggle(
+              title: Strings.lyricOverlayUnlockTitle,
+              leading: Icons.lyrics_outlined,
+              value: settings.lyricOverlayUnlocked,
+              onChanged: (v) => manager.setUnlockedPreference(v),
+            ),
+          ],
+        ),
+      );
+    });
+  }
+
   Widget _storageSection(BuildContext context) {
     return SettingsGroup(
       header: Strings.storage,
@@ -219,64 +220,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _aboutSection(BuildContext context) {
-    return FutureBuilder<PackageInfo>(
-      future: _packageInfoFuture,
-      builder: (context, snapshot) {
-        final version = snapshot.hasData
-            ? '${snapshot.data!.version} (${snapshot.data!.buildNumber})'
-            : '...';
-        return SettingsGroup(
-          header: Strings.about,
-          children: [
-            SettingsTile.navigation(
-              title: Strings.versionInfo,
-              leading: Icons.info_outline,
-              value: version,
-            ),
-            SettingsTile.navigation(
-              title: Strings.checkForUpdates,
-              leading: Icons.system_update_outlined,
-              onTap: () => showDialog(
-                context: context,
-                builder: (_) => const UpdateDialog(),
-              ),
-            ),
-            SettingsTile.navigation(
-              title: Strings.openSourceLicenses,
-              leading: Icons.description_outlined,
-              onTap: () => showLicensePage(
-                context: context,
-                applicationName: Strings.appName,
-                applicationVersion: snapshot.data?.version,
-              ),
-            ),
-            SettingsTile.navigation(
-              title: Strings.feedback,
-              leading: Icons.feedback_outlined,
-              onTap: () => _openUrl(context, Strings.feedbackUrl),
-            ),
-            SettingsTile.navigation(
-              title: Strings.sourceCode,
-              leading: Icons.code_outlined,
-              onTap: () => _openUrl(context, Strings.repoUrl),
-            ),
-            SettingsTile.navigation(
-              title: Strings.originalRepo,
-              leading: Icons.account_circle_outlined,
-              onTap: () => _openUrl(context, Strings.originalRepoUrl),
-            ),
-            SettingsTile.navigation(
-              title: Strings.telegramChannel,
-              leading: Icons.send_outlined,
-              onTap: () => _openUrl(context, Strings.telegramChannelUrl),
-            ),
-          ],
-        );
-      },
     );
   }
 }

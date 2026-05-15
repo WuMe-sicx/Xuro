@@ -5,22 +5,40 @@ import 'package:xuro/presentation/viewmodels/player_viewmodel.dart';
 class PlayerControls extends StatelessWidget {
   const PlayerControls({super.key});
 
+  static const _seekStep = Duration(seconds: 10);
+
+  void _seekBy(PlayerViewModel vm, Duration delta) {
+    final position = vm.position;
+    if (position == null) return;
+    var target = position + delta;
+    if (target < Duration.zero) target = Duration.zero;
+    final duration = vm.duration;
+    if (duration != null && target > duration) target = duration;
+    vm.seek(target);
+  }
+
   @override
   Widget build(BuildContext context) {
     final viewModel = GetIt.I<PlayerViewModel>();
-    
+
     return ListenableBuilder(
       listenable: viewModel,
       builder: (context, _) {
         return Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
+            IconButton(
+              iconSize: 28,
+              icon: const Icon(Icons.replay_10),
+              tooltip: '快退 10 秒',
+              onPressed: () => _seekBy(viewModel, -_seekStep),
+            ),
             IconButton(
               iconSize: 32,
               icon: const Icon(Icons.skip_previous),
+              tooltip: '上一曲',
               onPressed: viewModel.previous,
             ),
-            const SizedBox(width: 16),
             Container(
               width: 64,
               height: 64,
@@ -37,15 +55,21 @@ class PlayerControls extends StatelessWidget {
                 onPressed: viewModel.playPause,
               ),
             ),
-            const SizedBox(width: 16),
             IconButton(
               iconSize: 32,
               icon: const Icon(Icons.skip_next),
+              tooltip: '下一曲',
               onPressed: viewModel.next,
+            ),
+            IconButton(
+              iconSize: 28,
+              icon: const Icon(Icons.forward_10),
+              tooltip: '快进 10 秒',
+              onPressed: () => _seekBy(viewModel, _seekStep),
             ),
           ],
         );
       },
     );
   }
-} 
+}

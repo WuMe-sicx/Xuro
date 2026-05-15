@@ -80,6 +80,9 @@ class Strings {
   static const String themeAutoDesc = '自动切换深浅色模式';
 
   // About section
+  static const String aboutAppName = 'Xuro';
+  static const String aboutAppDescription =
+      'Xuro 是一个第三方 ASMR.ONE 客户端，支持后台播放、字幕/悬浮歌词、播放列表与缓存。基于 CC BY-NC-SA 协议开源。';
   static const String versionInfo = '版本信息';
   static const String openSourceLicenses = '开源许可';
   static const String feedback = '问题反馈';
@@ -129,6 +132,12 @@ class Strings {
   static const String colorVariantBlue = '蓝';
   static const String colorVariantMono = '黑';
   static const String colorVariantGreen = '绿';
+
+  // Settings — floating lyric overlay
+  static const String lyricOverlaySection = '悬浮歌词';
+  static const String lyricOverlayUnlockTitle = '解锁悬浮歌词位置';
+  static const String lyricOverlayUnlockDesc =
+      '开启后可在悬浮歌词显示时上下拖动调整位置；关闭则锁定并点穿下层界面';
 
   // Floating lyric overlay
   static const String lyricOverlayTooltipEnable = '开启悬浮歌词';

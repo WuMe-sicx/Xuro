@@ -151,6 +151,7 @@ Future<void> setupSubtitleServices() async {
   getIt.registerLazySingleton(() => LyricOverlayManager(
     controller: getIt(),
     subtitleService: getIt(),
+    settings: getIt<AppSettingsService>(),
   ));
 
   // 初始化悬浮窗管理器
