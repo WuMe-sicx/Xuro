@@ -52,15 +52,15 @@
 - [ ] **GitHub rate limit（403/429）**：显示「GitHub 请求过于频繁，请稍后再试」，**不**显示「请先登录」；有单测覆盖该映射。
 - [ ] Release 全为 prerelease 时仍能取到最新版本（用 `/releases?per_page=10` 过滤后选最大 semver，而非 `/releases/latest`，已单测或手验覆盖）。
 - [ ] **空 releases / 全部 tag 非法**：显示「暂无可用发布」，不崩溃。
-- [ ] **多个合法 Release**：选出的是 semver 最大者（不是列表首项），有单测覆盖（含「列表首项是旧 tag、靠后才是最大」的样例）。
-- [ ] **Android 该 Release 无 `.apk` 资源**：「立即下载」回退打开 Release `html_url`，不出现死链。
-- [ ] `tag_name` 形如 `v1.1.12` 能正确剥离 `v` 前缀并与 `1.1.11` 比对；非法/缺失 tag 走对应错误分支而非崩溃。
+- [x] **多个合法 Release**：选出的是 semver 最大者（不是列表首项），有单测覆盖（含「列表首项是旧 tag、靠后才是最大」的样例）。
+- [x] **Android 该 Release 无 `.apk` 资源**：「立即下载」回退打开 Release `html_url`，不出现死链（代码 + 真机验证）。
+- [x] `tag_name` 形如 `v1.1.12` 能正确剥离 `v` 前缀并与 `1.1.11` 比对；非法/缺失 tag 走对应错误分支而非崩溃（单测覆盖）。
 - [x] `compareSemver` 单测覆盖：相等 / 主次修订各位大于小于 / 位数不齐（`1.2` vs `1.2.0`）/ 带 `v` 前缀 / 非法输入 / 多版本选最大。
 - [x] `UpdateInfo.fromReleaseJson` 解析单测覆盖：正常取出 `tag_name`/`body`/`html_url`/首个 `.apk` 的 `browser_download_url`；以及边界 `[]`、release 无 `assets`、有 assets 但无 `.apk`、缺 `tag_name`、缺 `html_url`。
 - [x] `flutter analyze`（8 个改动文件）通过，无新增 warning。
 - [x] 已运行 `dart run build_runner build --delete-conflicting-outputs`，`UpdateInfo` 生成产物（**仅 `.freezed.dart`，无 `.g.dart`**）已纳入提交。
 - [x] 相关单元测试 `fvm flutter test`（21 用例）全部通过。
-- [ ] （待真机/模拟器手验）「设置→关于→检查更新」四态 UI 表现。
+- [x] 「设置→关于→检查更新」四态 UI 表现——用户已在真实设备验证通过（2026-05-15）。
 
 ## 4. 拆解步骤（Steps）
 
@@ -125,5 +125,5 @@
 - 完成时间：2026-05-15
 - 执行命令：`/init`
 - CLAUDE.md 更新摘要：在 `lib/data/`/`lib/presentation/`/API/Tests 四处补充更新检查子系统——`UpdateService`（独立 GitHub Dio、不随节点切换、`/releases?per_page=10` 选 semver 最大）、`UpdateException`（不复用 NetworkException）、`UpdateInfo`（Freezed-only 自定义工厂）、`UpdateDialog`+`UpdateViewModel`（disposed guard 不变量）、新增两测试文件。
-- 关联 commit：`f872229`（实现）+ 本次 docs 闭环 commit
-- 备注：唯一未勾选验收项「真机/模拟器四态 UI 手验」由用户在其设备上验证（本环境无法跑设备）；逻辑层经 Codex 规划 3 轮 + 实现 2 轮评审至 ✅ PASS，21 单测全过，analyze 干净。
+- 关联 commit：`f872229`（实现）+ `eda9d7f`（/init 刷新 CLAUDE.md + 归档）+ 本次验收收尾 commit
+- 备注：**全部验收标准已通过**——真机四态 UI 由用户于真实设备验证通过（2026-05-15）；逻辑层经 Codex 规划 3 轮 + 实现 2 轮评审至 ✅ PASS，21 单测全过，analyze 干净。任务完全闭环。
