@@ -190,6 +190,18 @@ class DetailScreen extends StatelessWidget {
                       files: viewModel.files!,
                       onFolderDownload: runBatch,
                       onFileTap: (file) async {
+                        // 视频判断前置：视频扩展名优先于不可靠的 API
+                        // `type`（会把视频错标 audio）。视频走下载+外部
+                        // 播放，绝不进音频播放管线（否则"播放列表为空"）。
+                        if (viewModel.isVideoFile(file)) {
+                          await runDownload(
+                            file,
+                            openOnDone: true,
+                            title: Strings.videoNeedsDownloadTitle,
+                            prompt: Strings.videoNeedsDownloadPrompt,
+                          );
+                          return;
+                        }
                         if (viewModel.isAudioFile(file)) {
                           try {
                             await viewModel.playFile(file, context);
@@ -200,15 +212,6 @@ class DetailScreen extends StatelessWidget {
                               );
                             }
                           }
-                          return;
-                        }
-                        if (viewModel.isVideoFile(file)) {
-                          await runDownload(
-                            file,
-                            openOnDone: true,
-                            title: Strings.videoNeedsDownloadTitle,
-                            prompt: Strings.videoNeedsDownloadPrompt,
-                          );
                           return;
                         }
                         if (viewModel.isSubtitleFile(file)) {

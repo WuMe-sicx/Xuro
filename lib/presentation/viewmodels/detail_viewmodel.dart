@@ -189,15 +189,27 @@ class DetailViewModel extends ChangeNotifier {
     if (!_disposed) notifyListeners();
   }
 
-  /// 该文件是否为视频（按 `type` 或扩展名判定）。视频不再直接判为"无法打开"，
-  /// 而是引导用户下载到本地磁盘后用外部查看器播放（见 detail_screen 的处理）。
-  bool isVideoFile(Child file) {
-    if ((file.type ?? '').toLowerCase() == 'video') return true;
-    final ext = file.title?.split('.').last.toLowerCase();
+  /// 扩展名是否属已知视频集。**比 API `type` 更可靠**：asmr.one 实测会把
+  /// "介绍视频.mp4"等下发成 `type:"audio"`，若信 `type` 会被当音频送进
+  /// 播放管线、播放列表按扩展名过滤后为空 → "播放列表为空/播放失败"。
+  static bool _hasVideoExtension(String? title) {
+    final ext = title?.split('.').last.toLowerCase();
     return ext != null && _videoExtensions.contains(ext);
   }
 
-  bool isAudioFile(Child file) => (file.type ?? '').toLowerCase() == 'audio';
+  /// 该文件是否为视频（`type==video` 或视频扩展名）。视频不直接判为
+  /// "无法打开"，而是引导下载到本地用外部查看器播放（见 detail_screen）。
+  bool isVideoFile(Child file) =>
+      (file.type ?? '').toLowerCase() == 'video' ||
+      _hasVideoExtension(file.title);
+
+  /// 静态纯判定：是音频且**不是**视频扩展名。视频扩展名优先于不可靠的
+  /// API `type`，否则错标 `type:audio` 的 .mp4 会被当音频。
+  static bool _isAudioChild(Child c) =>
+      (c.type ?? '').toLowerCase() == 'audio' &&
+      !_hasVideoExtension(c.title);
+
+  bool isAudioFile(Child file) => _isAudioChild(file);
 
   static const _subtitleExtensions = {'vtt', 'lrc', 'srt', 'txt'};
 
@@ -216,7 +228,7 @@ class DetailViewModel extends ChangeNotifier {
     for (final c in children) {
       if ((c.type ?? '').toLowerCase() == 'folder') {
         out.addAll(collectAudioWithSubtitles(c.children));
-      } else if ((c.type ?? '').toLowerCase() == 'audio') {
+      } else if (_isAudioChild(c)) {
         final sub = c.title != null
             ? SubtitleMatcher.findMatchingSubtitle(c.title!, children)
             : null;
@@ -344,8 +356,10 @@ class DetailViewModel extends ChangeNotifier {
   }
 
   Future<void> playFile(Child file, BuildContext context) async {
-    if (file.type?.toLowerCase() != 'audio') {
-      throw Exception('不支持的文件类型: ${file.type}');
+    // 用统一分类：错标 type=audio 的视频在这里被挡下，给清晰错误，
+    // 而不是放进播放管线产生"播放列表为空"的误导性失败。
+    if (!isAudioFile(file)) {
+      throw Exception('不支持的文件类型（疑似视频）: ${file.title}');
     }
 
     if (file.mediaDownloadUrl == null) {

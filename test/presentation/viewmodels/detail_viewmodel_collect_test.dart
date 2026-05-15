@@ -39,6 +39,22 @@ void main() {
       expect(pairs.single.subtitle, isNull);
     });
 
+    test('video mislabeled by API as type=audio is NOT collected as audio',
+        () {
+      // asmr.one 实测会把 "介绍视频.mp4" 下发成 type:"audio"。
+      final tree = [
+        Child(type: 'audio', title: 'ver2.0免费更新！_介绍视频.mp4'),
+        audio('01.mp3'),
+        sub('01.vtt'),
+      ];
+
+      final pairs = DetailViewModel.collectAudioWithSubtitles(tree);
+
+      expect(pairs.length, 1);
+      expect(pairs.single.audio.title, '01.mp3');
+      expect(pairs.single.subtitle?.title, '01.vtt');
+    });
+
     test('ignores non-audio leaves; null children → empty', () {
       expect(DetailViewModel.collectAudioWithSubtitles(null), isEmpty);
       final tree = [

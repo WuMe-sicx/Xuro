@@ -38,8 +38,11 @@ class WorkFileItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isAudio = _isAudio;
+    // 视频扩展名优先于 API `type`：asmr.one 会把视频错标 type=audio，
+    // 若当音频会进播放管线导致"播放列表为空"。这类文件按视频处理
+    // （走下载到本地用外部播放器的流程）。
     final bool isVideo = _isVideo;
+    final bool isAudio = _isAudio && !isVideo;
     final bool isSubtitle = !isAudio && !isVideo && _isSubtitle;
     final bool tappable = isAudio || isVideo || isSubtitle;
     final colorScheme = Theme.of(context).colorScheme;
