@@ -36,8 +36,12 @@ class DownloadResult {
 /// - 用**独立 `Dio()`**（无 `AuthInterceptor`、不随节点轮换）：媒体
 ///   `mediaDownloadUrl` 是 API 下发的预签名/限时绝对地址，与 asmr 节点无关，
 ///   `LockCachingAudioSource` 也是无 token 直取（见 spike 结论）。
-/// - 落盘在 App 私有 `getApplicationDocumentsDirectory()/downloads/<workId>/`
-///   ——"本地磁盘" = App 私有存储，规避 scoped storage，无需广义存储权限。
+/// - Android 落盘在**外部应用专属目录** `getExternalStorageDirectory()`
+///   （`/storage/emulated/0/Android/data/<pkg>/files/downloads/<workId>/`）：
+///   该目录在所有 Android 版本均无需声明存储权限、规避 scoped storage，
+///   且可经 USB/MTP 在电脑端访问；卸载随 App 清理。取不到时回退 App 内部
+///   `getApplicationDocumentsDirectory()`。非 Android 平台仍用内部目录
+///   （`getExternalStorageDirectory()` 在 iOS 会抛 `UnsupportedError`）。
 /// - 原子写复刻 `SubtitleImportService`：tmp → (备份旧文件) → rename → upsert，
 ///   任一步失败回滚，**新文件确认前绝不破坏已存在的好文件**。
 /// - 容量 LRU 复刻 `AudioCacheManager`：删不掉的文件仍计入容量、不丢弃，
@@ -79,9 +83,23 @@ class DownloadService {
     return '${fileKey(file)}$ext';
   }
 
+  /// 下载根目录：Android 优先外部应用专属目录（电脑可见、免权限），
+  /// 取不到则回退内部私有目录；非 Android 仅用内部目录。
+  Future<Directory> _baseDir() async {
+    if (Platform.isAndroid) {
+      try {
+        final ext = await getExternalStorageDirectory();
+        if (ext != null) return ext;
+      } catch (e) {
+        AppLogger.warning('外部存储目录不可用，回退 App 内部目录: $e');
+      }
+    }
+    return getApplicationDocumentsDirectory();
+  }
+
   Future<Directory> _workDir(String workId) async {
-    final docs = await getApplicationDocumentsDirectory();
-    final dir = Directory(p.join(docs.path, 'downloads', workId));
+    final base = await _baseDir();
+    final dir = Directory(p.join(base.path, 'downloads', workId));
     if (!await dir.exists()) await dir.create(recursive: true);
     return dir;
   }
@@ -113,7 +131,8 @@ class DownloadService {
     return entry?.filePath;
   }
 
-  /// 下载一个文件（音频或视频）到 App 私有目录。幂等：已完整下载则直接返回。
+  /// 下载一个文件（音频/视频/字幕）到本地下载目录（Android 为外部应用专属
+  /// 目录，详见类文档）。幂等：已完整下载则直接返回。
   Future<DownloadResult> download({
     required String workId,
     required Child file,
