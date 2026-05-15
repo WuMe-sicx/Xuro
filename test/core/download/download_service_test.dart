@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:xuro/core/download/download_service.dart';
 import 'package:xuro/data/models/files/child.dart';
@@ -30,17 +32,30 @@ void main() {
       );
     });
 
-    test('diskFileName = fileKey + original extension', () {
-      final f = mk(title: 'My Clip.mp4', hash: 'H');
+    test('diskFileName = sanitized original title (NOT a hash)', () {
       expect(
-        DownloadService.diskFileName(f),
-        '${DownloadService.fileKey(f)}.mp4',
+        DownloadService.diskFileName(mk(title: 'My Clip.mp4', hash: 'H')),
+        'My Clip.mp4',
       );
     });
 
-    test('diskFileName has no extension when title has none', () {
-      final f = mk(title: 'noext', hash: 'H');
-      expect(DownloadService.diskFileName(f), DownloadService.fileKey(f));
+    test('diskFileName keeps no-extension title as-is', () {
+      expect(
+        DownloadService.diskFileName(mk(title: 'noext', hash: 'H')),
+        'noext',
+      );
+    });
+
+    test('diskFileName preserves CJK/Japanese title, sanitizes only FS-illegal',
+        () {
+      expect(
+        DownloadService.diskFileName(mk(title: '【RJ01】① 耳かき.mp3', hash: 'H')),
+        '【RJ01】① 耳かき.mp3',
+      );
+      expect(
+        DownloadService.diskFileName(mk(title: 'そのまま/耳かき*.mp3', hash: 'H')),
+        'そのまま_耳かき_.mp3',
+      );
     });
   });
 
@@ -66,6 +81,47 @@ void main() {
 
     test('trims surrounding whitespace', () {
       expect(DownloadService.sanitizeFileName('  track.mp3  '), 'track.mp3');
+    });
+
+    test('preserves Unicode (Japanese/Chinese) letters', () {
+      expect(
+        DownloadService.sanitizeFileName('【RJ01】そのまま耳かき.mp3'),
+        '【RJ01】そのまま耳かき.mp3',
+      );
+      expect(
+        DownloadService.sanitizeFileName('音声/作品:01?.flac'),
+        '音声_作品_01_.flac',
+      );
+    });
+
+    test('strips trailing dots/spaces (FAT/Windows)', () {
+      expect(DownloadService.sanitizeFileName('name. . '), 'name');
+      expect(DownloadService.sanitizeFileName('...'), 'file');
+    });
+
+    test('clamps to <=180 UTF-8 bytes, keeps extension', () {
+      final long = '${'あ' * 300}.mp3';
+      final out = DownloadService.sanitizeFileName(long);
+      expect(out.endsWith('.mp3'), isTrue);
+      expect(utf8.encode(out).length <= 180, isTrue);
+    });
+
+    test('pathological long "extension" still clamped to <=180 bytes', () {
+      final out = DownloadService.sanitizeFileName('name.${'x' * 400}');
+      expect(utf8.encode(out).length <= 180, isTrue);
+      expect(out.isNotEmpty, isTrue);
+    });
+
+    test('Windows reserved device names get an underscore prefix', () {
+      expect(DownloadService.sanitizeFileName('CON.mp3'), '_CON.mp3');
+      expect(DownloadService.sanitizeFileName('nul'), '_nul');
+      expect(DownloadService.sanitizeFileName('Com1.flac'), '_Com1.flac');
+      expect(DownloadService.sanitizeFileName('console.mp3'), 'console.mp3');
+    });
+
+    test('strips leading dots so it is not a hidden file', () {
+      expect(DownloadService.sanitizeFileName('.hidden.txt'), 'hidden.txt');
+      expect(DownloadService.sanitizeFileName('. . name.mp3'), 'name.mp3');
     });
   });
 }

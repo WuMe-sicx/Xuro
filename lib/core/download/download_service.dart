@@ -56,20 +56,66 @@ class DownloadService {
       : _repository = repository,
         _dio = dio ?? Dio();
 
-  /// 文件名安全化（保留可读性与扩展名，供 `OpenFilex` 识别类型）。
-  /// 退化输入（空 / 无任何字母数字，仅符号）回退为 `file`，结果确定。
-  /// 真实 ASMR 文件名总带字母数字+扩展名，回退只是防御兜底。
+  /// Windows/MTP 设备保留名（电脑端打不开/复制异常，与"外部可见"目标冲突）。
+  static final RegExp _reservedStem = RegExp(
+    r'^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$',
+    caseSensitive: false,
+  );
+
+  /// 文件名安全化：**保留接口原始标题**（含日文/中文等 Unicode），
+  /// 仅把文件系统真正非法的字符（路径分隔符、Windows/FAT/exFAT 保留字、
+  /// 控制字符）替换为 `_`，并去掉首尾空白与**首尾点**（尾随点 FAT/Windows
+  /// 会吞；前导点在 macOS/Linux/文件管理器里成隐藏文件，违背"外部可见"）。
+  /// 退化输入（空 / 清理后只剩 `_ . 空格` / `.` / `..`）回退为 `file`；
+  /// 命中 Windows 保留名加 `_` 前缀避开。结果确定。最后按 UTF-8 字节裁剪到
+  /// [_maxNameBytes] 以下、保留扩展名，避免外部 SD（FAT/exFAT 单文件名
+  /// 255 字节上限）写入失败。
   static String sanitizeFileName(String name) {
-    final cleaned = name.replaceAll(RegExp(r'[^a-zA-Z0-9._\- ]'), '_').trim();
-    final hasAlnum = RegExp(r'[a-zA-Z0-9]').hasMatch(cleaned);
-    return hasAlnum ? cleaned : 'file';
+    var cleaned = name
+        .replaceAll(RegExp(r'[\x00-\x1F/\\:*?"<>|]'), '_')
+        .trim()
+        .replaceAll(RegExp(r'^[.\s]+'), '')
+        .replaceAll(RegExp(r'[.\s]+$'), '');
+    if (cleaned.isEmpty || RegExp(r'^[_.\s]*$').hasMatch(cleaned)) {
+      return 'file';
+    }
+    if (_reservedStem.hasMatch(p.basenameWithoutExtension(cleaned))) {
+      cleaned = '_$cleaned';
+    }
+    return _clampNameBytes(cleaned);
   }
 
-  /// 稳定身份键：DB 去重 / 查询 / 删除 / 落盘名都用它，**不用展示名**。
+  /// FAT/exFAT 单文件名上限 255 字节；留余量给 `.dl_tmp`/`.dl_bak` 后缀。
+  static const int _maxNameBytes = 180;
+
+  /// 按 UTF-8 字节裁剪文件名到 [_maxNameBytes]，保留扩展名，
+  /// 不在多字节字符中间截断（逐字符重建）。若"扩展名"本身异常长
+  /// （非真扩展名）则当作正文整体裁剪，保证结果**必定** ≤ 上限。
+  static String _clampNameBytes(String name) {
+    if (utf8.encode(name).length <= _maxNameBytes) return name;
+    var ext = p.extension(name);
+    if (utf8.encode(ext).length > _maxNameBytes - 8) ext = '';
+    final base = name.substring(0, name.length - ext.length);
+    final budget = _maxNameBytes - utf8.encode(ext).length;
+    final buf = StringBuffer();
+    var used = 0;
+    for (final ch in base.runes) {
+      final chBytes = utf8.encode(String.fromCharCode(ch)).length;
+      if (used + chBytes > budget) break;
+      buf.writeCharCode(ch);
+      used += chBytes;
+    }
+    final clampedBase = buf.toString().trim();
+    return clampedBase.isEmpty ? 'file$ext' : '$clampedBase$ext';
+  }
+
+  /// 稳定身份键：DB 去重 / 查询 / 删除 / **落盘子目录** 都用它，**不用展示名**。
   ///
-  /// 不同标题（`a/b.mp4` vs `a:b.mp4`、大量非 ASCII、不同子目录下同名
-  /// `01.mp3`）必须算作不同下载，否则会互相误判命中（DB 行或物理路径）。
-  /// 身份取 `hash`（API 提供，最稳）> `mediaDownloadUrl` > `title`，md5 摘要。
+  /// 不同标题（`a/b.mp4` vs `a:b.mp4`、大量非 ASCII、同一作品树内不同文件夹
+  /// 下同名 `01.mp3`）必须算作不同下载，否则会互相误判命中（DB 行或物理
+  /// 路径）。落盘名已改回接口原始标题（见 [diskFileName]），同名冲突由
+  /// `_destPath` 的 `<fileKey>/` 子目录隔离。身份取 `hash`（API 提供，最稳）
+  /// > `mediaDownloadUrl` > `title`，md5 摘要。
   static String fileKey(Child file) {
     final idSource = (file.hash != null && file.hash!.isNotEmpty)
         ? file.hash!
@@ -77,10 +123,11 @@ class DownloadService {
     return md5.convert(utf8.encode(idSource)).toString();
   }
 
-  /// 落盘文件名 = [fileKey] + 原扩展名（扩展名保留以便 `OpenFilex` 识别类型）。
+  /// 落盘文件名 = **接口返回的原始标题**（仅做 FS 安全化，保留可读性与
+  /// 扩展名）。物理唯一性由 `_destPath` 的 `<fileKey>/` 子目录保证，故此处
+  /// 不再用 md5 命名——用户在电脑上看到的就是接口文件列表里的名字。
   static String diskFileName(Child file) {
-    final ext = p.extension(file.title ?? '');
-    return '${fileKey(file)}$ext';
+    return sanitizeFileName(file.title ?? '');
   }
 
   /// 下载根目录：Android 优先外部应用专属目录（电脑可见、免权限），
@@ -104,9 +151,27 @@ class DownloadService {
     return dir;
   }
 
+  /// 落盘路径 = `<下载根>/downloads/<workId>/<fileKey>/<原始标题>`。
+  /// 每个文件独占 `<fileKey>/` 子目录：同一作品树内不同文件夹的同名文件
+  /// （如各章节都有 `01.mp3`，但 hash/url 不同 → fileKey 不同）互不覆盖，
+  /// 同时文件名保持接口原样、用户在电脑上可读。tmp/bak/dest 同处该子目录，
+  /// 同卷 rename 原子写不变量不受影响。
   Future<String> _destPath(String workId, Child file) async {
     final dir = await _workDir(workId);
-    return p.join(dir.path, diskFileName(file));
+    final sub = Directory(p.join(dir.path, fileKey(file)));
+    if (!await sub.exists()) await sub.create(recursive: true);
+    return p.join(sub.path, diskFileName(file));
+  }
+
+  /// best-effort 删除已空的 `<fileKey>/` 子目录（删文件后调用），
+  /// 让用户可见的下载文件夹不残留空 md5 目录；失败无害（与孤儿文件同理）。
+  Future<void> _pruneEmptyDir(String filePath) async {
+    try {
+      final parent = Directory(p.dirname(filePath));
+      if (await parent.exists() && await parent.list().isEmpty) {
+        await parent.delete();
+      }
+    } catch (_) {}
   }
 
   /// 已完成且文件确实在盘上的下载记录（按稳定身份 [key] 查）；若 DB 有行但
@@ -256,6 +321,7 @@ class DownloadService {
       try {
         final f = File(path);
         if (await f.exists()) await f.delete();
+        await _pruneEmptyDir(path);
       } catch (e) {
         AppLogger.warning('移除下载文件失败（DB 行已删，孤儿无害）: $e');
       }
@@ -304,6 +370,7 @@ class DownloadService {
           }
           await f.delete();
           await _repository.remove(e.workId, e.fileKey);
+          await _pruneEmptyDir(e.filePath);
           total -= sz;
         } catch (_) {
           // 占用中删不掉：保留文件与 DB 行（行仍有效），容量继续计，跳过。

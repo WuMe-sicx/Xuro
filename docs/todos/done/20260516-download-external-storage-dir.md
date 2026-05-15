@@ -80,11 +80,50 @@
 - Codex 复审：SESSION_ID `019e2ce9-97ab-7e01-98fb-8a2c3bb3ea63`，⚠️ OPTIMIZE → 已按建议修正方法注释。
 - 运行时验收（Step 1）：仍待用户在真机下载一条音频，确认路径落在 `/storage/emulated/0/Android/data/com.xuro/files/downloads/...`。
 
-## 7. 复审 / Review
+## 7. 追加变更：磁盘文件名 = 接口原始标题（2026-05-16）
 
-- **Round 1**（⚠️ OPTIMIZE，可合入）：核心行为经 Codex 只读核验无回归——
-  旧下载不丢（`findCompleted` 按 DB 绝对路径校验）、离线播放不回归
+用户追加要求：下载文件名应与接口文件列表一致，不要 md5 命名（否则电脑端
+看到的是 `edc2423….mp3`，违背"外部可见"初衷）。
+
+- [x] `diskFileName` 由 `fileKey+ext`（md5）改为 `sanitizeFileName(title)`。
+- [x] `sanitizeFileName` 重写为 Unicode 安全（保留日文/中文；旧 ASCII-only
+  正则会把 ASMR 标题全 `_` 化，且原是死代码从未被调用）：仅替换 FS 非法字符、
+  剥首尾点/空格、Windows 保留名加 `_` 前缀、UTF-8 字节裁剪 ≤180（FAT/exFAT
+  255 上限留余量）。
+- [x] `_destPath` 改为 `<root>/downloads/<workId>/<fileKey>/<原始标题>`：
+  每文件独占 `<fileKey>/` 子目录，隔离"同作品树不同文件夹同名 `01.mp3`"覆盖；
+  tmp/bak/dest 仍同子目录，原子写不变量保持。
+- [x] 新增 `_pruneEmptyDir`：删文件后 best-effort 清空的 `<fileKey>/` 目录。
+- [x] `fileKey`（md5 身份）完全不变，DB 去重正确；旧下载不迁移、按 DB 绝对
+  路径仍命中，不回归。
+- [x] 单测：旧 `diskFileName` 契约改写 + 补 CJK/裁剪/长扩展名/保留名/前导点，
+  16 项全过；`fvm flutter analyze` 干净。
+
+## 8. 复审 / Review
+
+- **Round 1**（⚠️ OPTIMIZE，可合入）：落盘位置改外部目录——Codex 只读核验
+  无回归：旧下载不丢（`findCompleted` 按 DB 绝对路径校验）、离线播放不回归
   （`PlaylistBuilder` 用 DB 绝对路径构造 `Uri.file()`）、LRU 仍走全表
-  `listAllOldestFirst()` 而非扫某根目录、Android-only 降级回退合理。
-  唯一建议：`download()` 方法注释「下载到 App 私有目录」过时 → 已改为
-  「下载到本地下载目录（Android 为外部应用专属目录）」。`flutter analyze` 复测通过。
+  `listAllOldestFirst()`、Android-only 降级回退合理。建议：`download()` 注释
+  过时 → 已改。
+- **Round 2**（⚠️ OPTIMIZE，可合入）：文件名改原始标题——同名 `<fileKey>/`
+  隔离成立、原子写同卷不变量保持、旧下载仍命中。三条建议：①`_clampNameBytes`
+  扩展名本身超预算时会突破 180（medium）②Windows 保留名 ③前导点隐藏文件。
+- **Round 3**（✅ PASS，可直接合入）：三条全部闭合——长扩展名置空兜底保证
+  必 ≤180；`_reservedStem` 锚定不误伤 `console`/`COMmon`；前导点剥离顺序
+  与空回退/尾随剥离交互正确。无新增边界问题。
+
+---
+
+## ✅ 完成标记（追加变更后再确认）
+
+- 完成时间：2026-05-16
+- 执行命令：`/init`（直接刷新 `download/` 条目）
+- CLAUDE.md 更新摘要：`lib/core/download/` 条目同步——落盘改外部专属目录 +
+  磁盘名=接口原始标题 + `<fileKey>/` 子目录隔离 + Unicode 安全 sanitize/字节
+  裁剪/保留名/前导点不变量 + `_pruneEmptyDir`。
+- 关联 commit：（待提交，含外部目录 + 文件名两次变更）
+- Codex 复审：SESSION_ID `019e2ce9-97ab-7e01-98fb-8a2c3bb3ea63`，三轮 ⚠️→⚠️→✅ PASS。
+- 运行时验收（仍待用户真机）：下载一条音频，确认落在
+  `/storage/emulated/0/Android/data/com.xuro/files/downloads/<workId>/<fileKey>/<接口原始文件名>`
+  且电脑（USB/MTP）可见、文件名为接口列表里的名字。
