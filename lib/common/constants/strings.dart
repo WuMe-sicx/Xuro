@@ -36,6 +36,25 @@ class Strings {
   static const String importIoError = '文件读取失败';
   static const String subtitleRemoved = '已移除导入字幕';
 
+  // Batch / folder download
+  static const String downloadAllTooltip = '下载全部（含字幕）';
+  static const String batchDownloadTitle = '批量下载';
+  static const String batchDownloadEmpty = '该目录下没有可下载的音频';
+  static const String batchDownloadCancelled = '已取消批量下载';
+  static String batchDownloadConfirm(int audioCount) =>
+      '将顺序下载 $audioCount 个音频（含匹配字幕），是否继续？';
+  static String batchDownloadProgress(int index, int total, String name) =>
+      '正在下载 $index/$total：$name';
+  static String batchDownloadSummary(int ok, int skipped, int failed) =>
+      '下载完成：成功 $ok，已存在 $skipped，失败 $failed';
+
+  // Subtitle preview
+  static const String subtitlePreviewTitle = '字幕预览';
+  static const String subtitlePreviewLoading = '正在加载字幕...';
+  static const String subtitlePreviewEmpty = '该字幕没有可显示的内容';
+  static const String subtitlePreviewError = '字幕加载失败';
+  static const String subtitlePreviewRawNotice = '无法按时间轴解析，显示原始内容';
+
   // Drawer
   static const String home = '主页';
   static const String favorites = '我的收藏';

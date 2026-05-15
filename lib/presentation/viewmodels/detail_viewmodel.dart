@@ -15,7 +15,26 @@ import 'package:xuro/data/models/mark_status.dart';
 import 'package:xuro/widgets/detail/mark_selection_dialog.dart';
 import 'package:xuro/data/models/works/work_info.dart';
 import 'package:xuro/widgets/detail/work_folder_item.dart';
+import 'package:xuro/core/audio/models/file_path.dart';
+import 'package:xuro/core/subtitle/utils/subtitle_matcher.dart';
 import 'package:dio/dio.dart';
+
+/// 一条批量下载项：音频 + 同目录匹配到的字幕（可空）。
+typedef DownloadPair = ({Child audio, Child? subtitle});
+
+/// 批量下载结果汇总。
+class BatchDownloadOutcome {
+  final int ok;
+  final int skipped;
+  final int failed;
+  final bool cancelled;
+  const BatchDownloadOutcome({
+    required this.ok,
+    required this.skipped,
+    required this.failed,
+    required this.cancelled,
+  });
+}
 
 class DetailViewModel extends ChangeNotifier {
   late final ApiService _apiService;
@@ -180,17 +199,147 @@ class DetailViewModel extends ChangeNotifier {
 
   bool isAudioFile(Child file) => (file.type ?? '').toLowerCase() == 'audio';
 
-  /// 下载一个文件（视频）到 App 私有目录。UI 负责确认弹窗与进度展示。
+  static const _subtitleExtensions = {'vtt', 'lrc', 'srt', 'txt'};
+
+  /// 该文件是否为可预览字幕（.vtt/.lrc/.srt/.txt）。
+  bool isSubtitleFile(Child file) {
+    final ext = file.title?.split('.').last.toLowerCase();
+    return ext != null && _subtitleExtensions.contains(ext);
+  }
+
+  /// 纯函数：递归收集子树下所有音频，并就近（同目录同级）配对字幕。
+  /// 字幕匹配只在该音频所在目录的兄弟节点中找（与 [SubtitleLoader]
+  /// `findSubtitleFile` 的 `getSiblings` 语义一致）。
+  static List<DownloadPair> collectAudioWithSubtitles(List<Child>? children) {
+    final out = <DownloadPair>[];
+    if (children == null) return out;
+    for (final c in children) {
+      if ((c.type ?? '').toLowerCase() == 'folder') {
+        out.addAll(collectAudioWithSubtitles(c.children));
+      } else if ((c.type ?? '').toLowerCase() == 'audio') {
+        final sub = c.title != null
+            ? SubtitleMatcher.findMatchingSubtitle(c.title!, children)
+            : null;
+        out.add((audio: c, subtitle: sub));
+      }
+    }
+    return out;
+  }
+
+  List<Child>? _nodeChildren(Child? folder) =>
+      folder == null ? _files?.children : folder.children;
+
+  /// 该节点（null=整部作品）子树下可下载音频数。
+  int batchAudioCount(Child? folder) =>
+      collectAudioWithSubtitles(_nodeChildren(folder)).length;
+
+  /// 单个音频下载：下完音频后顺带把同目录匹配字幕也下了（best-effort，
+  /// 字幕失败/无字幕都不影响音频结果）。UI 负责确认弹窗与进度展示。
+  /// 视频文件无字幕配对，行为与原先一致。
   Future<DownloadResult> downloadFile(
     Child file, {
     void Function(double progress)? onProgress,
     CancelToken? cancelToken,
-  }) {
-    return _downloadService.download(
+  }) async {
+    final result = await _downloadService.download(
       workId: work.id.toString(),
       file: file,
       onProgress: onProgress,
       cancelToken: cancelToken,
+    );
+    if (result.isPlayable &&
+        isAudioFile(file) &&
+        !(cancelToken?.isCancelled ?? false)) {
+      final sub = _matchedSubtitle(file);
+      if (sub != null) {
+        try {
+          await _downloadService.download(
+            workId: work.id.toString(),
+            file: sub,
+            cancelToken: cancelToken,
+          );
+        } catch (e) {
+          AppLogger.warning('配对字幕下载失败（不影响音频）: $e');
+        }
+      }
+    }
+    return result;
+  }
+
+  Child? _matchedSubtitle(Child audio) {
+    if (_files == null || audio.title == null) return null;
+    final siblings = FilePath.getSiblings(audio, _files!);
+    return SubtitleMatcher.findMatchingSubtitle(audio.title!, siblings);
+  }
+
+  /// 顺序批量下载 [folder]（null=整部作品）子树下所有音频 + 匹配字幕。
+  /// 幂等去重由 `DownloadService.download` 保证；字幕 best-effort。
+  /// [onProgress]：(已处理序号 1-based, 总数, 当前音频名, 当前文件进度 0~1)。
+  Future<BatchDownloadOutcome> downloadFolder({
+    Child? folder,
+    required void Function(int index, int total, String name, double progress)
+        onProgress,
+    CancelToken? cancelToken,
+  }) async {
+    final items = collectAudioWithSubtitles(_nodeChildren(folder));
+    var ok = 0, skipped = 0, failed = 0;
+    var cancelled = false;
+    for (var i = 0; i < items.length; i++) {
+      if (cancelToken?.isCancelled ?? false) {
+        cancelled = true;
+        break;
+      }
+      final audio = items[i].audio;
+      final sub = items[i].subtitle;
+      final name = audio.title ?? '';
+      onProgress(i + 1, items.length, name, 0);
+      final r = await _downloadService.download(
+        workId: work.id.toString(),
+        file: audio,
+        cancelToken: cancelToken,
+        onProgress: (p) => onProgress(i + 1, items.length, name, p),
+      );
+      switch (r.status) {
+        case DownloadStatus.success:
+          ok++;
+        case DownloadStatus.alreadyExists:
+          skipped++;
+        case DownloadStatus.cancelled:
+          cancelled = true;
+        case DownloadStatus.networkError:
+        case DownloadStatus.ioError:
+          failed++;
+      }
+      if (cancelled) break;
+      if (sub != null && !(cancelToken?.isCancelled ?? false)) {
+        try {
+          final sr = await _downloadService.download(
+            workId: work.id.toString(),
+            file: sub,
+            cancelToken: cancelToken,
+          );
+          // 字幕下载被取消也要让整批标记 cancelled（否则末项音频带
+          // 字幕、用户在字幕阶段取消时，循环自然结束会误报"完成"）。
+          if (sr.status == DownloadStatus.cancelled) {
+            cancelled = true;
+            break;
+          }
+          // 字幕网络/IO 失败属 best-effort，仅记日志、不计入 failed。
+        } catch (e) {
+          AppLogger.warning('配对字幕下载失败（不影响音频）: $e');
+        }
+      }
+      // 末项之后无循环顶部检查，这里兜底捕获取消。
+      if (cancelToken?.isCancelled ?? false) {
+        cancelled = true;
+        break;
+      }
+    }
+    return BatchDownloadOutcome(
+      ok: ok,
+      skipped: skipped,
+      failed: failed,
+      cancelled: cancelled,
     );
   }
 

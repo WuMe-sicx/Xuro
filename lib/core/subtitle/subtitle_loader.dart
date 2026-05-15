@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:xuro/data/models/files/child.dart';
 import 'package:xuro/data/models/files/files.dart';
 import 'package:xuro/core/audio/models/file_path.dart';
@@ -68,6 +70,41 @@ class SubtitleLoader {
     } catch (e) {
       AppLogger.debug('字幕加载失败: $e');
       rethrow;
+    }
+  }
+
+  /// 取字幕**原始文本**（预览 / 离线用）：优先本地已下载文件，
+  /// 否则走网络（带 [SubtitleCacheManager] 缓存）。不做解析，
+  /// 调用方自行决定按时间轴解析还是原样展示。
+  Future<String> loadRawContent({String? localPath, String? url}) async {
+    if (localPath != null) {
+      return File(localPath).readAsString();
+    }
+    if (url == null || url.isEmpty) {
+      throw Exception('字幕地址为空');
+    }
+    final cached = await SubtitleCacheManager.getCachedContent(url);
+    if (cached != null) return cached;
+    final response = await _dio.get(url);
+    if (response.statusCode != 200) {
+      throw Exception('字幕下载失败: ${response.statusCode}');
+    }
+    final content = response.data as String;
+    await SubtitleCacheManager.cacheContent(url, content);
+    return content;
+  }
+
+  /// 把原始文本按时间轴解析；不支持的格式 **或解析抛错** 都返回 null
+  /// （调用方据此回退原文展示，不应把解析异常当成"加载失败"）。
+  SubtitleList? parseOrNull(String content) {
+    try {
+      final parser = SubtitleParserFactory.getParser(content);
+      if (parser == null) return null;
+      final list = parser.parse(content);
+      return list.subtitles.isNotEmpty ? list : null;
+    } catch (e) {
+      AppLogger.debug('字幕按时间轴解析失败，回退原文: $e');
+      return null;
     }
   }
 

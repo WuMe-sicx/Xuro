@@ -21,6 +21,8 @@ class WorkFileItem extends StatelessWidget {
     'mp4', 'mkv', 'mov', 'avi', 'webm', 'm4v'
   };
 
+  static const _subtitleExtensions = {'vtt', 'lrc', 'srt', 'txt'};
+
   bool get _isAudio => file.type?.toLowerCase() == 'audio';
 
   bool get _isVideo {
@@ -29,11 +31,17 @@ class WorkFileItem extends StatelessWidget {
     return ext != null && _videoExtensions.contains(ext);
   }
 
+  bool get _isSubtitle {
+    final ext = file.title?.split('.').last.toLowerCase();
+    return ext != null && _subtitleExtensions.contains(ext);
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool isAudio = _isAudio;
     final bool isVideo = _isVideo;
-    final bool tappable = isAudio || isVideo;
+    final bool isSubtitle = !isAudio && !isVideo && _isSubtitle;
+    final bool tappable = isAudio || isVideo || isSubtitle;
     final colorScheme = Theme.of(context).colorScheme;
     
     return Padding(
@@ -56,12 +64,16 @@ class WorkFileItem extends StatelessWidget {
               ? Icons.audio_file
               : isVideo
                   ? Icons.movie_outlined
-                  : Icons.insert_drive_file,
+                  : isSubtitle
+                      ? Icons.subtitles_outlined
+                      : Icons.insert_drive_file,
           color: isAudio
               ? Colors.green
               : isVideo
                   ? Colors.deepPurple
-                  : Colors.blue,
+                  : isSubtitle
+                      ? Colors.orange
+                      : Colors.blue,
         ),
         trailing: isAudio && onFileDownload != null
             ? IconButton(

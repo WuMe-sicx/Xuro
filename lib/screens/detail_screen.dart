@@ -11,9 +11,11 @@ import 'package:xuro/widgets/detail/work_files_skeleton.dart';
 import 'package:xuro/presentation/viewmodels/detail_viewmodel.dart';
 import 'package:xuro/widgets/detail/work_action_buttons.dart';
 import 'package:xuro/widgets/detail/media_download_dialog.dart';
+import 'package:xuro/widgets/detail/batch_download_dialog.dart';
 import 'package:xuro/core/download/download_service.dart';
 import 'package:xuro/common/constants/strings.dart';
 import 'package:xuro/screens/similar_works_screen.dart';
+import 'package:xuro/screens/subtitle_preview_screen.dart';
 import 'package:open_filex/open_filex.dart';
 
 class DetailScreen extends StatelessWidget {
@@ -158,8 +160,35 @@ class DetailScreen extends StatelessWidget {
                       }
                     }
 
+                    Future<void> runBatch(Child? folderNode) async {
+                      final outcome = await showDialog<BatchDownloadOutcome>(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (_) => BatchDownloadDialog(
+                          audioCount: viewModel.batchAudioCount(folderNode),
+                          download: (ct, onP) => viewModel.downloadFolder(
+                            folder: folderNode,
+                            onProgress: onP,
+                            cancelToken: ct,
+                          ),
+                        ),
+                      );
+                      if (outcome == null || !context.mounted) return;
+                      final messenger = ScaffoldMessenger.of(context);
+                      messenger.showSnackBar(SnackBar(
+                        content: Text(outcome.cancelled
+                            ? Strings.batchDownloadCancelled
+                            : Strings.batchDownloadSummary(
+                                outcome.ok,
+                                outcome.skipped,
+                                outcome.failed,
+                              )),
+                      ));
+                    }
+
                     return WorkFilesList(
                       files: viewModel.files!,
+                      onFolderDownload: runBatch,
                       onFileTap: (file) async {
                         if (viewModel.isAudioFile(file)) {
                           try {
@@ -179,6 +208,17 @@ class DetailScreen extends StatelessWidget {
                             openOnDone: true,
                             title: Strings.videoNeedsDownloadTitle,
                             prompt: Strings.videoNeedsDownloadPrompt,
+                          );
+                          return;
+                        }
+                        if (viewModel.isSubtitleFile(file)) {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => SubtitlePreviewScreen(
+                                workId: work.id?.toString(),
+                                file: file,
+                              ),
+                            ),
                           );
                           return;
                         }

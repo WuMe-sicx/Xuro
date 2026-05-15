@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+import 'package:xuro/common/constants/strings.dart';
 import 'package:xuro/data/models/files/child.dart';
 import 'package:xuro/utils/logger.dart';
 import 'package:xuro/widgets/detail/work_file_item.dart';
@@ -11,6 +12,7 @@ class WorkFolderItem extends StatelessWidget {
   final double indentation;
   final Function(Child file)? onFileTap;
   final Function(Child file)? onFileDownload;
+  final void Function(Child? folderNode)? onFolderDownload;
 
   // 支持的音频格式列表，按优先级排序
   static List<String> get _audioFormats {
@@ -35,6 +37,7 @@ class WorkFolderItem extends StatelessWidget {
     required this.indentation,
     this.onFileTap,
     this.onFileDownload,
+    this.onFolderDownload,
   });
 
   bool _shouldExpandFolder(Child folder) {
@@ -72,11 +75,24 @@ class WorkFolderItem extends StatelessWidget {
           ),
         ),
         child: ExpansionTile(
-          title: Text(
-            folder.title ?? '',
-            style: TextStyle(
-              color: colorScheme.onSurface,
-            ),
+          title: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  folder.title ?? '',
+                  style: TextStyle(
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+              ),
+              if (onFolderDownload != null)
+                IconButton(
+                  icon: const Icon(Icons.download_for_offline_outlined,
+                      size: 20),
+                  tooltip: Strings.downloadAllTooltip,
+                  onPressed: () => onFolderDownload!.call(folder),
+                ),
+            ],
           ),
           leading: Icon(
             Icons.folder,
@@ -90,6 +106,7 @@ class WorkFolderItem extends StatelessWidget {
                           indentation: indentation + 16.0,
                           onFileTap: onFileTap,
                           onFileDownload: onFileDownload,
+                          onFolderDownload: onFolderDownload,
                         )
                       : WorkFileItem(
                           file: child,
