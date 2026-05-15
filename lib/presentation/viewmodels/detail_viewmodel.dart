@@ -7,6 +7,7 @@ import 'package:xuro/data/models/files/child.dart';
 import 'package:xuro/data/models/works/work.dart';
 import 'package:xuro/data/services/api_service.dart';
 import 'package:xuro/core/audio/i_audio_player_service.dart';
+import 'package:xuro/core/download/download_service.dart';
 import 'package:xuro/utils/logger.dart';
 import 'package:xuro/core/audio/models/playback_context.dart';
 import 'package:xuro/widgets/detail/playlist_selection_dialog.dart';
@@ -19,7 +20,10 @@ import 'package:dio/dio.dart';
 class DetailViewModel extends ChangeNotifier {
   late final ApiService _apiService;
   late final IAudioPlayerService _audioService;
+  late final DownloadService _downloadService;
   final Work work;
+
+  static const _videoExtensions = {'mp4', 'mkv', 'mov', 'avi', 'webm', 'm4v'};
 
   Files? _files;
   bool _isLoading = false;
@@ -55,6 +59,7 @@ class DetailViewModel extends ChangeNotifier {
   }) {
     _audioService = GetIt.I<IAudioPlayerService>();
     _apiService = GetIt.I<ApiService>();
+    _downloadService = GetIt.I<DownloadService>();
     _checkRecommendations();
   }
 
@@ -163,6 +168,30 @@ class DetailViewModel extends ChangeNotifier {
     notifyListeners();
     await _loadFilesInternal();
     if (!_disposed) notifyListeners();
+  }
+
+  /// 该文件是否为视频（按 `type` 或扩展名判定）。视频不再直接判为"无法打开"，
+  /// 而是引导用户下载到本地磁盘后用外部查看器播放（见 detail_screen 的处理）。
+  bool isVideoFile(Child file) {
+    if ((file.type ?? '').toLowerCase() == 'video') return true;
+    final ext = file.title?.split('.').last.toLowerCase();
+    return ext != null && _videoExtensions.contains(ext);
+  }
+
+  bool isAudioFile(Child file) => (file.type ?? '').toLowerCase() == 'audio';
+
+  /// 下载一个文件（视频）到 App 私有目录。UI 负责确认弹窗与进度展示。
+  Future<DownloadResult> downloadFile(
+    Child file, {
+    void Function(double progress)? onProgress,
+    CancelToken? cancelToken,
+  }) {
+    return _downloadService.download(
+      workId: work.id.toString(),
+      file: file,
+      onProgress: onProgress,
+      cancelToken: cancelToken,
+    );
   }
 
   Future<void> playFile(Child file, BuildContext context) async {

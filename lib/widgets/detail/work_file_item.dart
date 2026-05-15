@@ -7,17 +7,33 @@ class WorkFileItem extends StatelessWidget {
   final Child file;
   final double indentation;
   final Function(Child file)? onFileTap;
+  final Function(Child file)? onFileDownload;
 
   const WorkFileItem({
     super.key,
     required this.file,
     required this.indentation,
     this.onFileTap,
+    this.onFileDownload,
   });
+
+  static const _videoExtensions = {
+    'mp4', 'mkv', 'mov', 'avi', 'webm', 'm4v'
+  };
+
+  bool get _isAudio => file.type?.toLowerCase() == 'audio';
+
+  bool get _isVideo {
+    if ((file.type ?? '').toLowerCase() == 'video') return true;
+    final ext = file.title?.split('.').last.toLowerCase();
+    return ext != null && _videoExtensions.contains(ext);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final bool isAudio = file.type?.toLowerCase() == 'audio';
+    final bool isAudio = _isAudio;
+    final bool isVideo = _isVideo;
+    final bool tappable = isAudio || isVideo;
     final colorScheme = Theme.of(context).colorScheme;
     
     return Padding(
@@ -36,14 +52,33 @@ class WorkFileItem extends StatelessWidget {
           ),
         ),
         leading: Icon(
-          isAudio ? Icons.audio_file : Icons.insert_drive_file,
-          color: isAudio ? Colors.green : Colors.blue,
+          isAudio
+              ? Icons.audio_file
+              : isVideo
+                  ? Icons.movie_outlined
+                  : Icons.insert_drive_file,
+          color: isAudio
+              ? Colors.green
+              : isVideo
+                  ? Colors.deepPurple
+                  : Colors.blue,
         ),
+        trailing: isAudio && onFileDownload != null
+            ? IconButton(
+                icon: const Icon(Icons.download_outlined, size: 20),
+                tooltip: '下载到本地（离线播放）',
+                onPressed: () => onFileDownload!.call(file),
+              )
+            : isVideo
+                ? const Icon(Icons.download_outlined, size: 20)
+                : null,
         dense: true,
-        onTap: isAudio ? () {
-          AppLogger.debug('点击音频文件: ${file.title}');
-          onFileTap?.call(file);
-        } : null,
+        onTap: tappable
+            ? () {
+                AppLogger.debug('点击文件: ${file.title} (${file.type})');
+                onFileTap?.call(file);
+              }
+            : null,
       ),
     );
   }

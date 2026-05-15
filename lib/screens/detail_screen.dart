@@ -3,13 +3,18 @@ import 'package:xuro/widgets/mini_player/mini_player.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:xuro/data/models/works/work.dart';
+import 'package:xuro/data/models/files/child.dart';
 import 'package:xuro/widgets/detail/work_cover.dart';
 import 'package:xuro/widgets/detail/work_info.dart';
 import 'package:xuro/widgets/detail/work_files_list.dart';
 import 'package:xuro/widgets/detail/work_files_skeleton.dart';
 import 'package:xuro/presentation/viewmodels/detail_viewmodel.dart';
 import 'package:xuro/widgets/detail/work_action_buttons.dart';
+import 'package:xuro/widgets/detail/media_download_dialog.dart';
+import 'package:xuro/core/download/download_service.dart';
+import 'package:xuro/common/constants/strings.dart';
 import 'package:xuro/screens/similar_works_screen.dart';
+import 'package:open_filex/open_filex.dart';
 
 class DetailScreen extends StatelessWidget {
   final Work work;
@@ -97,19 +102,98 @@ class DetailScreen extends StatelessWidget {
                   }
 
                   if (viewModel.files != null) {
+                    // 确认弹窗 → 下载（带进度/取消）→ 结果提示。
+                    // [openOnDone]=true（视频）完成后用外部查看器打开；
+                    // false（音频离线下载）仅提示完成。
+                    Future<void> runDownload(
+                      Child file, {
+                      required bool openOnDone,
+                      required String title,
+                      required String prompt,
+                    }) async {
+                      final result = await showDialog<DownloadResult>(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (_) => MediaDownloadDialog(
+                          fileName: file.title ?? '',
+                          titleText: title,
+                          promptText: prompt,
+                          download: (ct, onP) => viewModel.downloadFile(
+                            file,
+                            cancelToken: ct,
+                            onProgress: onP,
+                          ),
+                        ),
+                      );
+                      // 拒绝（确认阶段取消）→ no-op
+                      if (result == null || !context.mounted) return;
+                      final messenger = ScaffoldMessenger.of(context);
+                      if (result.isPlayable && result.localPath != null) {
+                        if (openOnDone) {
+                          final open =
+                              await OpenFilex.open(result.localPath!);
+                          if (open.type != ResultType.done) {
+                            messenger.showSnackBar(const SnackBar(
+                              content: Text(Strings.downloadOpenFailed),
+                            ));
+                          }
+                        } else {
+                          messenger.showSnackBar(const SnackBar(
+                            content: Text(Strings.downloadSuccess),
+                          ));
+                        }
+                      } else if (result.status == DownloadStatus.cancelled) {
+                        messenger.showSnackBar(const SnackBar(
+                          content: Text(Strings.downloadCancelled),
+                        ));
+                      } else if (result.status ==
+                          DownloadStatus.networkError) {
+                        messenger.showSnackBar(const SnackBar(
+                          content: Text(Strings.downloadNetworkError),
+                        ));
+                      } else {
+                        messenger.showSnackBar(const SnackBar(
+                          content: Text(Strings.downloadIoError),
+                        ));
+                      }
+                    }
+
                     return WorkFilesList(
                       files: viewModel.files!,
                       onFileTap: (file) async {
-                        try {
-                          await viewModel.playFile(file, context);
-                        } catch (e) {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('播放失败: $e')),
-                            );
+                        if (viewModel.isAudioFile(file)) {
+                          try {
+                            await viewModel.playFile(file, context);
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('播放失败: $e')),
+                              );
+                            }
                           }
+                          return;
                         }
+                        if (viewModel.isVideoFile(file)) {
+                          await runDownload(
+                            file,
+                            openOnDone: true,
+                            title: Strings.videoNeedsDownloadTitle,
+                            prompt: Strings.videoNeedsDownloadPrompt,
+                          );
+                          return;
+                        }
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(Strings.unsupportedFileType),
+                          ),
+                        );
                       },
+                      onFileDownload: (file) => runDownload(
+                        file,
+                        openOnDone: false,
+                        title: Strings.audioDownloadTitle,
+                        prompt: Strings.audioDownloadPrompt,
+                      ),
                     );
                   }
 

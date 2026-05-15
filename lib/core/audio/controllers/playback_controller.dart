@@ -114,6 +114,7 @@ class PlaybackController {
           files: originalContext.playlist,
           initialIndex: originalContext.currentIndex,
           initialPosition: initialPosition ?? Duration.zero,
+          workId: originalContext.work.id.toString(),
         );
       } catch (e, stack) {
         AppLogger.error('设置播放源失败', e, stack);

@@ -10,6 +10,7 @@ class WorkFolderItem extends StatelessWidget {
   final Child folder;
   final double indentation;
   final Function(Child file)? onFileTap;
+  final Function(Child file)? onFileDownload;
 
   // 支持的音频格式列表，按优先级排序
   static List<String> get _audioFormats {
@@ -33,6 +34,7 @@ class WorkFolderItem extends StatelessWidget {
     required this.folder,
     required this.indentation,
     this.onFileTap,
+    this.onFileDownload,
   });
 
   bool _shouldExpandFolder(Child folder) {
@@ -87,11 +89,13 @@ class WorkFolderItem extends StatelessWidget {
                           folder: child,
                           indentation: indentation + 16.0,
                           onFileTap: onFileTap,
+                          onFileDownload: onFileDownload,
                         )
                       : WorkFileItem(
                           file: child,
                           indentation: indentation + 16.0,
                           onFileTap: onFileTap,
+                          onFileDownload: onFileDownload,
                         ))
                   .toList() ??
               [],

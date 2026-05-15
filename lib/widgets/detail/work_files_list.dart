@@ -7,11 +7,13 @@ import 'package:xuro/widgets/detail/work_file_item.dart';
 class WorkFilesList extends StatelessWidget {
   final Files files;
   final Function(Child file)? onFileTap;
+  final Function(Child file)? onFileDownload;
 
   const WorkFilesList({
     super.key,
     required this.files,
     this.onFileTap,
+    this.onFileDownload,
   });
 
   @override
@@ -40,11 +42,13 @@ class WorkFilesList extends StatelessWidget {
                           folder: child,
                           indentation: 0,
                           onFileTap: onFileTap,
+                          onFileDownload: onFileDownload,
                         )
                       : WorkFileItem(
                           file: child,
                           indentation: 0,
                           onFileTap: onFileTap,
+                          onFileDownload: onFileDownload,
                         ))
                   .toList() ??
               [],

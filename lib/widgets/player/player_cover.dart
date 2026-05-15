@@ -35,25 +35,40 @@ class PlayerCover extends StatelessWidget {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(12),
           child: coverUrl != null
-              ? CachedNetworkImage(
-                  imageUrl: coverUrl!,
-                  fit: BoxFit.cover,
-                  cacheManager: ImageCacheManager.instance,
-                  placeholder: (context, url) => SkeletonPulse(
-                    child: Container(
-                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                    ),
-                  ),
-                  errorWidget: (context, url, error) => Container(
-                    color: Theme.of(context).colorScheme.errorContainer,
-                    child: Center(
-                      child: Icon(
-                        Icons.error_outline,
-                        size: 48,
-                        color: Theme.of(context).colorScheme.error,
+              ? LayoutBuilder(
+                  builder: (context, constraints) {
+                    final dpr = MediaQuery.of(context).devicePixelRatio;
+                    final w = constraints.maxWidth;
+                    int? cacheWidth;
+                    if (w.isFinite && w > 0) {
+                      final p = (w * dpr).round();
+                      cacheWidth = p < 1 ? 1 : p;
+                    }
+                    return CachedNetworkImage(
+                      imageUrl: coverUrl!,
+                      fit: BoxFit.cover,
+                      memCacheWidth: cacheWidth,
+                      fadeInDuration: const Duration(milliseconds: 150),
+                      cacheManager: ImageCacheManager.instance,
+                      placeholder: (context, url) => SkeletonPulse(
+                        child: Container(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .surfaceContainerHighest,
+                        ),
                       ),
-                    ),
-                  ),
+                      errorWidget: (context, url, error) => Container(
+                        color: Theme.of(context).colorScheme.errorContainer,
+                        child: Center(
+                          child: Icon(
+                            Icons.error_outline,
+                            size: 48,
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 )
               : const Icon(Icons.music_note, size: 100),
         ),
