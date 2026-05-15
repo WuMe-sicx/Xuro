@@ -9,6 +9,11 @@ class Strings {
   static const String cancel = '取消';
   static const String confirm = '确认';
 
+  // Error prompts — connection & login state
+  static const String networkVpnHint = '请先连接 VPN 服务';
+  static const String loginRequired = '请先登录';
+  static const String goLogin = '去登录';
+
   // Home
   static const String search = '搜索';
   static const String musicList = '音乐列表将在这里显示';
@@ -86,6 +91,22 @@ class Strings {
   static const String originalRepoUrl = 'https://github.com/asmroneapp/Yuro';
   static const String telegramChannel = 'Telegram 频道';
   static const String telegramChannelUrl = 'https://t.me/XuroAsmr';
+
+  // Update checking
+  static const String checkForUpdates = '检查更新';
+  static const String updateChecking = '正在检查更新...';
+  static const String updateUpToDate = '已是最新版本';
+  static const String updateNewVersionTitle = '发现新版本';
+  static const String updateDownload = '立即下载';
+  static const String updateLater = '稍后';
+  static const String updateOk = '好的';
+  static const String updateCurrentVersionLabel = '当前版本';
+  static const String updateErrorNetwork = '网络连接失败，请检查网络后重试';
+  static const String updateErrorRateLimited = 'GitHub 请求过于频繁，请稍后再试';
+  static const String updateErrorNotFound = '未找到发布信息';
+  static const String updateErrorNoRelease = '暂无可用发布';
+  static const String updateErrorInvalidPayload = '发布信息解析失败';
+  static const String updateErrorUnknown = '检查更新失败，请稍后再试';
 
   // Auth — register
   static const String register = '注册';

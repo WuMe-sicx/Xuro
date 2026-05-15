@@ -7,6 +7,7 @@ import 'package:get_it/get_it.dart';
 import '../audio/i_audio_player_service.dart';
 import '../audio/audio_player_service.dart';
 import '../../data/services/api_service.dart';
+import '../../data/services/update_service.dart';
 import '../../presentation/viewmodels/player_viewmodel.dart';
 import '../../data/services/auth_service.dart';
 import '../../presentation/viewmodels/auth_viewmodel.dart';
@@ -91,6 +92,11 @@ Future<void> setupServiceLocator() async {
   // API 服务
   getIt.registerLazySingleton<ApiService>(
     () => ApiService(settings: getIt<AppSettingsService>()),
+  );
+
+  // 检查更新服务（独立 GitHub Dio，与 asmr 节点解耦）
+  getIt.registerLazySingleton<UpdateService>(
+    () => UpdateService(),
   );
 
   // 添加 AuthService 注册

@@ -12,6 +12,7 @@ import 'package:xuro/screens/settings/audio_format_order_dialog.dart';
 import 'package:xuro/screens/settings/widgets/settings_group.dart';
 import 'package:xuro/screens/settings/widgets/settings_tile.dart';
 import 'package:xuro/screens/settings/widgets/settings_theme.dart';
+import 'package:xuro/presentation/widgets/update/update_dialog.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -235,6 +236,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: Strings.versionInfo,
               leading: Icons.info_outline,
               value: version,
+            ),
+            SettingsTile.navigation(
+              title: Strings.checkForUpdates,
+              leading: Icons.system_update_outlined,
+              onTap: () => showDialog(
+                context: context,
+                builder: (_) => const UpdateDialog(),
+              ),
             ),
             SettingsTile.navigation(
               title: Strings.openSourceLicenses,
