@@ -131,6 +131,12 @@ class ApiService {
   }
 
   /// 搜索作品
+  ///
+  /// 注意：`keyword` 直接作为路径段拼接。某些标签的 `name` 含 `/`
+  /// （例如 "巨乳/爆乳"），如果用字符串拼接构造 path，`%2F` 在 Dio
+  /// 内部 `Uri.parse` 后可能被还原为 `/`，服务器收到后会按路径分隔符
+  /// 拆段 → 404。这里改用 `Uri.pathSegments` 显式构造，再走 `getUri`
+  /// 直接交给 Dio，确保整段 keyword 在 wire 上始终是单个 segment。
   Future<WorksResponse> searchWorks({
     required String keyword,
     int page = 1,
@@ -139,15 +145,14 @@ class ApiService {
     bool hasSubtitle = false,
   }) async {
     try {
-      final response = await _dio.get(
-        '/search/${Uri.encodeComponent(keyword)}',
-        queryParameters: {
-          'page': page,
-          'order': order,
-          'sort': sort,
-          'subtitle': hasSubtitle ? 1 : 0,
-          'includeTranslationWorks': true,
-        },
+      final response = await _dio.getUri(
+        _buildSearchUri(
+          keyword: keyword,
+          page: page,
+          order: order,
+          sort: sort,
+          hasSubtitle: hasSubtitle,
+        ),
       );
 
       if (response.statusCode == 200) {
@@ -173,6 +178,49 @@ class ApiService {
       AppLogger.error('解析数据失败', e, stackTrace);
       throw Exception('解析数据失败: $e');
     }
+  }
+
+  Uri _buildSearchUri({
+    required String keyword,
+    required int page,
+    required String order,
+    required String sort,
+    required bool hasSubtitle,
+  }) {
+    return buildSearchUri(
+      baseUrl: _dio.options.baseUrl,
+      keyword: keyword,
+      page: page,
+      order: order,
+      sort: sort,
+      hasSubtitle: hasSubtitle,
+    );
+  }
+
+  /// 公开供单元测试覆盖：构造 `/search/<keyword>` 的完整 URI。
+  /// 关键保证：keyword 在 wire 上始终是 **单个 path segment** —
+  /// `Uri.pathSegments` 不会把 `/` 当分隔符，并且会把会破坏路径解析的
+  /// 保留字（`/ ? #` 等）一律 percent-encode，从而避免服务器把 `/`
+  /// 当分隔符拆段。其它字符（如 `+`、`:`）作为合法的 pchar 不会被编码。
+  static Uri buildSearchUri({
+    required String baseUrl,
+    required String keyword,
+    required int page,
+    required String order,
+    required String sort,
+    required bool hasSubtitle,
+  }) {
+    final base = Uri.parse(baseUrl);
+    return base.replace(
+      pathSegments: [...base.pathSegments, 'search', keyword],
+      queryParameters: <String, String>{
+        'page': '$page',
+        'order': order,
+        'sort': sort,
+        'subtitle': hasSubtitle ? '1' : '0',
+        'includeTranslationWorks': 'true',
+      },
+    );
   }
 
   /// 获取收藏列表
