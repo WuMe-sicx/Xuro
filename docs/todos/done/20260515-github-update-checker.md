@@ -2,7 +2,7 @@
 
 - **创建时间**：2026-05-15
 - **负责人**：WuMe-sicx
-- **状态**：active <!-- active | done | cancelled -->
+- **状态**：done <!-- active | done | cancelled -->
 - **关联 Issue / PR**：（待补）
 
 ---
@@ -122,7 +122,8 @@
 
 > 全部步骤勾选完毕后填写此块，并实际执行 `/init` 刷新根目录 `CLAUDE.md`，然后把本文件移入 `docs/todos/done/`。
 
-- 完成时间：YYYY-MM-DD HH:mm
+- 完成时间：2026-05-15
 - 执行命令：`/init`
-- CLAUDE.md 更新摘要：<一两句话说明 CLAUDE.md 的变化>
-- 关联 commit：<commit hash>
+- CLAUDE.md 更新摘要：在 `lib/data/`/`lib/presentation/`/API/Tests 四处补充更新检查子系统——`UpdateService`（独立 GitHub Dio、不随节点切换、`/releases?per_page=10` 选 semver 最大）、`UpdateException`（不复用 NetworkException）、`UpdateInfo`（Freezed-only 自定义工厂）、`UpdateDialog`+`UpdateViewModel`（disposed guard 不变量）、新增两测试文件。
+- 关联 commit：`f872229`（实现）+ 本次 docs 闭环 commit
+- 备注：唯一未勾选验收项「真机/模拟器四态 UI 手验」由用户在其设备上验证（本环境无法跑设备）；逻辑层经 Codex 规划 3 轮 + 实现 2 轮评审至 ✅ PASS，21 单测全过，analyze 干净。

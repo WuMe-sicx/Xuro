@@ -78,6 +78,8 @@ Clean Architecture with three layers, using **Provider (ChangeNotifier)** for st
   - `services/api_service.dart` - Dio HTTP client; baseUrl is read from `AppSettingsService.serverUrl` and updated when the user switches nodes
   - `services/auth_service.dart` - Login (`/auth/me`) and register (`/auth/reg`); also injects `AppSettingsService` so auth requests follow the user's selected node. Defines `RegisteredButNotLoggedInException` for the case where account creation succeeds but the auto-login fallback fails — callers must distinguish this from a register failure
   - `services/interceptors/auth_interceptor.dart` - Dio auth interceptor
+  - `services/exceptions/network_exception.dart` - `NetworkException.fromDioException` maps Dio errors to a `NetworkErrorType`. `userMessage` is the **single source** of user-facing copy: `connectionError`/`timeout` → `Strings.networkVpnHint` ("请先连接 VPN 服务", because asmr.one is geo-blocked so any connection failure ≈ VPN off), `authError` (401/403) → `Strings.loginRequired`, else the technical `message`. `isAuthError` lets callers branch on auth failures. ViewModels should consume `userMessage`/`isAuthError`, not `e.toString()`
+  - `services/update_service.dart` + `services/exceptions/update_exception.dart` - In-app update check. `UpdateService` has its **own** Dio fixed to `https://api.github.com` (GitHub headers `Accept: application/vnd.github+json` + `X-GitHub-Api-Version`); it deliberately does **not** subscribe to `AppSettingsService` and carries no `AuthInterceptor` (GitHub host is unrelated to asmr node switching). CI publishes every release with `prerelease: true`, so `/releases/latest` (skips prereleases) is unusable — `checkForUpdate` GETs `/releases?per_page=10`, keeps only tags matching `^v?\d+\.\d+\.\d+$`, and picks the **semver max** (not list `[0]`) via static `UpdateService.compareSemver`. Errors map to `UpdateException`/`UpdateErrorType` — **never reuse `NetworkException` here**: its copy is asmr-specific (403→"请先登录", connection fail→VPN hint), wrong for GitHub where 403/429 = rate limit. `UpdateInfo` is **Freezed-only (no `.g.dart`)** with a custom `fromReleaseJson` factory (fields are derived, not 1:1 JSON) that throws `FormatException` (service translates to `invalidPayload`) — the model has no service-layer imports. `compareSemver`/`selectLatestRelease`/`fromReleaseJson`/`fromDioException` are `static`/pure and network-free unit-tested
   - `repositories/` - Repository implementations (AuthRepository, audio state)
 
 - **`lib/presentation/`** - Presentation layer
@@ -86,6 +88,7 @@ Clean Architecture with three layers, using **Provider (ChangeNotifier)** for st
   - `layouts/` - `work_layout_config.dart` / `work_layout_strategy.dart` (responsive grid sizing — see ui-design-spec §5)
   - `models/filter_state.dart` - UI-only state object for the filter panel
   - `widgets/auth/` - Auth UI widgets: `LoginDialog` and `RegisterDialog`. They cross-link via root navigator (`useRootNavigator: true`) so the sidebar's local dark `Theme` doesn't leak into the dialog, and call `AuthViewModel.clearError()` on the way out to avoid stale error text in the freshly opened dialog
+  - `widgets/update/update_dialog.dart` + `viewmodels/update_viewmodel.dart` - "检查更新" entry (Settings → About). `UpdateDialog` creates a **local** `UpdateViewModel` in its `ChangeNotifierProvider.create` and kicks `check()` immediately; renders four states (checking / up-to-date / new-version+notes / error+retry). `UpdateViewModel` **must** keep its `_disposed` guard + `dispose()` override + `_safeNotify()`: the dialog is dismissible mid-check, which disposes the local notifier, and an in-flight request completing afterward would otherwise `notifyListeners()` on a disposed `ChangeNotifier`. `openDownload()` opens the `.apk` asset on Android (falls back to the release `html_url` if absent), `html_url` elsewhere
 
 - **`lib/screens/`** - Full-page screens. `MainScreen` is the tab-based root. `contents/` holds the tab content widgets; `browse/` holds tag/circle/voice-actor lists; `settings/` holds the settings tree
 
@@ -117,7 +120,16 @@ Both services subscribe to `AppSettingsService` and rotate `dio.options.baseUrl`
 - `https://api.asmr.one/api` (主站, default)
 - `https://api.asmr-100.com/api` / `-200` / `-300` (mirror nodes)
 
-When adding a new HTTP-touching service, follow the `_onSettingsChanged` pattern in `ApiService`/`AuthService` — don't hardcode the host.
+When adding a new HTTP-touching service, follow the `_onSettingsChanged` pattern in `ApiService`/`AuthService` — don't hardcode the host. **Deliberate exception:** `UpdateService` is a third Dio client hardwired to `https://api.github.com` and intentionally does *not* follow this pattern — GitHub is unrelated to asmr node switching. Only the asmr-content/auth services rotate with the selected node.
+
+### Error-prompt UX (connection vs. login state)
+
+A list-page error must communicate the **right recovery action**, not just "出错了 + 重试". This invariant spans four layers — keep them consistent when adding a new paginated screen:
+
+1. **Data**: `NetworkException.userMessage` centralizes the copy (VPN hint for connection/timeout, "请先登录" for 401/403). Don't surface `e.toString()` to users.
+2. **ViewModel**: list ViewModels (`FavoritesViewModel`, `RecommendViewModel`) expose `bool isLoginError` alongside `String? error`. Set it `true` in the not-logged-in early return **and** when a caught `NetworkException.isAuthError` is true; reset to `false` before each load and on non-auth errors. The `catch` block routes through `NetworkException.userMessage`.
+3. **Widget**: `EnhancedWorkGridView` and the legacy `WorkGridView` take `isLoginError` + `onLogin` (both optional, defaulting to retry behavior so other screens are unaffected). When `isLoginError && onLogin != null` they render a **"去登录" button instead of "重试"** (retrying a not-logged-in request is pointless). `GridError` owns the actual branching.
+4. **Screen**: content screens pass `isLoginError: vm.isLoginError` and an `onLogin` that opens `LoginDialog` on the **root navigator** (`useRootNavigator: true`), `await`s it, and reloads the list if `context.read<AuthViewModel>().isLoggedIn` afterward. The standalone `FavoritesScreen` (sidebar route, still on legacy `WorkGridView`) is wired the same way for parity. `RecommendContent`'s `Selector` record must include `isLoginError` so the grid rebuilds when it flips.
 
 ## CI/CD
 
@@ -132,4 +144,4 @@ fvm dart run build_runner build --delete-conflicting-outputs
 
 ## Tests
 
-A widget smoke test lives at `test/widget_test.dart`; pure-logic unit tests mirror the `lib/` tree under `test/` (e.g. `test/data/services/api_service_url_test.dart` covers `ApiService.buildSearchUri`). There is no shared test harness/fixtures yet — when adding tests for a new subsystem, create `test/<mirrored-path>/` and keep tests network-free (the URL test short-circuits Dio via an `InterceptorsWrapper` that rejects in `onRequest`). Run one file with `fvm flutter test test/data/services/api_service_url_test.dart`.
+A widget smoke test lives at `test/widget_test.dart`; pure-logic unit tests mirror the `lib/` tree under `test/` (e.g. `test/data/services/api_service_url_test.dart` covers `ApiService.buildSearchUri`; `test/data/services/update_version_compare_test.dart` + `update_release_parse_test.dart` cover `UpdateService.compareSemver`/`selectLatestRelease`, `UpdateInfo.fromReleaseJson` boundaries, and `UpdateException.fromDioException` classification). There is no shared test harness/fixtures yet — when adding tests for a new subsystem, create `test/<mirrored-path>/` and keep tests network-free (the URL test short-circuits Dio via an `InterceptorsWrapper` that rejects in `onRequest`). Run one file with `fvm flutter test test/data/services/api_service_url_test.dart`.
