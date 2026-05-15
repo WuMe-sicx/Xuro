@@ -43,4 +43,7 @@ class DummyLyricOverlayController implements ILyricOverlayController {
   Future<bool> isShowing() async {
     return false;
   }
+
+  @override
+  Future<void> setEditable(bool editable) async {}
 }

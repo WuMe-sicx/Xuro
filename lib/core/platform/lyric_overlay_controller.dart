@@ -61,4 +61,10 @@ class LyricOverlayController implements ILyricOverlayController {
     final result = await _channel.invokeMethod<bool>('isShowing') ?? false;
     return result;
   }
-} 
+
+  @override
+  Future<void> setEditable(bool editable) async {
+    AppLogger.debug('[$_tag] setEditable: $editable');
+    await _channel.invokeMethod('setEditable', {'editable': editable});
+  }
+}

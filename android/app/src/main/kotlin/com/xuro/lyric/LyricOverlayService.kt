@@ -3,32 +3,46 @@ package com.xuro.lyric
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.graphics.Paint
 import android.graphics.PixelFormat
 import android.os.Binder
 import android.os.IBinder
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
+import android.widget.FrameLayout
 import android.widget.TextView
 import com.xuro.R
-import android.view.Gravity
 
 class LyricOverlayService : Service() {
     private var windowManager: WindowManager? = null
     private var lyricView: View? = null
+    private var strokeView: TextView? = null
+    private var fillView: TextView? = null
     private var params: WindowManager.LayoutParams? = null
-    private var initialX = 0
     private var initialY = 0
-    private var initialTouchX = 0f
     private var initialTouchY = 0f
+    private var editable = false
     private val binder = LocalBinder()
 
     companion object {
         private const val PREFS_NAME = "LyricOverlayPrefs"
-        private const val KEY_X = "window_x"
         private const val KEY_Y = "window_y"
         private const val KEY_SHOWING = "is_showing"
+
+        private const val BASE_FLAGS =
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
+            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+
+        // Android 12+ 安全策略：TYPE_APPLICATION_OVERLAY 的 alpha 超过
+        // getMaximumObscuringOpacityForTouch()（默认 0.8）时，下层 app
+        // 不会收到被遮挡的触摸事件，FLAG_NOT_TOUCHABLE 形同虚设。
+        // 这里固定使用 0.8 兼容所有版本；编辑态恢复 1.0 让歌词不透明便于拖动。
+        private const val PASS_THROUGH_ALPHA = 0.8f
+        private const val EDIT_MODE_ALPHA = 1.0f
     }
 
     inner class LocalBinder : Binder() {
@@ -47,63 +61,76 @@ class LyricOverlayService : Service() {
         if (lyricView == null) {
             createLyricView()
         }
-        (lyricView as? TextView)?.text = text
+        strokeView?.text = text
+        fillView?.text = text
         getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             .edit()
             .putBoolean(KEY_SHOWING, true)
             .apply()
     }
 
-    private fun createLyricView() {
-        lyricView = LayoutInflater.from(this).inflate(R.layout.lyric_overlay, null)
+    fun setEditable(editable: Boolean) {
+        this.editable = editable
+        val view = lyricView ?: return
+        val p = params ?: return
+        p.flags = computeFlags(editable)
+        p.alpha = if (editable) EDIT_MODE_ALPHA else PASS_THROUGH_ALPHA
+        windowManager?.updateViewLayout(view, p)
+    }
 
-        // 获取屏幕高度
+    private fun computeFlags(editable: Boolean): Int =
+        if (editable) BASE_FLAGS
+        else BASE_FLAGS or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+
+    private fun createLyricView() {
+        val root = LayoutInflater.from(this)
+            .inflate(R.layout.lyric_overlay, null) as FrameLayout
+        lyricView = root
+        strokeView = root.findViewById(R.id.lyric_stroke)
+        fillView = root.findViewById(R.id.lyric_fill)
+
+        strokeView?.paint?.apply {
+            style = Paint.Style.STROKE
+            strokeWidth = 6f
+            strokeJoin = Paint.Join.ROUND
+        }
+
         val displayMetrics = resources.displayMetrics
         val screenHeight = displayMetrics.heightPixels
-
-        // 读取保存的位置，默认位置设在屏幕2/3处
         val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val savedX = prefs.getInt(KEY_X, 50)  // 距离右边50dp
-        val savedY = prefs.getInt(KEY_Y, (screenHeight * 2 / 3))  // 屏幕高度的2/3处
+        val savedY = prefs.getInt(KEY_Y, (screenHeight * 2 / 3))
 
         params = WindowManager.LayoutParams(
-            360.dpToPx(),
+            WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
-            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+            computeFlags(editable),
             PixelFormat.TRANSLUCENT
         ).apply {
-            gravity = Gravity.TOP or Gravity.END
-            x = savedX
+            gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
+            x = 0
             y = savedY
+            alpha = if (editable) EDIT_MODE_ALPHA else PASS_THROUGH_ALPHA
             windowAnimations = 0
         }
 
-        lyricView?.setOnTouchListener { _, event ->
+        root.setOnTouchListener { _, event ->
+            if (!editable) return@setOnTouchListener false
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
-                    initialX = params?.x ?: 0
                     initialY = params?.y ?: 0
-                    initialTouchX = event.rawX
                     initialTouchY = event.rawY
                 }
                 MotionEvent.ACTION_MOVE -> {
-                    val dx = (event.rawX - initialTouchX).toInt()
                     val dy = (event.rawY - initialTouchY).toInt()
-
-                    params?.x = initialX - dx
                     params?.y = initialY + dy
                     params?.let { windowManager?.updateViewLayout(lyricView, it) }
                 }
                 MotionEvent.ACTION_UP -> {
-                    // 保存新位置
-                    params?.let { params ->
+                    params?.let { p ->
                         getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
                             .edit()
-                            .putInt(KEY_X, params.x)
-                            .putInt(KEY_Y, params.y)
+                            .putInt(KEY_Y, p.y)
                             .apply()
                     }
                 }
@@ -114,16 +141,14 @@ class LyricOverlayService : Service() {
         windowManager?.addView(lyricView, params)
     }
 
-    private fun Int.dpToPx(): Int {
-        val scale = resources.displayMetrics.density
-        return (this * scale + 0.5f).toInt()
-    }
-
     fun hideLyric() {
         try {
             if (lyricView != null) {
                 windowManager?.removeView(lyricView)
                 lyricView = null
+                strokeView = null
+                fillView = null
+                editable = false
                 getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
                     .edit()
                     .putBoolean(KEY_SHOWING, false)

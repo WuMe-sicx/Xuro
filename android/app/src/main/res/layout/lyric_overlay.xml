@@ -1,14 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TextView
+<FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/lyric_text"
-    android:layout_width="360dp"
+    android:id="@+id/lyric_root"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="12dp"
-    android:gravity="center_horizontal"
-    android:background="#33000000"
-    android:textColor="#FFFFFF"
-    android:textSize="20sp"
-    android:fontFamily="sans-serif-medium"
-    android:letterSpacing="0.05"
-    android:elevation="4dp"/> 
+    android:padding="12dp">
+
+    <TextView
+        android:id="@+id/lyric_stroke"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:textColor="#000000"
+        android:textSize="20sp"
+        android:fontFamily="sans-serif-medium"
+        android:letterSpacing="0.05"
+        android:includeFontPadding="false" />
+
+    <TextView
+        android:id="@+id/lyric_fill"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:textColor="#FFFFFF"
+        android:textSize="20sp"
+        android:fontFamily="sans-serif-medium"
+        android:letterSpacing="0.05"
+        android:includeFontPadding="false" />
+
+</FrameLayout>

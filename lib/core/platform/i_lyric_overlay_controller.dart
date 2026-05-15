@@ -22,4 +22,8 @@ abstract class ILyricOverlayController {
   
   /// 获取悬浮窗当前显示状态
   Future<bool> isShowing();
-} 
+
+  /// 切换可拖动状态：true 时悬浮窗接收触摸（用于上下拖动调整位置），
+  /// false 时窗口对所有触摸事件透明（默认态，下层 app 可正常操作）。
+  Future<void> setEditable(bool editable);
+}

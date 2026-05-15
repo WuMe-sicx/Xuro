@@ -51,6 +51,12 @@ class LyricOverlayPlugin(private val context: Context) : MethodCallHandler {
                 service?.showLyric(text)
                 result.success(null)
             }
+            "setEditable" -> {
+                val arguments = call.arguments as? Map<*, *>
+                val editable = arguments?.get("editable") as? Boolean ?: false
+                service?.setEditable(editable)
+                result.success(null)
+            }
             "dispose" -> {
                 context.unbindService(serviceConnection)
                 context.stopService(serviceIntent)

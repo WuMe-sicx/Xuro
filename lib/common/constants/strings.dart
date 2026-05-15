@@ -108,4 +108,12 @@ class Strings {
   static const String colorVariantBlue = '蓝';
   static const String colorVariantMono = '黑';
   static const String colorVariantGreen = '绿';
+
+  // Floating lyric overlay
+  static const String lyricOverlayTooltipEnable = '开启悬浮歌词';
+  static const String lyricOverlayTooltipLongPressHint = '长按调整悬浮歌词位置';
+  static const String lyricOverlayTooltipExitEdit = '退出调整模式';
+  static const String lyricOverlayEnterFirstHint = '请先开启悬浮歌词，再长按此按钮调整位置';
+  static const String lyricOverlayEditEntered = '已进入调整模式：上下拖动悬浮歌词；再次长按退出';
+  static const String lyricOverlayEditExited = '已退出调整模式，悬浮歌词恢复点穿';
 }

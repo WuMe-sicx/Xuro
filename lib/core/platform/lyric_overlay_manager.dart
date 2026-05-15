@@ -9,6 +9,7 @@ class LyricOverlayManager {
   final ISubtitleService _subtitleService;
   StreamSubscription? _subscription;
   bool _isShowing = false;
+  bool _isEditable = false;
   
   LyricOverlayManager({
     required ILyricOverlayController controller,
@@ -56,9 +57,24 @@ class LyricOverlayManager {
   Future<void> hide() async {
     await _controller.hide();
     _isShowing = false;
+    _isEditable = false;
   }
 
   bool get isShowing => _isShowing;
+
+  bool get isEditable => _isEditable;
+
+  /// 切换悬浮窗可拖动状态。仅在悬浮窗显示中生效；隐藏时自动恢复为不可拖动。
+  Future<void> setEditable(bool editable) async {
+    if (!_isShowing) {
+      _isEditable = false;
+      return;
+    }
+    await _controller.setEditable(editable);
+    _isEditable = editable;
+  }
+
+  Future<void> toggleEditable() => setEditable(!_isEditable);
 
   /// 处理显示悬浮歌词的完整流程
   Future<void> showWithPermissionCheck(BuildContext context) async {

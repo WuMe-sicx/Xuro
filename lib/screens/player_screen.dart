@@ -20,6 +20,73 @@ class PlayerScreen extends StatefulWidget {
   State<PlayerScreen> createState() => _PlayerScreenState();
 }
 
+class _LyricOverlayAction extends StatefulWidget {
+  const _LyricOverlayAction({required this.manager});
+
+  final LyricOverlayManager manager;
+
+  @override
+  State<_LyricOverlayAction> createState() => _LyricOverlayActionState();
+}
+
+class _LyricOverlayActionState extends State<_LyricOverlayAction> {
+  Future<void> _onTap() async {
+    await widget.manager.toggle(context);
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _onLongPress() async {
+    final messenger = ScaffoldMessenger.of(context);
+    if (!widget.manager.isShowing) {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text(Strings.lyricOverlayEnterFirstHint),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+    await widget.manager.toggleEditable();
+    if (!mounted) return;
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(widget.manager.isEditable
+            ? Strings.lyricOverlayEditEntered
+            : Strings.lyricOverlayEditExited),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final manager = widget.manager;
+    final theme = Theme.of(context);
+    final iconColor = manager.isEditable ? theme.colorScheme.primary : null;
+    final tooltipMsg = manager.isShowing
+        ? (manager.isEditable
+            ? Strings.lyricOverlayTooltipExitEdit
+            : Strings.lyricOverlayTooltipLongPressHint)
+        : Strings.lyricOverlayTooltipEnable;
+    return Tooltip(
+      message: tooltipMsg,
+      child: InkResponse(
+        radius: 24,
+        onTap: _onTap,
+        onLongPress: _onLongPress,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Icon(
+            manager.isShowing ? Icons.lyrics : Icons.lyrics_outlined,
+            color: iconColor,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _PlayerScreenState extends State<PlayerScreen> {
   bool _showLyrics = false;
   bool _canSwitchView = true;
@@ -217,12 +284,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
               );
             },
           ),
-          IconButton(
-            icon: Icon(
-              lyricManager.isShowing ? Icons.lyrics : Icons.lyrics_outlined,
-            ),
-            onPressed: () => lyricManager.toggle(context),
-          ),
+          _LyricOverlayAction(manager: lyricManager),
           ListenableBuilder(
             listenable: wakeLockController,
             builder: (context, _) {
