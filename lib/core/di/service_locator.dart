@@ -31,6 +31,9 @@ import 'package:xuro/core/subtitle/storage/user_subtitle_repository.dart';
 import 'package:xuro/core/subtitle/import/i_file_picker_service.dart';
 import 'package:xuro/core/subtitle/import/file_picker_service.dart';
 import 'package:xuro/core/subtitle/subtitle_import_service.dart';
+import 'package:xuro/core/download/storage/i_download_repository.dart';
+import 'package:xuro/core/download/storage/download_repository.dart';
+import 'package:xuro/core/download/download_service.dart';
 
 final getIt = GetIt.instance;
 
@@ -60,6 +63,14 @@ Future<void> setupServiceLocator() async {
       picker: getIt<IFilePickerService>(),
       repository: getIt<IUserSubtitleRepository>(),
     ),
+  );
+
+  // 下载存储 + 服务（依赖 DatabaseService，已于上方注册）
+  getIt.registerLazySingleton<IDownloadRepository>(
+    () => DownloadRepository(getIt<DatabaseService>()),
+  );
+  getIt.registerLazySingleton<DownloadService>(
+    () => DownloadService(repository: getIt<IDownloadRepository>()),
   );
 
   // 注册 PlaybackStateRepository
@@ -125,7 +136,7 @@ Future<void> setupServiceLocator() async {
     () => SubtitleService(),
   );
 
-  await setupSubtitleServices();
+  setupSubtitleServices();
 
   // 注册主题控制器
   getIt.registerLazySingleton<ThemeController>(
@@ -136,7 +147,7 @@ Future<void> setupServiceLocator() async {
   getIt.registerLazySingleton(() => WakeLockController(prefs));
 }
 
-Future<void> setupSubtitleServices() async {
+void setupSubtitleServices() {
   getIt.registerLazySingleton<SubtitleLoader>(() {
     final dio = Dio();
     dio.interceptors.add(RetryInterceptor(dio: dio));
@@ -153,7 +164,13 @@ Future<void> setupSubtitleServices() async {
     subtitleService: getIt(),
     settings: getIt<AppSettingsService>(),
   ));
+}
 
-  // 初始化悬浮窗管理器
+/// 首帧之后再执行的非关键启动初始化。
+///
+/// `LyricOverlayManager.initialize()` 会做平台通道往返（controller.initialize /
+/// isShowing），放在冷启动关键路径（runApp 之前）上会拖慢首个可交互帧，而悬浮
+/// 歌词在有曲目播放、用户开启之前并不需要——因此推迟到首帧绘制之后再做。
+Future<void> initDeferredStartupServices() async {
   await getIt<LyricOverlayManager>().initialize();
 }

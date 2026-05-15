@@ -25,12 +25,25 @@ class WorkCover extends StatelessWidget {
       children: [
         AspectRatio(
           aspectRatio: 195 / 146,
-          child: CachedNetworkImage(
-            imageUrl: imageUrl,
-            fit: BoxFit.cover,
-            width: double.infinity,
-            height: double.infinity,
-            cacheManager: ImageCacheManager.instance,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final dpr = MediaQuery.of(context).devicePixelRatio;
+              final w = constraints.maxWidth;
+              int? cacheWidth;
+              if (w.isFinite && w > 0) {
+                final p = (w * dpr).round();
+                cacheWidth = p < 1 ? 1 : p;
+              }
+              return CachedNetworkImage(
+                imageUrl: imageUrl,
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: double.infinity,
+                memCacheWidth: cacheWidth,
+                fadeInDuration: const Duration(milliseconds: 150),
+                cacheManager: ImageCacheManager.instance,
+              );
+            },
           ),
         ),
         Positioned(

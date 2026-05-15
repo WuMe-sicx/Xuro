@@ -19,6 +19,12 @@ class MiniPlayerCover extends StatelessWidget {
       return _buildEmptyPlaceholder();
     }
 
+    final dpr = MediaQuery.of(context).devicePixelRatio;
+    int? cacheWidth;
+    if (size.isFinite && size > 0) {
+      final p = (size * dpr).round();
+      cacheWidth = p < 1 ? 1 : p;
+    }
     return ClipRRect(
       borderRadius: BorderRadius.circular(4),
       child: CachedNetworkImage(
@@ -26,6 +32,8 @@ class MiniPlayerCover extends StatelessWidget {
         width: size,
         height: size,
         fit: BoxFit.cover,
+        memCacheWidth: cacheWidth,
+        fadeInDuration: const Duration(milliseconds: 150),
         cacheManager: ImageCacheManager.instance,
         placeholder: (context, url) => _buildPlaceholder(context),
         errorWidget: (context, url, error) => _buildErrorWidget(),

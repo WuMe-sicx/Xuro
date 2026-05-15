@@ -25,26 +25,40 @@ class WorkCoverImage extends StatelessWidget {
         children: [
           Hero(
             tag: 'work-cover-$workId',
-            child: CachedNetworkImage(
-              imageUrl: imageUrl,
-              fit: BoxFit.cover,
-              width: double.infinity,
-              height: double.infinity,
-              cacheManager: ImageCacheManager.instance,
-              placeholder: (context, url) => SkeletonPulse(
-                child: Container(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                ),
-              ),
-              errorWidget: (context, url, error) => Container(
-                color: Theme.of(context).colorScheme.errorContainer,
-                child: Center(
-                  child: Icon(
-                    Icons.error_outline,
-                    color: Theme.of(context).colorScheme.error,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final dpr = MediaQuery.of(context).devicePixelRatio;
+                final w = constraints.maxWidth;
+                int? cacheWidth;
+                if (w.isFinite && w > 0) {
+                  final p = (w * dpr).round();
+                  cacheWidth = p < 1 ? 1 : p;
+                }
+                return CachedNetworkImage(
+                  imageUrl: imageUrl,
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: double.infinity,
+                  memCacheWidth: cacheWidth,
+                  fadeInDuration: const Duration(milliseconds: 150),
+                  cacheManager: ImageCacheManager.instance,
+                  placeholder: (context, url) => SkeletonPulse(
+                    child: Container(
+                      color:
+                          Theme.of(context).colorScheme.surfaceContainerHighest,
+                    ),
                   ),
-                ),
-              ),
+                  errorWidget: (context, url, error) => Container(
+                    color: Theme.of(context).colorScheme.errorContainer,
+                    child: Center(
+                      child: Icon(
+                        Icons.error_outline,
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
           ),
           Positioned(

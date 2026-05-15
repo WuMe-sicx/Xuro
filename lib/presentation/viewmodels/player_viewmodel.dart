@@ -8,6 +8,7 @@ import 'package:xuro/core/audio/i_audio_player_service.dart';
 import 'package:xuro/core/audio/models/subtitle.dart';
 import 'dart:async';
 import 'package:xuro/core/subtitle/subtitle_loader.dart';
+import 'package:xuro/core/download/download_service.dart';
 import 'package:xuro/core/audio/events/playback_event_hub.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:get_it/get_it.dart';
@@ -20,6 +21,7 @@ class PlayerViewModel extends ChangeNotifier {
   final ISubtitleService _subtitleService;
   final _subtitleLoader = GetIt.I<SubtitleLoader>();
   final _importService = GetIt.I<SubtitleImportService>();
+  final _downloadService = GetIt.I<DownloadService>();
 
   bool _isPlaying = false;
   bool _isBuffering = false;
@@ -277,17 +279,40 @@ class PlayerViewModel extends ChangeNotifier {
       }
     }
 
-    // 2. 自动匹配（原有逻辑）
+    // 2. 自动匹配。优先级：已下载本地字幕（离线可用）> 在线 URL。
     _isUserImportedSubtitle = false;
     final subtitleFile = _subtitleLoader.findSubtitleFile(
       context.currentFile,
       context.files,
     );
-    if (subtitleFile?.mediaDownloadUrl != null) {
-      await _subtitleService.loadSubtitle(subtitleFile!.mediaDownloadUrl!);
-    } else {
+    if (subtitleFile == null) {
       _subtitleService.clearSubtitle();
       AppLogger.debug('未找到字幕文件，清除现有字幕');
+      return;
+    }
+
+    // 2a. 该字幕已随音频下载到本地 → 读本地文件，断网也能显示。
+    if (workId != null) {
+      final localPath =
+          await _downloadService.localPathIfDownloaded(workId, subtitleFile);
+      if (_loadVersion != version) return;
+      if (localPath != null) {
+        final list = await _importService.loadLocalSubtitle(localPath);
+        if (_loadVersion != version) return;
+        if (list != null) {
+          await _subtitleService.loadSubtitleFromContent(list);
+          AppLogger.debug('使用已下载本地字幕: $localPath');
+          return;
+        }
+      }
+    }
+
+    // 2b. 在线 URL（需网络）。
+    if (subtitleFile.mediaDownloadUrl != null) {
+      await _subtitleService.loadSubtitle(subtitleFile.mediaDownloadUrl!);
+    } else {
+      _subtitleService.clearSubtitle();
+      AppLogger.debug('字幕文件无可用 URL，清除现有字幕');
     }
   }
 

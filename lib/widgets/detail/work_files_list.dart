@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:xuro/common/constants/strings.dart';
 import 'package:xuro/data/models/files/files.dart';
 import 'package:xuro/data/models/files/child.dart';
 import 'package:xuro/widgets/detail/work_folder_item.dart';
@@ -7,11 +8,18 @@ import 'package:xuro/widgets/detail/work_file_item.dart';
 class WorkFilesList extends StatelessWidget {
   final Files files;
   final Function(Child file)? onFileTap;
+  final Function(Child file)? onFileDownload;
+
+  /// 下载整部作品 / 某文件夹子树全部音频（含匹配字幕）。
+  /// 参数为 null 代表整部作品，否则为该文件夹节点。
+  final void Function(Child? folderNode)? onFolderDownload;
 
   const WorkFilesList({
     super.key,
     required this.files,
     this.onFileTap,
+    this.onFileDownload,
+    this.onFolderDownload,
   });
 
   @override
@@ -22,12 +30,25 @@ class WorkFilesList extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(
-              '文件列表',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+            padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '文件列表',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
+                ),
+                if (onFolderDownload != null)
+                  TextButton.icon(
+                    onPressed: () => onFolderDownload!.call(null),
+                    icon: const Icon(Icons.download_for_offline_outlined,
+                        size: 18),
+                    label: const Text(Strings.downloadAllTooltip),
+                  ),
+              ],
             ),
           ),
           Divider(
@@ -40,11 +61,14 @@ class WorkFilesList extends StatelessWidget {
                           folder: child,
                           indentation: 0,
                           onFileTap: onFileTap,
+                          onFileDownload: onFileDownload,
+                          onFolderDownload: onFolderDownload,
                         )
                       : WorkFileItem(
                           file: child,
                           indentation: 0,
                           onFileTap: onFileTap,
+                          onFileDownload: onFileDownload,
                         ))
                   .toList() ??
               [],

@@ -3,13 +3,20 @@ import 'package:xuro/widgets/mini_player/mini_player.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:xuro/data/models/works/work.dart';
+import 'package:xuro/data/models/files/child.dart';
 import 'package:xuro/widgets/detail/work_cover.dart';
 import 'package:xuro/widgets/detail/work_info.dart';
 import 'package:xuro/widgets/detail/work_files_list.dart';
 import 'package:xuro/widgets/detail/work_files_skeleton.dart';
 import 'package:xuro/presentation/viewmodels/detail_viewmodel.dart';
 import 'package:xuro/widgets/detail/work_action_buttons.dart';
+import 'package:xuro/widgets/detail/media_download_dialog.dart';
+import 'package:xuro/widgets/detail/batch_download_dialog.dart';
+import 'package:xuro/core/download/download_service.dart';
+import 'package:xuro/common/constants/strings.dart';
 import 'package:xuro/screens/similar_works_screen.dart';
+import 'package:xuro/screens/subtitle_preview_screen.dart';
+import 'package:open_filex/open_filex.dart';
 
 class DetailScreen extends StatelessWidget {
   final Work work;
@@ -97,19 +104,139 @@ class DetailScreen extends StatelessWidget {
                   }
 
                   if (viewModel.files != null) {
+                    // 确认弹窗 → 下载（带进度/取消）→ 结果提示。
+                    // [openOnDone]=true（视频）完成后用外部查看器打开；
+                    // false（音频离线下载）仅提示完成。
+                    Future<void> runDownload(
+                      Child file, {
+                      required bool openOnDone,
+                      required String title,
+                      required String prompt,
+                    }) async {
+                      final result = await showDialog<DownloadResult>(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (_) => MediaDownloadDialog(
+                          fileName: file.title ?? '',
+                          titleText: title,
+                          promptText: prompt,
+                          download: (ct, onP) => viewModel.downloadFile(
+                            file,
+                            cancelToken: ct,
+                            onProgress: onP,
+                          ),
+                        ),
+                      );
+                      // 拒绝（确认阶段取消）→ no-op
+                      if (result == null || !context.mounted) return;
+                      final messenger = ScaffoldMessenger.of(context);
+                      if (result.isPlayable && result.localPath != null) {
+                        if (openOnDone) {
+                          final open =
+                              await OpenFilex.open(result.localPath!);
+                          if (open.type != ResultType.done) {
+                            messenger.showSnackBar(const SnackBar(
+                              content: Text(Strings.downloadOpenFailed),
+                            ));
+                          }
+                        } else {
+                          messenger.showSnackBar(const SnackBar(
+                            content: Text(Strings.downloadSuccess),
+                          ));
+                        }
+                      } else if (result.status == DownloadStatus.cancelled) {
+                        messenger.showSnackBar(const SnackBar(
+                          content: Text(Strings.downloadCancelled),
+                        ));
+                      } else if (result.status ==
+                          DownloadStatus.networkError) {
+                        messenger.showSnackBar(const SnackBar(
+                          content: Text(Strings.downloadNetworkError),
+                        ));
+                      } else {
+                        messenger.showSnackBar(const SnackBar(
+                          content: Text(Strings.downloadIoError),
+                        ));
+                      }
+                    }
+
+                    Future<void> runBatch(Child? folderNode) async {
+                      final outcome = await showDialog<BatchDownloadOutcome>(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (_) => BatchDownloadDialog(
+                          audioCount: viewModel.batchAudioCount(folderNode),
+                          download: (ct, onP) => viewModel.downloadFolder(
+                            folder: folderNode,
+                            onProgress: onP,
+                            cancelToken: ct,
+                          ),
+                        ),
+                      );
+                      if (outcome == null || !context.mounted) return;
+                      final messenger = ScaffoldMessenger.of(context);
+                      messenger.showSnackBar(SnackBar(
+                        content: Text(outcome.cancelled
+                            ? Strings.batchDownloadCancelled
+                            : Strings.batchDownloadSummary(
+                                outcome.ok,
+                                outcome.skipped,
+                                outcome.failed,
+                              )),
+                      ));
+                    }
+
                     return WorkFilesList(
                       files: viewModel.files!,
+                      onFolderDownload: runBatch,
                       onFileTap: (file) async {
-                        try {
-                          await viewModel.playFile(file, context);
-                        } catch (e) {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('播放失败: $e')),
-                            );
-                          }
+                        // 视频判断前置：视频扩展名优先于不可靠的 API
+                        // `type`（会把视频错标 audio）。视频走下载+外部
+                        // 播放，绝不进音频播放管线（否则"播放列表为空"）。
+                        if (viewModel.isVideoFile(file)) {
+                          await runDownload(
+                            file,
+                            openOnDone: true,
+                            title: Strings.videoNeedsDownloadTitle,
+                            prompt: Strings.videoNeedsDownloadPrompt,
+                          );
+                          return;
                         }
+                        if (viewModel.isAudioFile(file)) {
+                          try {
+                            await viewModel.playFile(file, context);
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('播放失败: $e')),
+                              );
+                            }
+                          }
+                          return;
+                        }
+                        if (viewModel.isSubtitleFile(file)) {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => SubtitlePreviewScreen(
+                                workId: work.id?.toString(),
+                                file: file,
+                              ),
+                            ),
+                          );
+                          return;
+                        }
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(Strings.unsupportedFileType),
+                          ),
+                        );
                       },
+                      onFileDownload: (file) => runDownload(
+                        file,
+                        openOnDone: false,
+                        title: Strings.audioDownloadTitle,
+                        prompt: Strings.audioDownloadPrompt,
+                      ),
                     );
                   }
 

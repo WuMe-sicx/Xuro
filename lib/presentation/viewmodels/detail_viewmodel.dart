@@ -7,6 +7,7 @@ import 'package:xuro/data/models/files/child.dart';
 import 'package:xuro/data/models/works/work.dart';
 import 'package:xuro/data/services/api_service.dart';
 import 'package:xuro/core/audio/i_audio_player_service.dart';
+import 'package:xuro/core/download/download_service.dart';
 import 'package:xuro/utils/logger.dart';
 import 'package:xuro/core/audio/models/playback_context.dart';
 import 'package:xuro/widgets/detail/playlist_selection_dialog.dart';
@@ -14,12 +15,34 @@ import 'package:xuro/data/models/mark_status.dart';
 import 'package:xuro/widgets/detail/mark_selection_dialog.dart';
 import 'package:xuro/data/models/works/work_info.dart';
 import 'package:xuro/widgets/detail/work_folder_item.dart';
+import 'package:xuro/core/audio/models/file_path.dart';
+import 'package:xuro/core/subtitle/utils/subtitle_matcher.dart';
 import 'package:dio/dio.dart';
+
+/// 一条批量下载项：音频 + 同目录匹配到的字幕（可空）。
+typedef DownloadPair = ({Child audio, Child? subtitle});
+
+/// 批量下载结果汇总。
+class BatchDownloadOutcome {
+  final int ok;
+  final int skipped;
+  final int failed;
+  final bool cancelled;
+  const BatchDownloadOutcome({
+    required this.ok,
+    required this.skipped,
+    required this.failed,
+    required this.cancelled,
+  });
+}
 
 class DetailViewModel extends ChangeNotifier {
   late final ApiService _apiService;
   late final IAudioPlayerService _audioService;
+  late final DownloadService _downloadService;
   final Work work;
+
+  static const _videoExtensions = {'mp4', 'mkv', 'mov', 'avi', 'webm', 'm4v'};
 
   Files? _files;
   bool _isLoading = false;
@@ -55,6 +78,7 @@ class DetailViewModel extends ChangeNotifier {
   }) {
     _audioService = GetIt.I<IAudioPlayerService>();
     _apiService = GetIt.I<ApiService>();
+    _downloadService = GetIt.I<DownloadService>();
     _checkRecommendations();
   }
 
@@ -165,9 +189,177 @@ class DetailViewModel extends ChangeNotifier {
     if (!_disposed) notifyListeners();
   }
 
+  /// 扩展名是否属已知视频集。**比 API `type` 更可靠**：asmr.one 实测会把
+  /// "介绍视频.mp4"等下发成 `type:"audio"`，若信 `type` 会被当音频送进
+  /// 播放管线、播放列表按扩展名过滤后为空 → "播放列表为空/播放失败"。
+  static bool _hasVideoExtension(String? title) {
+    final ext = title?.split('.').last.toLowerCase();
+    return ext != null && _videoExtensions.contains(ext);
+  }
+
+  /// 该文件是否为视频（`type==video` 或视频扩展名）。视频不直接判为
+  /// "无法打开"，而是引导下载到本地用外部查看器播放（见 detail_screen）。
+  bool isVideoFile(Child file) =>
+      (file.type ?? '').toLowerCase() == 'video' ||
+      _hasVideoExtension(file.title);
+
+  /// 静态纯判定：是音频且**不是**视频扩展名。视频扩展名优先于不可靠的
+  /// API `type`，否则错标 `type:audio` 的 .mp4 会被当音频。
+  static bool _isAudioChild(Child c) =>
+      (c.type ?? '').toLowerCase() == 'audio' &&
+      !_hasVideoExtension(c.title);
+
+  bool isAudioFile(Child file) => _isAudioChild(file);
+
+  static const _subtitleExtensions = {'vtt', 'lrc', 'srt', 'txt'};
+
+  /// 该文件是否为可预览字幕（.vtt/.lrc/.srt/.txt）。
+  bool isSubtitleFile(Child file) {
+    final ext = file.title?.split('.').last.toLowerCase();
+    return ext != null && _subtitleExtensions.contains(ext);
+  }
+
+  /// 纯函数：递归收集子树下所有音频，并就近（同目录同级）配对字幕。
+  /// 字幕匹配只在该音频所在目录的兄弟节点中找（与 [SubtitleLoader]
+  /// `findSubtitleFile` 的 `getSiblings` 语义一致）。
+  static List<DownloadPair> collectAudioWithSubtitles(List<Child>? children) {
+    final out = <DownloadPair>[];
+    if (children == null) return out;
+    for (final c in children) {
+      if ((c.type ?? '').toLowerCase() == 'folder') {
+        out.addAll(collectAudioWithSubtitles(c.children));
+      } else if (_isAudioChild(c)) {
+        final sub = c.title != null
+            ? SubtitleMatcher.findMatchingSubtitle(c.title!, children)
+            : null;
+        out.add((audio: c, subtitle: sub));
+      }
+    }
+    return out;
+  }
+
+  List<Child>? _nodeChildren(Child? folder) =>
+      folder == null ? _files?.children : folder.children;
+
+  /// 该节点（null=整部作品）子树下可下载音频数。
+  int batchAudioCount(Child? folder) =>
+      collectAudioWithSubtitles(_nodeChildren(folder)).length;
+
+  /// 单个音频下载：下完音频后顺带把同目录匹配字幕也下了（best-effort，
+  /// 字幕失败/无字幕都不影响音频结果）。UI 负责确认弹窗与进度展示。
+  /// 视频文件无字幕配对，行为与原先一致。
+  Future<DownloadResult> downloadFile(
+    Child file, {
+    void Function(double progress)? onProgress,
+    CancelToken? cancelToken,
+  }) async {
+    final result = await _downloadService.download(
+      workId: work.id.toString(),
+      file: file,
+      onProgress: onProgress,
+      cancelToken: cancelToken,
+    );
+    if (result.isPlayable &&
+        isAudioFile(file) &&
+        !(cancelToken?.isCancelled ?? false)) {
+      final sub = _matchedSubtitle(file);
+      if (sub != null) {
+        try {
+          await _downloadService.download(
+            workId: work.id.toString(),
+            file: sub,
+            cancelToken: cancelToken,
+          );
+        } catch (e) {
+          AppLogger.warning('配对字幕下载失败（不影响音频）: $e');
+        }
+      }
+    }
+    return result;
+  }
+
+  Child? _matchedSubtitle(Child audio) {
+    if (_files == null || audio.title == null) return null;
+    final siblings = FilePath.getSiblings(audio, _files!);
+    return SubtitleMatcher.findMatchingSubtitle(audio.title!, siblings);
+  }
+
+  /// 顺序批量下载 [folder]（null=整部作品）子树下所有音频 + 匹配字幕。
+  /// 幂等去重由 `DownloadService.download` 保证；字幕 best-effort。
+  /// [onProgress]：(已处理序号 1-based, 总数, 当前音频名, 当前文件进度 0~1)。
+  Future<BatchDownloadOutcome> downloadFolder({
+    Child? folder,
+    required void Function(int index, int total, String name, double progress)
+        onProgress,
+    CancelToken? cancelToken,
+  }) async {
+    final items = collectAudioWithSubtitles(_nodeChildren(folder));
+    var ok = 0, skipped = 0, failed = 0;
+    var cancelled = false;
+    for (var i = 0; i < items.length; i++) {
+      if (cancelToken?.isCancelled ?? false) {
+        cancelled = true;
+        break;
+      }
+      final audio = items[i].audio;
+      final sub = items[i].subtitle;
+      final name = audio.title ?? '';
+      onProgress(i + 1, items.length, name, 0);
+      final r = await _downloadService.download(
+        workId: work.id.toString(),
+        file: audio,
+        cancelToken: cancelToken,
+        onProgress: (p) => onProgress(i + 1, items.length, name, p),
+      );
+      switch (r.status) {
+        case DownloadStatus.success:
+          ok++;
+        case DownloadStatus.alreadyExists:
+          skipped++;
+        case DownloadStatus.cancelled:
+          cancelled = true;
+        case DownloadStatus.networkError:
+        case DownloadStatus.ioError:
+          failed++;
+      }
+      if (cancelled) break;
+      if (sub != null && !(cancelToken?.isCancelled ?? false)) {
+        try {
+          final sr = await _downloadService.download(
+            workId: work.id.toString(),
+            file: sub,
+            cancelToken: cancelToken,
+          );
+          // 字幕下载被取消也要让整批标记 cancelled（否则末项音频带
+          // 字幕、用户在字幕阶段取消时，循环自然结束会误报"完成"）。
+          if (sr.status == DownloadStatus.cancelled) {
+            cancelled = true;
+            break;
+          }
+          // 字幕网络/IO 失败属 best-effort，仅记日志、不计入 failed。
+        } catch (e) {
+          AppLogger.warning('配对字幕下载失败（不影响音频）: $e');
+        }
+      }
+      // 末项之后无循环顶部检查，这里兜底捕获取消。
+      if (cancelToken?.isCancelled ?? false) {
+        cancelled = true;
+        break;
+      }
+    }
+    return BatchDownloadOutcome(
+      ok: ok,
+      skipped: skipped,
+      failed: failed,
+      cancelled: cancelled,
+    );
+  }
+
   Future<void> playFile(Child file, BuildContext context) async {
-    if (file.type?.toLowerCase() != 'audio') {
-      throw Exception('不支持的文件类型: ${file.type}');
+    // 用统一分类：错标 type=audio 的视频在这里被挡下，给清晰错误，
+    // 而不是放进播放管线产生"播放列表为空"的误导性失败。
+    if (!isAudioFile(file)) {
+      throw Exception('不支持的文件类型（疑似视频）: ${file.title}');
     }
 
     if (file.mediaDownloadUrl == null) {
