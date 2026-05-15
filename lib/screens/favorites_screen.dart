@@ -5,6 +5,7 @@ import 'package:xuro/widgets/sidebar/sidebar_menu.dart';
 import 'package:xuro/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:xuro/presentation/viewmodels/favorites_viewmodel.dart';
 import 'package:xuro/presentation/layouts/work_layout_strategy.dart';
+import 'package:xuro/presentation/widgets/auth/login_dialog.dart';
 import 'package:xuro/widgets/pagination_controls.dart';
 import 'package:xuro/widgets/work_grid_view.dart';
 
@@ -39,6 +40,18 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     super.dispose();
   }
 
+  Future<void> _promptLogin() async {
+    await showDialog(
+      context: context,
+      useRootNavigator: true,
+      builder: (_) => const LoginDialog(),
+    );
+    if (!mounted) return;
+    if (context.read<AuthViewModel>().isLoggedIn) {
+      _viewModel.loadFavorites();
+    }
+  }
+
   void _onPageChanged(int page) async {
     await _viewModel.loadPage(page);
     if (_scrollController.hasClients) {
@@ -68,6 +81,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     works: viewModel.works,
                     isLoading: viewModel.isLoading,
                     error: viewModel.error,
+                    isLoginError: viewModel.isLoginError,
+                    onLogin: _promptLogin,
                     onRetry: () => viewModel.loadFavorites(),
                     layoutStrategy: _layoutStrategy,
                     scrollController: _scrollController,

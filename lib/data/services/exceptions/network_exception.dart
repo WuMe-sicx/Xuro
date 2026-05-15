@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:xuro/common/constants/strings.dart';
 
 enum NetworkErrorType {
   timeout,
@@ -94,6 +95,25 @@ class NetworkException implements Exception {
       type == NetworkErrorType.timeout ||
       type == NetworkErrorType.connectionError ||
       type == NetworkErrorType.serverError;
+
+  bool get isAuthError => type == NetworkErrorType.authError;
+
+  /// User-facing message. asmr.one is geo-blocked, so any connection failure
+  /// or timeout almost always means the user's VPN is off — surface that
+  /// actionable hint instead of the raw Dio reason. Auth failures map to the
+  /// "please log in" prompt so callers can offer a login action. Everything
+  /// else falls back to the technical [message].
+  String get userMessage {
+    switch (type) {
+      case NetworkErrorType.connectionError:
+      case NetworkErrorType.timeout:
+        return Strings.networkVpnHint;
+      case NetworkErrorType.authError:
+        return Strings.loginRequired;
+      default:
+        return message;
+    }
+  }
 
   @override
   String toString() => 'NetworkException($type): $message';

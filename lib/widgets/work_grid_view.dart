@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:xuro/common/constants/strings.dart';
 import 'package:xuro/data/models/works/work.dart';
 import 'package:xuro/widgets/work_grid.dart';
 import 'package:xuro/presentation/layouts/work_layout_strategy.dart';
@@ -9,6 +10,8 @@ class WorkGridView extends StatelessWidget {
   final bool isLoading;
   final String? error;
   final VoidCallback? onRetry;
+  final bool isLoginError;
+  final VoidCallback? onLogin;
   final String? emptyMessage;
   final Widget? customEmptyWidget;
   final WorkLayoutStrategy layoutStrategy;
@@ -21,6 +24,8 @@ class WorkGridView extends StatelessWidget {
     required this.isLoading,
     this.error,
     this.onRetry,
+    this.isLoginError = false,
+    this.onLogin,
     this.emptyMessage,
     this.customEmptyWidget,
     this.layoutStrategy = const WorkLayoutStrategy(),
@@ -37,16 +42,23 @@ class WorkGridView extends StatelessWidget {
     }
 
     if (error != null) {
+      final showLogin = isLoginError && onLogin != null;
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(error!),
-            if (onRetry != null) ...[
+            if (showLogin) ...[
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: onLogin,
+                child: const Text(Strings.goLogin),
+              ),
+            ] else if (onRetry != null) ...[
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: onRetry,
-                child: const Text('重试'),
+                child: const Text(Strings.retry),
               ),
             ],
           ],

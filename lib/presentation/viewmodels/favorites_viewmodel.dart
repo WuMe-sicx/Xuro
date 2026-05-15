@@ -1,7 +1,9 @@
 import 'package:flutter/foundation.dart';
+import 'package:xuro/common/constants/strings.dart';
 import 'package:xuro/data/models/works/work.dart';
 import 'package:xuro/data/models/works/pagination.dart';
 import 'package:xuro/data/services/api_service.dart';
+import 'package:xuro/data/services/exceptions/network_exception.dart';
 import 'package:xuro/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:xuro/utils/logger.dart';
 import 'package:get_it/get_it.dart';
@@ -12,6 +14,7 @@ class FavoritesViewModel extends ChangeNotifier {
   List<Work> _works = [];
   bool _isLoading = false;
   String? _error;
+  bool _isLoginError = false;
   Pagination? _pagination;
   int _currentPage = 1;
 
@@ -20,6 +23,10 @@ class FavoritesViewModel extends ChangeNotifier {
   List<Work> get works => _works;
   bool get isLoading => _isLoading;
   String? get error => _error;
+
+  /// True when [error] is a "not logged in" / auth failure, so the UI can
+  /// offer a login action instead of a (useless) retry.
+  bool get isLoginError => _isLoginError;
   int get currentPage => _currentPage;
   int? get totalCount => _pagination?.totalCount;
   int? get totalPages =>
@@ -33,7 +40,8 @@ class FavoritesViewModel extends ChangeNotifier {
     if (page < 1 || (totalPages != null && page > totalPages!)) return;
 
     if (!_authViewModel.isLoggedIn) {
-      _error = '请先登录';
+      _error = Strings.loginRequired;
+      _isLoginError = true;
       _works = [];
       _pagination = null;
       notifyListeners();
@@ -42,6 +50,7 @@ class FavoritesViewModel extends ChangeNotifier {
 
     _isLoading = true;
     _error = null;
+    _isLoginError = false;
     notifyListeners();
 
     try {
@@ -52,7 +61,13 @@ class FavoritesViewModel extends ChangeNotifier {
       AppLogger.info('第$page页收藏列表加载成功: ${response.works.length}个作品');
     } catch (e) {
       AppLogger.error('加载收藏列表失败', e);
-      _error = e.toString();
+      if (e is NetworkException) {
+        _error = e.userMessage;
+        _isLoginError = e.isAuthError;
+      } else {
+        _error = e.toString();
+        _isLoginError = false;
+      }
     } finally {
       _isLoading = false;
       notifyListeners();

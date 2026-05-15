@@ -12,6 +12,8 @@ class EnhancedWorkGridView extends StatelessWidget {
   final bool isLoading;
   final String? error;
   final VoidCallback? onRetry;
+  final bool isLoginError;
+  final VoidCallback? onLogin;
   final Future<void> Function()? onRefresh;
   final Future<void> Function(int page)? onPageChanged;
   final int? currentPage;
@@ -28,6 +30,8 @@ class EnhancedWorkGridView extends StatelessWidget {
     required this.isLoading,
     this.error,
     this.onRetry,
+    this.isLoginError = false,
+    this.onLogin,
     this.onRefresh,
     this.onPageChanged,
     this.currentPage,
@@ -49,6 +53,8 @@ class EnhancedWorkGridView extends StatelessWidget {
       return GridError(
         error: error!,
         onRetry: onRetry,
+        isLoginError: isLoginError,
+        onLogin: onLogin,
       );
     }
 

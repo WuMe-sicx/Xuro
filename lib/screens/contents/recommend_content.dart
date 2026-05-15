@@ -2,8 +2,10 @@ import 'package:xuro/core/theme/app_animations.dart';
 import 'package:xuro/data/models/works/work.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:xuro/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:xuro/presentation/viewmodels/recommend_viewmodel.dart';
 import 'package:xuro/presentation/layouts/work_layout_strategy.dart';
+import 'package:xuro/presentation/widgets/auth/login_dialog.dart';
 import 'package:xuro/widgets/work_grid/enhanced_work_grid_view.dart';
 import 'package:xuro/widgets/filter/filter_with_keyword.dart';
 
@@ -38,17 +40,30 @@ class _RecommendContentState extends State<RecommendContent> with AutomaticKeepA
     super.dispose();
   }
 
+  Future<void> _promptLogin() async {
+    await showDialog(
+      context: context,
+      useRootNavigator: true,
+      builder: (_) => const LoginDialog(),
+    );
+    if (!mounted) return;
+    if (context.read<AuthViewModel>().isLoggedIn) {
+      context.read<RecommendViewModel>().loadRecommendations(refresh: true);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
     return Stack(
       children: [
         // Grid: only rebuilds when list data changes
-        Selector<RecommendViewModel, ({List<Work> works, bool isLoading, String? error, int currentPage, int? totalPages})>(
+        Selector<RecommendViewModel, ({List<Work> works, bool isLoading, String? error, bool isLoginError, int currentPage, int? totalPages})>(
           selector: (_, vm) => (
             works: vm.works,
             isLoading: vm.isLoading,
             error: vm.error,
+            isLoginError: vm.isLoginError,
             currentPage: vm.currentPage,
             totalPages: vm.totalPages,
           ),
@@ -57,6 +72,8 @@ class _RecommendContentState extends State<RecommendContent> with AutomaticKeepA
               works: data.works,
               isLoading: data.isLoading,
               error: data.error,
+              isLoginError: data.isLoginError,
+              onLogin: _promptLogin,
               currentPage: data.currentPage,
               totalPages: data.totalPages,
               onPageChanged: (page) => context.read<RecommendViewModel>().loadPage(page),

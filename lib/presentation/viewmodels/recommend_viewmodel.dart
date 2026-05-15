@@ -1,7 +1,9 @@
 import 'package:flutter/foundation.dart';
+import 'package:xuro/common/constants/strings.dart';
 import 'package:xuro/data/models/works/work.dart';
 import 'package:xuro/data/models/works/pagination.dart';
 import 'package:xuro/data/services/api_service.dart';
+import 'package:xuro/data/services/exceptions/network_exception.dart';
 import 'package:xuro/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:xuro/utils/logger.dart';
 import 'package:get_it/get_it.dart';
@@ -14,6 +16,7 @@ class RecommendViewModel extends ChangeNotifier {
   List<Work> _works = [];
   bool _isLoading = false;
   String? _error;
+  bool _isLoginError = false;
   Pagination? _pagination;
   int _currentPage = 1;
   bool _hasSubtitle = false;
@@ -49,6 +52,10 @@ class RecommendViewModel extends ChangeNotifier {
   List<Work> get works => _works;
   bool get isLoading => _isLoading;
   String? get error => _error;
+
+  /// True when [error] is a "not logged in" / auth failure, so the UI can
+  /// offer a login action instead of a (useless) retry.
+  bool get isLoginError => _isLoginError;
   int get currentPage => _currentPage;
   int? get totalPages =>
       _pagination?.totalCount != null && _pagination?.pageSize != null
@@ -87,13 +94,15 @@ class RecommendViewModel extends ChangeNotifier {
     // 检查是否已登录
     final uuid = _authViewModel.recommenderUuid;
     if (uuid == null) {
-      _error = '请先登录';
+      _error = Strings.loginRequired;
+      _isLoginError = true;
       notifyListeners();
       return;
     }
 
     _isLoading = true;
     _error = null;
+    _isLoginError = false;
     notifyListeners();
 
     try {
@@ -108,7 +117,13 @@ class RecommendViewModel extends ChangeNotifier {
       AppLogger.info('第$page页推荐列表加载成功: ${response.works.length}个作品');
     } catch (e) {
       AppLogger.error('加载推荐列表失败', e);
-      _error = e.toString();
+      if (e is NetworkException) {
+        _error = e.userMessage;
+        _isLoginError = e.isAuthError;
+      } else {
+        _error = e.toString();
+        _isLoginError = false;
+      }
     } finally {
       _isLoading = false;
       notifyListeners();
