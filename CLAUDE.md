@@ -32,11 +32,11 @@ fvm dart run build_runner build --delete-conflicting-outputs
 # Run the app (debug)
 fvm flutter run
 
-# Run all tests (currently only test/widget_test.dart)
+# Run all tests
 fvm flutter test
 
 # Run a single test file
-fvm flutter test test/widget_test.dart
+fvm flutter test test/data/services/api_service_url_test.dart
 
 # Static analysis (use this before commit; warnings exist for pre-existing
 # withOpacity deprecations — don't introduce new ones)
@@ -66,7 +66,7 @@ Clean Architecture with three layers, using **Provider (ChangeNotifier)** for st
   - `di/service_locator.dart` - GetIt DI container setup (entry point for all service registration)
   - `audio/` - Audio playback system: `IAudioPlayerService` interface + implementation, PlaybackEventHub (event bus pattern), state persistence, notification handling
   - `subtitle/` - Subtitle/lyric system: `ISubtitleService` interface, parsers (VTT etc.), subtitle loader with caching
-  - `platform/` - Platform-specific: `ILyricOverlayController` (Android floating lyric window, dummy on other platforms), WakeLockController
+  - `platform/` - Platform-specific: `ILyricOverlayController` (Android floating lyric window, dummy on other platforms), WakeLockController. **Floating lyric invariants** (Android `LyricOverlayService.kt` + `lyric_overlay.xml`): the overlay is **pass-through by default** — `FLAG_NOT_TOUCHABLE` **and** `LayoutParams.alpha = 0.8` (`PASS_THROUGH_ALPHA`). The alpha is load-bearing, not cosmetic: Android 12+ `getMaximumObscuringOpacityForTouch()` (default 0.8) means an opaque `TYPE_APPLICATION_OVERLAY` still eats the underlying app's touches even with `FLAG_NOT_TOUCHABLE` — don't raise it above 0.8 in pass-through mode. "Edit mode" (`setEditable(true)`, entered via **long-press** the lyrics icon in `PlayerScreen`) drops `FLAG_NOT_TOUCHABLE` and restores `alpha = 1.0` so the user can drag; drag is **Y-axis only** (X is fixed `CENTER_HORIZONTAL`, only `KEY_Y` persisted — old `KEY_X` is intentionally ignored). `hide()` force-resets edit mode on both Kotlin and `LyricOverlayManager` sides. The lyric is a `FrameLayout` with two stacked `TextView`s (black `Paint.Style.STROKE` behind, white fill in front) — there is **no background box**; keep both TextViews' size/padding/font identical or the stroke desyncs. `setEditable` must stay wired through interface → impl → dummy → manager → native `LyricOverlayPlugin`.
   - `theme/` - Theme is determined by **two axes**: `ThemeMode` (light/dark/system, owned by `ThemeController`) × `ColorVariant` (blue/mono/green, owned by `AppSettingsService`). `AppColors.lightSchemeFor(variant)` / `darkSchemeFor(variant)` produce 6 hand-rolled `ColorScheme`s; surfaces are neutral, only `primary` / `onPrimary` / `primaryContainer` rotate. Do not use `ColorScheme.fromSeed` here — it would derive secondary/tertiary in another hue and break the "two-color" simplification.
   - `cache/` - RecommendationCacheManager
   - `database/` - `database_service.dart` (local persistence)
@@ -110,7 +110,7 @@ Clean Architecture with three layers, using **Provider (ChangeNotifier)** for st
 ### API
 
 Two Dio clients, both pointed at the user-selected node:
-- `ApiService` — content endpoints (`/works`, `/tracks/{id}`, `/search/{keyword}`, `/review`, `/recommender/*`, `/playlist/*`, `/tags/`, `/circles/`, `/vas/`, `/workInfo/{id}`). Auth header added by `AuthInterceptor`.
+- `ApiService` — content endpoints (`/works`, `/tracks/{id}`, `/search/{keyword}`, `/review`, `/recommender/*`, `/playlist/*`, `/tags/`, `/circles/`, `/vas/`, `/workInfo/{id}`). Auth header added by `AuthInterceptor`. **`searchWorks` must build its URL via `ApiService.buildSearchUri` (`Uri.replace(pathSegments:[...])` + `_dio.getUri`), not string-concatenated `'/search/$keyword'`**: some tag names contain `/` (e.g. `巨乳/爆乳`); a concatenated `%2F` gets decoded back to `/` inside Dio's `Uri.parse`, the server splits the path → 404. `buildSearchUri` is `static` + unit-tested precisely so the keyword stays one path segment. Apply the same pattern to any future endpoint that puts user/tag text in the **path** (query params are unaffected).
 - `AuthService` — `/auth/me` (login) and `/auth/reg` (register). Owns its own Dio instance, no auth interceptor.
 
 Both services subscribe to `AppSettingsService` and rotate `dio.options.baseUrl` when the user switches nodes. Available nodes (defined in `AppSettingsService.serverOptions`):
@@ -132,4 +132,4 @@ fvm dart run build_runner build --delete-conflicting-outputs
 
 ## Tests
 
-Test suite is currently a single smoke test at `test/widget_test.dart`. There is no broader unit/widget test scaffolding — when adding tests for a new subsystem, set up the structure under `test/<subsystem>/` rather than expecting one to already exist.
+A widget smoke test lives at `test/widget_test.dart`; pure-logic unit tests mirror the `lib/` tree under `test/` (e.g. `test/data/services/api_service_url_test.dart` covers `ApiService.buildSearchUri`). There is no shared test harness/fixtures yet — when adding tests for a new subsystem, create `test/<mirrored-path>/` and keep tests network-free (the URL test short-circuits Dio via an `InterceptorsWrapper` that rejects in `onRequest`). Run one file with `fvm flutter test test/data/services/api_service_url_test.dart`.

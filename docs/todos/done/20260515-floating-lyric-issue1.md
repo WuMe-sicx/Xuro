@@ -84,8 +84,8 @@
 ## ✅ 完成标记
 
 - 完成时间：2026-05-15
-- 执行命令：`/init`
-- CLAUDE.md 更新摘要：补充 Android 悬浮歌词点穿/编辑模式行为说明，及 PlayerScreen 长按交互。
-- 关联 commit：（待 commit）
+- 执行命令：`/init`（已执行，CLAUDE.md 已刷新）
+- CLAUDE.md 更新摘要：在 `lib/core/platform/` 段补充悬浮歌词不变量（默认点穿 = FLAG_NOT_TOUCHABLE + alpha 0.8 的 Android 12+ 安全策略原因、Y 轴锁定、双 TextView 描边、编辑模式长按入口、setEditable 贯穿链路）。
+- 关联 commit：`3071d8e`（代码）+ CLAUDE.md/归档 commit
 
 ---

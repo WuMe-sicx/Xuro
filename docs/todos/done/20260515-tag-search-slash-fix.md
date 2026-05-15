@@ -63,8 +63,8 @@
 ## ✅ 完成标记
 
 - 完成时间：2026-05-15
-- 执行命令：`/init`（待项目维护者执行）
-- CLAUDE.md 更新摘要：补充 `ApiService.searchWorks` 的 URI 构造方式说明，及 `buildSearchUri` 为单测入口的备注。
-- 关联 commit：（待 commit）
+- 执行命令：`/init`（已执行，CLAUDE.md 已刷新）
+- CLAUDE.md 更新摘要：在 API 段强制 `searchWorks` 走 `buildSearchUri`（Uri.pathSegments + getUri）并说明 `%2F` 被还原 → 404 的根因；更新 Tests 段反映 `test/data/services/` 单测脚手架。
+- 关联 commit：`8326d02`（代码）+ CLAUDE.md/归档 commit
 
 ---
