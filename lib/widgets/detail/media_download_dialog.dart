@@ -43,9 +43,16 @@ class _MediaDownloadDialogState extends State<MediaDownloadDialog> {
       _cancelToken = cancelToken;
     });
 
-    final result = await widget.download(cancelToken, (p) {
-      if (mounted) setState(() => _progress = p);
-    });
+    DownloadResult result;
+    try {
+      result = await widget.download(cancelToken, (p) {
+        if (mounted) setState(() => _progress = p);
+      });
+    } catch (_) {
+      // 最后防线：服务已把前置失败收敛为 ioError，此处兜底极端未捕获，
+      // 避免进度弹窗（PopScope canPop:false）卡死无法关闭。
+      result = const DownloadResult(DownloadStatus.ioError);
+    }
 
     if (mounted) Navigator.of(context).pop(result);
   }

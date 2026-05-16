@@ -50,16 +50,27 @@ class _BatchDownloadDialogState extends State<BatchDownloadDialog> {
       _cancelToken = cancelToken;
     });
 
-    final outcome = await widget.download(cancelToken, (i, n, name, p) {
-      if (mounted) {
-        setState(() {
-          _index = i;
-          _total = n;
-          _name = name;
-          _progress = p;
-        });
-      }
-    });
+    BatchDownloadOutcome outcome;
+    try {
+      outcome = await widget.download(cancelToken, (i, n, name, p) {
+        if (mounted) {
+          setState(() {
+            _index = i;
+            _total = n;
+            _name = name;
+            _progress = p;
+          });
+        }
+      });
+    } catch (_) {
+      // 最后防线：极端未捕获时以失败结果 pop，避免批量进度弹窗卡死。
+      outcome = BatchDownloadOutcome(
+        ok: 0,
+        skipped: 0,
+        failed: widget.audioCount,
+        cancelled: false,
+      );
+    }
 
     if (mounted) Navigator.of(context).pop(outcome);
   }
