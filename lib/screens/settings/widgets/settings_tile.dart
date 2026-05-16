@@ -1,10 +1,15 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:xuro/core/theme/app_spacing.dart';
 
 enum _TileType { navigation, toggle, selection }
 
 class SettingsTile extends StatelessWidget {
+  // spec §2.3：单行列表项 56dp。56 不在 AppSpacing 4px 网格令牌内，
+  // 沿用 SettingsGroup._dividerIndent 先例用具名常量（不为单数造共享令牌）。
+  static const double _kRowMinHeight = 56;
+
   final _TileType _type;
   final String title;
   final String? subtitle;
@@ -14,6 +19,10 @@ class SettingsTile extends StatelessWidget {
   final bool? toggled;
   final ValueChanged<bool>? onChanged;
   final bool? selected;
+
+  /// 可选 leading 图标着色；为 null 时维持中性 `onSurfaceVariant`。
+  /// 仅供「内容即颜色」的场景（如配色选择器显示各配色真实强调色）。
+  final Color? leadingColor;
 
   const SettingsTile._({
     super.key,
@@ -26,6 +35,7 @@ class SettingsTile extends StatelessWidget {
     this.toggled,
     this.onChanged,
     this.selected,
+    this.leadingColor,
   }) : _type = type;
 
   /// Navigation tile with trailing chevron
@@ -72,6 +82,7 @@ class SettingsTile extends StatelessWidget {
     required IconData leading,
     required bool selected,
     VoidCallback? onTap,
+    Color? leadingColor,
   }) : this._(
           key: key,
           type: _TileType.selection,
@@ -80,6 +91,7 @@ class SettingsTile extends StatelessWidget {
           leading: leading,
           selected: selected,
           onTap: onTap,
+          leadingColor: leadingColor,
         );
 
   @override
@@ -89,15 +101,18 @@ class SettingsTile extends StatelessWidget {
     Widget trailing = _buildTrailing(context, colorScheme);
 
     return ConstrainedBox(
-      constraints: const BoxConstraints(minHeight: 48),
+      constraints: const BoxConstraints(minHeight: _kRowMinHeight),
       child: InkWell(
         onTap: _type == _TileType.toggle ? null : (onTap != null ? _handleTap : null),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.space16,
+            vertical: AppSpacing.space12,
+          ),
           child: Row(
             children: [
               _buildLeadingIcon(colorScheme),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.space12),
               Expanded(child: _buildText(context, colorScheme)),
               trailing,
             ],
@@ -107,16 +122,16 @@ class SettingsTile extends StatelessWidget {
     );
   }
 
+  // 参考图：设置项 leading 为克制的中性线性图标，accent 仅出现在分区头/
+  // 开关/选中态/滑块。不再用「每行 accent 圆角徽章」（accent 过载，背离参考图）。
   Widget _buildLeadingIcon(ColorScheme colorScheme) {
     return SizedBox(
-      width: 32,
-      height: 32,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: colorScheme.primary.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Icon(leading, size: 20, color: colorScheme.primary),
+      width: AppSpacing.space40,
+      height: AppSpacing.space40,
+      child: Icon(
+        leading,
+        size: 20,
+        color: leadingColor ?? colorScheme.onSurfaceVariant,
       ),
     );
   }
@@ -153,7 +168,7 @@ class SettingsTile extends StatelessWidget {
           children: [
             if (value != null)
               Padding(
-                padding: const EdgeInsets.only(right: 4),
+                padding: const EdgeInsets.only(right: AppSpacing.space4),
                 child: Text(
                   value!,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(

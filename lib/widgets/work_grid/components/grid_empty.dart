@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:xuro/common/constants/strings.dart';
 
 class GridEmpty extends StatelessWidget {
   final String? message;
@@ -27,7 +28,7 @@ class GridEmpty extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            message ?? '暂无内容',
+            message ?? Strings.gridEmpty,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: Theme.of(context).colorScheme.outline,
                 ),

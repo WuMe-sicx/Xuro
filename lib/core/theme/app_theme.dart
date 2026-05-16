@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:xuro/core/settings/app_settings_service.dart';
 import 'app_colors.dart';
+import 'app_radius.dart';
 
 /// 应用主题配置
 class AppTheme {
@@ -14,7 +15,7 @@ class AppTheme {
         cardTheme: const CardThemeData(
           elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(12)),
+            borderRadius: AppRadius.mdAll,
           ),
         ),
         appBarTheme: const AppBarTheme(
@@ -32,7 +33,7 @@ class AppTheme {
         cardTheme: const CardThemeData(
           elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(12)),
+            borderRadius: AppRadius.mdAll,
           ),
         ),
         appBarTheme: const AppBarTheme(

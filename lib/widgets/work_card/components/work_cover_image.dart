@@ -7,6 +7,10 @@ class WorkCoverImage extends StatelessWidget {
   final String imageUrl;
   final int workId;
   final String sourceId;
+
+  /// 作品时长（秒）。非空时在封面左下角显示时长角标（对齐参考图）。
+  final int? durationSeconds;
+
   // 195/146 ≈ 1.336
   static const double _aspectRatio = 195 / 146;
 
@@ -15,7 +19,17 @@ class WorkCoverImage extends StatelessWidget {
     required this.imageUrl,
     required this.workId,
     required this.sourceId,
+    this.durationSeconds,
   });
+
+  static String _fmtDuration(int s) {
+    final h = s ~/ 3600;
+    final m = (s % 3600) ~/ 60;
+    final sec = s % 60;
+    final mm = m.toString().padLeft(2, '0');
+    final ss = sec.toString().padLeft(2, '0');
+    return h > 0 ? '$h:$mm:$ss' : '$m:$ss';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +81,7 @@ class WorkCoverImage extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.7),
+                color: Colors.black.withValues(alpha: 0.7),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(
@@ -79,6 +93,26 @@ class WorkCoverImage extends StatelessWidget {
               ),
             ),
           ),
+          if (durationSeconds != null && durationSeconds! > 0)
+            Positioned(
+              left: 8,
+              bottom: 8,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.7),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  _fmtDuration(durationSeconds!),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Colors.white,
+                        fontSize: 12,
+                      ),
+                ),
+              ),
+            ),
         ],
       ),
     );

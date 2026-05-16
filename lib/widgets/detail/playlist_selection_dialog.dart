@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:xuro/common/constants/strings.dart';
 import 'package:xuro/data/models/playlists_with_exist_statu/playlist.dart';
 
 class PlaylistSelectionDialog extends StatefulWidget {
@@ -67,7 +68,7 @@ class _PlaylistSelectionDialogState extends State<PlaylistSelectionDialog> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '添加到收藏夹',
+                Strings.addToPlaylist,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 16),
@@ -98,7 +99,7 @@ class _PlaylistSelectionDialogState extends State<PlaylistSelectionDialog> {
               const SizedBox(height: 8),
               ElevatedButton(
                 onPressed: widget.onRetry,
-                child: const Text('重试'),
+                child: const Text(Strings.retry),
               ),
             ],
           ],
@@ -108,7 +109,7 @@ class _PlaylistSelectionDialogState extends State<PlaylistSelectionDialog> {
 
     if (widget.playlists == null || widget.playlists!.isEmpty) {
       return const Center(
-        child: Text('暂无收藏夹'),
+        child: Text(Strings.playlistEmpty),
       );
     }
 
@@ -149,7 +150,8 @@ class _PlaylistSelectionDialogState extends State<PlaylistSelectionDialog> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '${newPlaylist.exist! ? '添加成功' : '移除成功'}: ${_getDisplayName(newPlaylist.name)}',
+              Strings.playlistToggleResult(
+                  newPlaylist.exist!, _getDisplayName(newPlaylist.name)),
               style: TextStyle(
                 color: Theme.of(context).colorScheme.onSurface,
               ),
@@ -176,9 +178,9 @@ class _PlaylistSelectionDialogState extends State<PlaylistSelectionDialog> {
   String _getDisplayName(String? name) {
     switch (name) {
       case '__SYS_PLAYLIST_MARKED':
-        return '我标记的';
+        return Strings.playlistMarked;
       case '__SYS_PLAYLIST_LIKED':
-        return '我喜欢的';
+        return Strings.playlistLiked;
       default:
         return name ?? '';
     }
@@ -197,9 +199,9 @@ class _PlaylistItem extends StatelessWidget {
   String _getDisplayName(String? name) {
     switch (name) {
       case '__SYS_PLAYLIST_MARKED':
-        return '我标记的';
+        return Strings.playlistMarked;
       case '__SYS_PLAYLIST_LIKED':
-        return '我喜欢的';
+        return Strings.playlistLiked;
       default:
         return name ?? '';
     }
@@ -209,7 +211,7 @@ class _PlaylistItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       title: Text(_getDisplayName(state.playlist.name)),
-      subtitle: Text('${state.playlist.worksCount ?? 0} 个作品'),
+      subtitle: Text(Strings.worksCountLabel(state.playlist.worksCount ?? 0)),
       trailing: state.isLoading
           ? const SizedBox(
               width: 24,

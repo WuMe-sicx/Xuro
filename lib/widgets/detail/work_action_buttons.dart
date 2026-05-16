@@ -1,4 +1,5 @@
 import 'package:xuro/data/models/mark_status.dart';
+import 'package:xuro/common/constants/strings.dart';
 import 'package:flutter/material.dart';
 
 class WorkActionButtons extends StatelessWidget {
@@ -32,26 +33,30 @@ class WorkActionButtons extends StatelessWidget {
         children: [
           _ActionButton(
             icon: Icons.favorite_border,
-            label: '收藏',
+            label: Strings.actionFavorite,
             onTap: onFavoriteTap,
             loading: loadingFavorite,
           ),
           _ActionButton(
             icon: Icons.bookmark_border,
-            label: currentMarkStatus?.label ?? '标记',
+            label: currentMarkStatus?.label ?? Strings.actionMark,
             onTap: onMarkTap,
             loading: loadingMark,
           ),
           _ActionButton(
             icon: Icons.star_border,
-            label: '评分',
+            label: Strings.actionRate,
             onTap: () {
               // TODO: 实现评分功能
             },
           ),
           _ActionButton(
             icon: Icons.recommend,
-            label: checkingRecommendations ? '检查中' : (hasRecommendations ? '相关推荐' : '暂无推荐'),
+            label: checkingRecommendations
+                ? Strings.actionChecking
+                : (hasRecommendations
+                    ? Strings.similarWorks
+                    : Strings.actionNoRecommend),
             onTap: hasRecommendations ? onRecommendationsTap : null,
             loading: checkingRecommendations,
           ),
@@ -100,7 +105,7 @@ class _ActionButton extends StatelessWidget {
               Icon(
                 icon,
                 color: disabled 
-                    ? theme.colorScheme.onSurface.withOpacity(0.38)
+                    ? theme.colorScheme.onSurface.withValues(alpha: 0.38)
                     : null,
               ),
             const SizedBox(height: 4),
@@ -108,7 +113,7 @@ class _ActionButton extends StatelessWidget {
               label,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: disabled
-                    ? theme.colorScheme.onSurface.withOpacity(0.38)
+                    ? theme.colorScheme.onSurface.withValues(alpha: 0.38)
                     : null,
               ),
             ),

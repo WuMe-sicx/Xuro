@@ -1,4 +1,5 @@
 import 'package:xuro/core/theme/app_animations.dart';
+import 'package:xuro/common/constants/strings.dart';
 import 'package:xuro/screens/player_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:xuro/presentation/viewmodels/player_viewmodel.dart';
@@ -98,7 +99,8 @@ class MiniPlayer extends StatelessWidget {
                             child: Material(
                               color: Colors.transparent,
                               child: Text(
-                                viewModel.currentTrackInfo?.title ?? '未在播放',
+                                viewModel.currentTrackInfo?.title ??
+                                    Strings.notPlaying,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: Theme.of(context).textTheme.titleSmall,

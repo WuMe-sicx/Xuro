@@ -1,139 +1,88 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:xuro/core/theme/app_animations.dart';
+import 'package:xuro/core/theme/app_radius.dart';
+import 'package:xuro/core/theme/app_spacing.dart';
+import 'package:xuro/core/theme/app_text_styles.dart';
 
-class SidebarTile extends StatefulWidget {
+/// 侧边栏菜单项（对齐参考图）：干净行 + 中性线性图标 + 主题色文字；
+/// `selected` 时整行为实心 accent 胶囊（`primary`/`onPrimary`），未选中透明 + 涟漪。
+/// 不再用白色硬编码 / 彩色图标徽章 / 分割线（参考图无）。
+class SidebarTile extends StatelessWidget {
+  // spec §2.3：单行列表项 56dp。与 SettingsTile._kRowMinHeight 一致，
+  // 使侧边栏列表节奏与设置统一（56 不在 AppSpacing 网格，沿用具名常量先例）。
+  static const double _kRowMinHeight = 56;
+
   const SidebarTile({
     super.key,
     required this.icon,
-    required this.iconColor,
-    required this.iconBackgroundColor,
     required this.title,
     required this.onTap,
-    this.showSeparator = true,
+    this.selected = false,
     this.trailing,
   });
 
   final IconData icon;
-  final Color iconColor;
-  final Color iconBackgroundColor;
   final String title;
   final VoidCallback onTap;
-  final bool showSeparator;
+  final bool selected;
 
-  /// Custom trailing widget. Defaults to a thin chevron when null.
+  /// 自定义尾部组件；为 null 且未选中时显示淡 chevron。
   final Widget? trailing;
 
   @override
-  State<SidebarTile> createState() => _SidebarTileState();
-}
-
-class _SidebarTileState extends State<SidebarTile> {
-  bool _isPressed = false;
-
-  @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final fg = selected ? cs.onPrimary : cs.onSurface;
+    final iconColor = selected ? cs.onPrimary : cs.onSurfaceVariant;
+
     return Semantics(
       button: true,
-      label: widget.title,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTapDown: (_) => setState(() => _isPressed = true),
-        onTapUp: (_) {
-          setState(() => _isPressed = false);
-          widget.onTap();
-        },
-        onTapCancel: () => setState(() => _isPressed = false),
-        child: AnimatedContainer(
-          duration: AppAnimations.micro,
-          color: _isPressed
-              ? Colors.white.withValues(alpha: 0.06)
-              : Colors.transparent,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  child: Row(
-                    children: [
-                      _ColoredIconBadge(
-                        icon: widget.icon,
-                        iconColor: widget.iconColor,
-                        backgroundColor: widget.iconBackgroundColor,
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Text(
-                          widget.title,
-                          style: const TextStyle(
-                            fontSize: 15.5,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white,
-                            letterSpacing: 0.1,
-                          ),
+      label: title,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.space4),
+        child: Material(
+          color: selected ? cs.primary : Colors.transparent,
+          borderRadius: AppRadius.lgAll,
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onTap,
+            child: ConstrainedBox(
+              constraints:
+                  const BoxConstraints(minHeight: _kRowMinHeight),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.space12,
+                  vertical: AppSpacing.space12,
+                ),
+                child: Row(
+                  children: [
+                    Icon(icon, size: 22, color: iconColor),
+                    const SizedBox(width: AppSpacing.space12),
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: AppTextStyles.bodyLarge.copyWith(
+                          color: fg,
+                          fontWeight:
+                              selected ? FontWeight.w600 : FontWeight.w500,
                         ),
                       ),
-                      widget.trailing ??
-                          Icon(
-                            CupertinoIcons.chevron_right,
-                            size: 13,
-                            color: Colors.white.withValues(alpha: 0.35),
-                          ),
-                    ],
-                  ),
+                    ),
+                    if (trailing != null)
+                      trailing!
+                    else if (!selected)
+                      Icon(
+                        CupertinoIcons.chevron_right,
+                        size: 14,
+                        color: cs.onSurfaceVariant.withValues(alpha: 0.5),
+                      ),
+                  ],
                 ),
-                if (widget.showSeparator)
-                  Container(
-                    height: 0.5,
-                    margin: const EdgeInsets.only(left: 46),
-                    color: Colors.white.withValues(alpha: 0.06),
-                  ),
-              ],
+              ),
             ),
           ),
         ),
       ),
-    );
-  }
-}
-
-class _ColoredIconBadge extends StatelessWidget {
-  const _ColoredIconBadge({
-    required this.icon,
-    required this.iconColor,
-    required this.backgroundColor,
-  });
-
-  final IconData icon;
-  final Color iconColor;
-  final Color backgroundColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 32,
-      height: 32,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            backgroundColor,
-            Color.lerp(backgroundColor, Colors.black, 0.18) ?? backgroundColor,
-          ],
-        ),
-        borderRadius: BorderRadius.circular(9),
-        boxShadow: [
-          BoxShadow(
-            color: backgroundColor.withValues(alpha: 0.35),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Icon(icon, color: iconColor, size: 18),
     );
   }
 }

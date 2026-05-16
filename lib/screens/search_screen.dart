@@ -1,4 +1,5 @@
 import 'package:xuro/core/theme/app_animations.dart';
+import 'package:xuro/common/constants/strings.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:xuro/presentation/viewmodels/search_viewmodel.dart';
@@ -84,23 +85,25 @@ class _SearchScreenContentState extends State<SearchScreenContent> {
   String _getOrderText(String order, String sort) {
     switch (order) {
       case 'create_date':
-        return sort == 'desc' ? '最新收录' : '最早收录';
+        return sort == 'desc' ? Strings.sortLatest : Strings.sortOldest;
       case 'release':
-        return sort == 'desc' ? '发售日期倒序' : '发售日期顺序';
+        return sort == 'desc'
+            ? Strings.sortReleaseDesc
+            : Strings.sortReleaseAsc;
       case 'dl_count':
-        return sort == 'desc' ? '销量倒序' : '销量顺序';
+        return sort == 'desc' ? Strings.sortSalesDesc : Strings.sortSalesAsc;
       case 'price':
-        return sort == 'desc' ? '价格倒序' : '价格顺序';
+        return sort == 'desc' ? Strings.sortPriceDesc : Strings.sortPriceAsc;
       case 'rate_average_2dp':
-        return '评价倒序';
+        return Strings.sortRatingDesc;
       case 'review_count':
-        return '评论数量倒序';
+        return Strings.sortReviewDesc;
       case 'id':
-        return sort == 'desc' ? 'RJ号倒序' : 'RJ号顺序';
+        return sort == 'desc' ? Strings.sortRjDesc : Strings.sortRjAsc;
       case 'random':
-        return '随机排序';
+        return Strings.sortRandom;
       default:
-        return '排序';
+        return Strings.sortLabel;
     }
   }
 
@@ -122,12 +125,12 @@ class _SearchScreenContentState extends State<SearchScreenContent> {
                   child: TextField(
                     controller: _searchController,
                     decoration: InputDecoration(
-                      hintText: '搜索...',
+                      hintText: Strings.searchInputHint,
                       filled: true,
                       fillColor: Theme.of(context)
                           .colorScheme
                           .surfaceContainerHighest
-                          .withOpacity(0.5),
+                          .withValues(alpha: 0.5),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(24),
                         borderSide: BorderSide.none,
@@ -159,7 +162,7 @@ class _SearchScreenContentState extends State<SearchScreenContent> {
                       // 字幕选项
                       Consumer<SearchViewModel>(
                         builder: (context, viewModel, _) => FilterChip(
-                          label: const Text('字幕'),
+                          label: const Text(Strings.subtitleChip),
                           selected: viewModel.hasSubtitle,
                           onSelected: (_) => viewModel.toggleSubtitle(),
                           showCheckmark: true,
@@ -180,47 +183,47 @@ class _SearchScreenContentState extends State<SearchScreenContent> {
                           itemBuilder: (context) => [
                             const PopupMenuItem(
                               value: ('create_date', 'desc'),
-                              child: Text('最新收录'),
+                              child: Text(Strings.sortLatest),
                             ),
                             const PopupMenuItem(
                               value: ('release', 'desc'),
-                              child: Text('发售日期倒序'),
+                              child: Text(Strings.sortReleaseDesc),
                             ),
                             const PopupMenuItem(
                               value: ('release', 'asc'),
-                              child: Text('发售日期顺序'),
+                              child: Text(Strings.sortReleaseAsc),
                             ),
                             const PopupMenuItem(
                               value: ('dl_count', 'desc'),
-                              child: Text('销量倒序'),
+                              child: Text(Strings.sortSalesDesc),
                             ),
                             const PopupMenuItem(
                               value: ('price', 'asc'),
-                              child: Text('价格顺序'),
+                              child: Text(Strings.sortPriceAsc),
                             ),
                             const PopupMenuItem(
                               value: ('price', 'desc'),
-                              child: Text('价格倒序'),
+                              child: Text(Strings.sortPriceDesc),
                             ),
                             const PopupMenuItem(
                               value: ('rate_average_2dp', 'desc'),
-                              child: Text('评价倒序'),
+                              child: Text(Strings.sortRatingDesc),
                             ),
                             const PopupMenuItem(
                               value: ('review_count', 'desc'),
-                              child: Text('评论数量倒序'),
+                              child: Text(Strings.sortReviewDesc),
                             ),
                             const PopupMenuItem(
                               value: ('id', 'desc'),
-                              child: Text('RJ号倒序'),
+                              child: Text(Strings.sortRjDesc),
                             ),
                             const PopupMenuItem(
                               value: ('id', 'asc'),
-                              child: Text('RJ号顺序'),
+                              child: Text(Strings.sortRjAsc),
                             ),
                             const PopupMenuItem(
                               value: ('random', 'desc'),
-                              child: Text('随机排序'),
+                              child: Text(Strings.sortRandom),
                             ),
                           ],
                           onSelected: (value) =>
@@ -239,11 +242,11 @@ class _SearchScreenContentState extends State<SearchScreenContent> {
                 Widget? emptyWidget;
                 if (viewModel.works.isEmpty && viewModel.keyword.isEmpty) {
                   emptyWidget = const Center(
-                    child: Text('输入关键词开始搜索'),
+                    child: Text(Strings.searchEmptyPrompt),
                   );
                 } else if (viewModel.works.isEmpty) {
                   emptyWidget = const Center(
-                    child: Text('没有找到相关结果'),
+                    child: Text(Strings.searchNoResults),
                   );
                 }
 

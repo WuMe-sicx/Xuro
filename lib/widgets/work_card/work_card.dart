@@ -33,6 +33,7 @@ class WorkCard extends StatelessWidget {
               imageUrl: work.mainCoverUrl ?? '',
               workId: work.id ?? 0,
               sourceId: work.sourceId ?? '',
+              durationSeconds: work.duration,
             ),
             WorkInfoSection(work: work),
           ],

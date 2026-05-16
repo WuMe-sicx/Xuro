@@ -4,7 +4,9 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:xuro/common/constants/strings.dart';
 import 'package:xuro/core/settings/app_settings_service.dart';
-import 'package:xuro/core/theme/app_colors.dart';
+import 'package:xuro/core/theme/app_radius.dart';
+import 'package:xuro/core/theme/app_spacing.dart';
+import 'package:xuro/core/theme/app_text_styles.dart';
 import 'package:xuro/core/theme/theme_controller.dart';
 import 'package:xuro/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:xuro/presentation/widgets/auth/login_dialog.dart';
@@ -14,24 +16,23 @@ import 'package:xuro/screens/browse/voice_actors_screen.dart';
 import 'package:xuro/screens/about_screen.dart';
 import 'package:xuro/screens/favorites_screen.dart';
 import 'package:xuro/screens/settings/settings_screen.dart';
+import 'package:xuro/widgets/common/brand_wordmark.dart';
+import 'package:xuro/widgets/sidebar/sidebar_decoration.dart';
 import 'package:xuro/widgets/sidebar/sidebar_group.dart';
 import 'package:xuro/widgets/sidebar/sidebar_header.dart';
 import 'package:xuro/widgets/sidebar/sidebar_tile.dart';
 
-/// Single neutral gray used for ALL sidebar menu icon backgrounds. The
-/// previous design had 8 different brand-style colors per icon; the
-/// "two color" simplification collapses them to one neutral so the only
-/// chromatic accents in the drawer are the avatar / arrow / footer dot,
-/// which all draw from `Theme.of(context).colorScheme.primary`.
-const Color _kIconBgGray = Color(0xFF8E8E93);
-
+/// 侧边抽屉。2026-05-16 用户决策：推翻旧「深色玻璃拟态不可回退」视觉不变量，
+/// 改为**跟随应用主题的清爽列表**（对齐参考图：浅色模式=浅色，暗色/mono=深色）。
+/// 保留的性能教训：**不引入任何全屏 BackdropFilter**（旧版 256ms 真机 jank，
+/// 见 docs/todos/done/20260515-sidebar-first-open-jank.md）；参考图为扁平设计，
+/// 本就不需要模糊。
 class SidebarMenu extends StatelessWidget {
   const SidebarMenu({super.key});
 
   static const _drawerWidthFraction = 0.72;
   static const _drawerMobileMaxWidth = 360.0;
   static const _drawerTabletWidth = 304.0;
-  // Matches the mobile/tablet breakpoint defined in ui-design-spec §5.
   static const _tabletBreakpoint = 800.0;
   static const _cornerRadius = 28.0;
 
@@ -59,9 +60,6 @@ class SidebarMenu extends StatelessWidget {
   }
 
   void _showComingSoon(BuildContext context, String feature) {
-    // Capture the messenger before popping the drawer so the SnackBar is
-    // attached to the stable root Scaffold rather than relying on the
-    // about-to-deactivate drawer subtree.
     final messenger = ScaffoldMessenger.of(context);
     Navigator.pop(context);
     messenger.showSnackBar(
@@ -94,291 +92,165 @@ class SidebarMenu extends StatelessWidget {
             _drawerMobileMaxWidth,
           );
 
-    // Force dark, glassy palette inside the drawer regardless of app theme.
-    //
-    // IMPORTANT: do NOT just `copyWith(brightness: Brightness.dark)` — that
-    // only flips the brightness flag and keeps the LIGHT variant's primary,
-    // which on a near-black drawer background turns the avatar / glow / footer
-    // dot invisible (e.g. mono variant in light mode → primary stays black).
-    // Build the local Theme from the explicit dark ColorScheme of the active
-    // ColorVariant so the accent rotates correctly across blue/mono/green.
+    // SidebarDecoration 仍按 ColorVariant 选「叶/月山」母题；颜色走当前主题
+    // colorScheme（已随 variant 轮换），不再强制深色。
     final variant = context.watch<AppSettingsService>().colorVariant;
-    return Theme(
-      data: Theme.of(context).copyWith(
-        brightness: Brightness.dark,
-        colorScheme: AppColors.darkSchemeFor(variant),
-      ),
-      child: Drawer(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        width: width,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
-            topRight: Radius.circular(_cornerRadius),
-            bottomRight: Radius.circular(_cornerRadius),
-          ),
+    final cs = Theme.of(context).colorScheme;
+
+    return Drawer(
+      backgroundColor: cs.surface,
+      elevation: 0,
+      width: width,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topRight: Radius.circular(_cornerRadius),
+          bottomRight: Radius.circular(_cornerRadius),
         ),
-        child: ClipRRect(
-          borderRadius: const BorderRadius.only(
-            topRight: Radius.circular(_cornerRadius),
-            bottomRight: Radius.circular(_cornerRadius),
-          ),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              // Note: an earlier version stacked a fullscreen
-              // BackdropFilter(blur 18) + 18% black overlay on top of
-              // _DrawerBackground. PerfDog showed that the very first
-              // open of the drawer cost ~256ms on real Android (Impeller
-              // offscreen layer + shader). The blur was visually a no-op
-              // because _DrawerBackground is opaque, and the 18% darken
-              // has been folded into the gradient stops below — so the
-              // BackdropFilter has been removed outright.
-              _DrawerBackground(variant: variant),
-              const _RightEdgeHighlight(),
-              SafeArea(
-                child: CustomScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  slivers: [
-                    SliverToBoxAdapter(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          const SidebarHeader(),
-                          SidebarGroup(
-                            header: Strings.drawerSectionContent,
-                            children: [
-                              SidebarTile(
-                                icon: CupertinoIcons.heart_fill,
-                                iconColor: Colors.white,
-                                iconBackgroundColor: _kIconBgGray,
-                                title: Strings.favorites,
-                                onTap: () => _navigateToFavorites(context),
+      ),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.only(
+          topRight: Radius.circular(_cornerRadius),
+          bottomRight: Radius.circular(_cornerRadius),
+        ),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // 底部装饰水印（参考图）：内容之下、可点穿；无 BackdropFilter。
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: SidebarDecoration(variant: variant),
+            ),
+            SafeArea(
+              child: CustomScrollView(
+                physics: const BouncingScrollPhysics(),
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.fromLTRB(
+                            AppSpacing.space24,
+                            AppSpacing.space20,
+                            AppSpacing.space16,
+                            AppSpacing.space8,
+                          ),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: BrandWordmark(
+                              text: Strings.aboutAppName,
+                              iconSize: 26,
+                              fontSize: 22,
+                            ),
+                          ),
+                        ),
+                        const SidebarHeader(),
+                        const SizedBox(height: AppSpacing.space8),
+                        SidebarGroup(
+                          header: Strings.drawerSectionContent,
+                          children: [
+                            SidebarTile(
+                              icon: CupertinoIcons.heart,
+                              title: Strings.favorites,
+                              onTap: () => _navigateToFavorites(context),
+                            ),
+                            SidebarTile(
+                              icon: CupertinoIcons.clock,
+                              title: Strings.recentPlay,
+                              onTap: () => _showComingSoon(
+                                context,
+                                Strings.recentPlay,
                               ),
-                              SidebarTile(
-                                icon: CupertinoIcons.clock_fill,
-                                iconColor: Colors.white,
-                                iconBackgroundColor: _kIconBgGray,
-                                title: Strings.recentPlay,
-                                onTap: () => _showComingSoon(
-                                  context,
-                                  Strings.recentPlay,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: AppSpacing.space16),
+                        SidebarGroup(
+                          header: Strings.drawerSectionDiscover,
+                          children: [
+                            SidebarTile(
+                              icon: CupertinoIcons.tag,
+                              title: Strings.tags,
+                              onTap: () =>
+                                  _navigate(context, const TagsScreen()),
+                            ),
+                            SidebarTile(
+                              icon: Icons.group_outlined,
+                              title: Strings.circles,
+                              onTap: () =>
+                                  _navigate(context, const CirclesScreen()),
+                            ),
+                            SidebarTile(
+                              icon: CupertinoIcons.mic,
+                              title: Strings.voiceActors,
+                              onTap: () => _navigate(
+                                context,
+                                const VoiceActorsScreen(),
+                              ),
+                            ),
+                            SidebarTile(
+                              icon: Icons.bar_chart_rounded,
+                              title: Strings.ranking,
+                              onTap: () =>
+                                  _showComingSoon(context, Strings.ranking),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: AppSpacing.space16),
+                        Consumer<ThemeController>(
+                          builder: (context, themeController, _) {
+                            return SidebarGroup(
+                              header: Strings.drawerSectionSystem,
+                              children: [
+                                SidebarTile(
+                                  icon: CupertinoIcons.settings,
+                                  title: Strings.settings,
+                                  onTap: () => _navigate(
+                                    context,
+                                    const SettingsScreen(),
+                                  ),
                                 ),
-                                showSeparator: false,
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 22),
-                          SidebarGroup(
-                            header: Strings.drawerSectionDiscover,
-                            children: [
-                              SidebarTile(
-                                icon: CupertinoIcons.tag_fill,
-                                iconColor: Colors.white,
-                                iconBackgroundColor: _kIconBgGray,
-                                title: Strings.tags,
-                                onTap: () =>
-                                    _navigate(context, const TagsScreen()),
-                              ),
-                              SidebarTile(
-                                icon: Icons.group,
-                                iconColor: Colors.white,
-                                iconBackgroundColor: _kIconBgGray,
-                                title: Strings.circles,
-                                onTap: () =>
-                                    _navigate(context, const CirclesScreen()),
-                              ),
-                              SidebarTile(
-                                icon: CupertinoIcons.mic_fill,
-                                iconColor: Colors.white,
-                                iconBackgroundColor: _kIconBgGray,
-                                title: Strings.voiceActors,
-                                onTap: () => _navigate(
-                                  context,
-                                  const VoiceActorsScreen(),
+                                SidebarTile(
+                                  icon: CupertinoIcons.moon_stars,
+                                  title: Strings.darkModeMenu,
+                                  onTap: themeController.toggleThemeMode,
+                                  trailing: _ThemeModeBadge(
+                                    label: _themeModeLabel(
+                                      themeController.themeMode,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                              SidebarTile(
-                                icon: Icons.bar_chart_rounded,
-                                iconColor: Colors.white,
-                                iconBackgroundColor: _kIconBgGray,
-                                title: Strings.ranking,
-                                onTap: () =>
-                                    _showComingSoon(context, Strings.ranking),
-                                showSeparator: false,
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 22),
-                          Consumer<ThemeController>(
-                            builder: (context, themeController, _) {
-                              return SidebarGroup(
-                                header: Strings.drawerSectionSystem,
-                                children: [
-                                  SidebarTile(
-                                    icon: CupertinoIcons.settings,
-                                    iconColor: Colors.white,
-                                    iconBackgroundColor: _kIconBgGray,
-                                    title: Strings.settings,
-                                    onTap: () => _navigate(
-                                      context,
-                                      const SettingsScreen(),
-                                    ),
+                                SidebarTile(
+                                  icon: CupertinoIcons.info,
+                                  title: Strings.aboutUs,
+                                  onTap: () => _navigate(
+                                    context,
+                                    const AboutScreen(),
                                   ),
-                                  SidebarTile(
-                                    icon: CupertinoIcons.moon_stars_fill,
-                                    iconColor: Colors.white,
-                                    iconBackgroundColor: _kIconBgGray,
-                                    title: Strings.darkModeMenu,
-                                    onTap: themeController.toggleThemeMode,
-                                    trailing: _ThemeModeBadge(
-                                      label: _themeModeLabel(
-                                        themeController.themeMode,
-                                      ),
-                                    ),
-                                  ),
-                                  SidebarTile(
-                                    icon: CupertinoIcons.info_circle_fill,
-                                    iconColor: Colors.white,
-                                    iconBackgroundColor: _kIconBgGray,
-                                    title: Strings.aboutUs,
-                                    onTap: () => _navigate(
-                                      context,
-                                      const AboutScreen(),
-                                    ),
-                                    showSeparator: false,
-                                  ),
-                                ],
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 32),
-                          const _SidebarFooter(),
-                          const SizedBox(height: 16),
-                        ],
-                      ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                        const SizedBox(height: AppSpacing.space32),
+                        const _SidebarFooter(),
+                        const SizedBox(height: AppSpacing.space16),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _DrawerBackground extends StatelessWidget {
-  const _DrawerBackground({required this.variant});
-
-  final ColorVariant variant;
-
-  // Shared neutral near-black gradient for blue / green. The mono (单色调)
-  // variant gets a deeper, pure-black gradient so the monochrome theme reads
-  // as stark black instead of the slightly-warm shared near-black.
-  static const _sharedColors = [
-    Color(0xFF0A0A0A), // near-black
-    Color(0xFF111111),
-    Color(0xFF161616),
-  ];
-  static const _monoColors = [
-    Color(0xFF000000), // pure black
-    Color(0xFF050505),
-    Color(0xFF0A0A0A),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    // The two soft glows below are tinted with the active theme's primary so
-    // the drawer picks up the user's chosen accent.
-    final accent = Theme.of(context).colorScheme.primary;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: variant == ColorVariant.mono ? _monoColors : _sharedColors,
-          stops: const [0.0, 0.55, 1.0],
-        ),
-      ),
-      child: Stack(
-        children: [
-          // Faint accent aurora glow at the top.
-          Positioned(
-            top: -120,
-            left: -80,
-            child: _SoftGlow(
-              size: 320,
-              color: accent.withValues(alpha: 0.22),
             ),
-          ),
-          // Fainter accent glow near bottom (lower alpha for asymmetry).
-          Positioned(
-            bottom: -140,
-            right: -60,
-            child: _SoftGlow(
-              size: 280,
-              color: accent.withValues(alpha: 0.12),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SoftGlow extends StatelessWidget {
-  const _SoftGlow({required this.size, required this.color});
-
-  final double size;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: RadialGradient(
-            colors: [color, color.withValues(alpha: 0.0)],
-          ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _RightEdgeHighlight extends StatelessWidget {
-  const _RightEdgeHighlight();
-
-  @override
-  Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: Align(
-        alignment: Alignment.centerRight,
-        child: Container(
-          width: 1,
-          margin: const EdgeInsets.symmetric(vertical: 24),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Colors.white.withValues(alpha: 0.0),
-                Colors.white.withValues(alpha: 0.18),
-                Colors.white.withValues(alpha: 0.0),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
+/// 主题模式小药丸（中性 chip，非玻璃）。
 class _ThemeModeBadge extends StatelessWidget {
   const _ThemeModeBadge({required this.label});
 
@@ -386,23 +258,20 @@ class _ThemeModeBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.space12,
+        vertical: AppSpacing.space4,
+      ),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(999),
-        color: Colors.white.withValues(alpha: 0.10),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.18),
-          width: 0.6,
-        ),
+        borderRadius: AppRadius.fullAll,
+        color: cs.surfaceContainerHighest,
       ),
       child: Text(
         label,
-        style: TextStyle(
-          fontSize: 11.5,
-          fontWeight: FontWeight.w600,
-          color: Colors.white.withValues(alpha: 0.85),
-          letterSpacing: 0.3,
+        style: AppTextStyles.labelMedium.copyWith(
+          color: cs.onSurfaceVariant,
         ),
       ),
     );
@@ -417,13 +286,12 @@ class _SidebarFooter extends StatefulWidget {
 }
 
 class _SidebarFooterState extends State<_SidebarFooter> {
-  // Cached so rebuilds (e.g., theme toggle) don't re-issue the platform call
-  // and don't briefly flash a stale placeholder version.
   late final Future<PackageInfo> _packageInfoFuture =
       PackageInfo.fromPlatform();
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Center(
       child: FutureBuilder<PackageInfo>(
         future: _packageInfoFuture,
@@ -431,7 +299,6 @@ class _SidebarFooterState extends State<_SidebarFooter> {
           final label = snapshot.hasData
               ? 'Xuro v${snapshot.data!.version}'
               : 'Xuro';
-          final accent = Theme.of(context).colorScheme.primary;
           return Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -440,22 +307,15 @@ class _SidebarFooterState extends State<_SidebarFooter> {
                 height: 6,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: accent,
-                  boxShadow: [
-                    BoxShadow(
-                      color: accent.withValues(alpha: 0.7),
-                      blurRadius: 8,
-                    ),
-                  ],
+                  color: cs.primary,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.space8),
               Text(
                 label,
-                style: TextStyle(
-                  fontSize: 11.5,
-                  color: Colors.white.withValues(alpha: 0.40),
-                  letterSpacing: 0.6,
+                style: AppTextStyles.caption.copyWith(
+                  color: cs.onSurfaceVariant,
+                  letterSpacing: 0.5,
                 ),
               ),
             ],

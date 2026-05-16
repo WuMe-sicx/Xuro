@@ -13,6 +13,15 @@ subprojects {
     project.evaluationDependsOn(":app")
 }
 
+// 第三方插件（audio_service / flutter_secure_storage / permission_handler_android 等）
+// 仍把 source/target 钉在 Java 8，JDK 17 编译时会刷 "源值 8 已过时" 警告。
+// 这些插件在 ~/.pub-cache 里不能改（pub get 会覆盖），统一在子工程层面屏蔽该提示。
+subprojects {
+    tasks.withType(JavaCompile).configureEach {
+        options.compilerArgs << '-Xlint:-options'
+    }
+}
+
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }

@@ -1,4 +1,5 @@
 import 'package:xuro/core/theme/app_animations.dart';
+import 'package:xuro/common/constants/strings.dart';
 import 'package:xuro/widgets/filter/filter_with_keyword.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -63,7 +64,7 @@ class _SimilarWorksScreenState extends State<SimilarWorksScreen> {
       value: _viewModel,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('相关推荐'),
+          title: const Text(Strings.similarWorks),
           actions: [
             Consumer<SimilarWorksViewModel>(
               builder: (context, viewModel, _) => IconButton(

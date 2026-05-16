@@ -1,3 +1,4 @@
+import 'package:xuro/common/constants/strings.dart';
 import 'package:xuro/data/models/works/work.dart';
 import 'package:flutter/foundation.dart';
 import 'package:xuro/data/models/my_lists/my_playlists/playlist.dart';
@@ -130,9 +131,9 @@ class PlaylistsViewModel extends ChangeNotifier {
   String getDisplayName(String? name) {
     switch (name) {
       case '__SYS_PLAYLIST_MARKED':
-        return '我标记的';
+        return Strings.playlistMarked;
       case '__SYS_PLAYLIST_LIKED':
-        return '我喜欢的';
+        return Strings.playlistLiked;
       default:
         return name ?? '';
     }

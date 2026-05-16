@@ -16,11 +16,137 @@ class Strings {
 
   // Home
   static const String search = '搜索';
+  static const String homeSearchHint = '搜索你喜欢的声音...';
   static const String musicList = '音乐列表将在这里显示';
 
   // Player
   static const String nowPlaying = '正在播放';
   static const String playerPlaceholder = '播放器控件将在这里显示';
+  static const String notPlaying = '未在播放';
+  static const String unknownWork = '未知作品';
+  static const String unknownArtist = '未知演员';
+  static const String noLyrics = '无歌词';
+  static const String screenAwakeOn = '开启屏幕常亮';
+  static const String screenAwakeOff = '关闭屏幕常亮';
+  static const String playerSeekBack10 = '快退 10 秒';
+  static const String playerPrevTrack = '上一曲';
+  static const String playerNextTrack = '下一曲';
+  static const String playerSeekForward10 = '快进 10 秒';
+
+  // Main tabs / navigation
+  static const String navRecommend = '推荐';
+  static const String navPopular = '热门';
+  static const String tabFavorites = '收藏';
+  static const String homeTitleRecommend = '为你推荐';
+  static const String homeTitlePopular = '热门作品';
+
+  // Similar works
+  static const String similarWorks = '相关推荐';
+
+  // Cache manager
+  static const String audioCache = '音频缓存';
+  static const String subtitleCache = '字幕缓存';
+  static const String imageCache = '图片缓存';
+  static const String totalCacheSize = '总缓存大小';
+  static const String cacheClean = '清理';
+  static const String cacheCleanAll = '清理全部';
+  static const String cacheExplainTitle = '缓存说明';
+  static const String cacheExplainBody =
+      '缓存用于存储最近播放的音频文件、字幕文件和图片，以提高加载速度。'
+      '清理全部会同时清除所有类型的缓存数据。';
+
+  // Search — sort labels & states
+  static const String sortLatest = '最新收录';
+  static const String sortOldest = '最早收录';
+  static const String sortReleaseDesc = '发售日期倒序';
+  static const String sortReleaseAsc = '发售日期顺序';
+  static const String sortSalesDesc = '销量倒序';
+  static const String sortSalesAsc = '销量顺序';
+  static const String sortPriceDesc = '价格倒序';
+  static const String sortPriceAsc = '价格顺序';
+  static const String sortRatingDesc = '评价倒序';
+  static const String sortReviewDesc = '评论数量倒序';
+  static const String sortRjDesc = 'RJ号倒序';
+  static const String sortRjAsc = 'RJ号顺序';
+  static const String sortRandom = '随机排序';
+  static const String sortLabel = '排序';
+  static const String searchInputHint = '搜索...';
+  static const String searchEmptyPrompt = '输入关键词开始搜索';
+  static const String searchNoResults = '没有找到相关结果';
+  static const String subtitleChip = '字幕';
+
+  // Browse — tags / voice actors / circles
+  static const String browseAllTags = '全部标签';
+  static const String browseAllVoiceActors = '全部声优';
+  static const String browseAllCircles = '全部社团';
+  static const String browseSearchTagsHint = '搜索标签...';
+  static const String browseSearchVoiceActorsHint = '搜索声优...';
+  static const String browseSearchCirclesHint = '搜索社团...';
+  static const String loadFailed = '加载失败';
+  static const String browseEmptyTags = '暂无标签';
+  static const String browseEmptyVoiceActors = '暂无声优';
+  static const String browseEmptyCircles = '暂无社团';
+
+  // Auth / dialogs
+  static const String loginAction = '登录';
+  static const String dialogHint = '提示';
+  static const String confirmLogout = '确认退出登录？';
+  static const String logout = '退出登录';
+  static const String a11yUserAccount = '用户账户';
+
+  // Audio format order dialog
+  static const String audioFormatHint = '拖拽调整优先级，排在前面的格式优先播放';
+  static const String reset = '重置';
+  static const String save = '保存';
+
+  // Filter panel — order fields & direction
+  static const String filterOrderCreateDate = '收录时间';
+  static const String filterOrderRelease = '发售日期';
+  static const String filterOrderSales = '销量';
+  static const String filterOrderPrice = '价格';
+  static const String filterOrderRating = '评价';
+  static const String filterOrderReview = '评论数量';
+  static const String filterOrderRj = 'RJ号';
+  static const String filterOrderMyRating = '我的评价';
+  static const String filterOrderAllAges = '全年龄';
+  static const String filterOrderRandom = '随机';
+  static const String filterOrderDefault = '排序';
+  static const String hasSubtitle = '有字幕';
+  static const String sortDescending = '降序';
+  static const String sortAscending = '升序';
+
+  // Work action buttons
+  static const String actionFavorite = '收藏';
+  static const String actionMark = '标记';
+  static const String actionRate = '评分';
+  static const String actionChecking = '检查中';
+  static const String actionNoRecommend = '暂无推荐';
+
+  // Detail / files
+  static const String fileList = '文件列表';
+  static const String downloadToLocalTooltip = '下载到本地（离线播放）';
+  static const String gridEmpty = '暂无内容';
+  static const String noWorks = '暂无作品';
+
+  // Playlist
+  static const String addToPlaylist = '添加到收藏夹';
+  static const String playlistEmpty = '暂无收藏夹';
+  static const String playlistMarked = '我标记的';
+  static const String playlistLiked = '我喜欢的';
+  static String worksCountLabel(int n) => '$n 个作品';
+  static String playlistToggleResult(bool added, String name) =>
+      '${added ? '添加成功' : '移除成功'}: $name';
+
+  // Lyric overlay permission dialog
+  static const String lyricOverlayPermTitle = '开启悬浮歌词';
+  static const String lyricOverlayPermContent = '需要悬浮窗权限来显示歌词，是否授予权限？';
+  static const String dialogConfirm = '确定';
+
+  // Detail SnackBars (interpolated)
+  static String playFailed(Object e) => '播放失败: $e';
+  static String operationFailed(Object e) => '操作失败: $e';
+  static String markedAs(String label) => '已标记为$label';
+  static String markFailed(Object e) => '标记失败: $e';
 
   // Detail
   static const String detail = '音乐详情';
@@ -95,6 +221,11 @@ class Strings {
   static const String audioFormatPreference = '音频格式偏好';
   static const String screenKeepAwake = '屏幕常亮';
   static const String screenKeepAwakeDesc = '播放时保持屏幕开启';
+  static const String sleepTimer = '睡眠定时';
+  static const String sleepTimerOff = '关闭';
+  static String sleepTimerMinutes(int m) => '$m 分钟';
+  static const String backgroundPlay = '后台播放';
+  static const String backgroundPlayDesc = '关闭后切到后台自动暂停播放';
   static const String cacheManager = '缓存管理';
   static const String themeAutoDesc = '自动切换深浅色模式';
 
@@ -102,6 +233,8 @@ class Strings {
   static const String aboutAppName = 'Xuro';
   static const String aboutAppDescription =
       'Xuro 是一个第三方 ASMR.ONE 客户端，支持后台播放、字幕/悬浮歌词、播放列表与缓存。基于 CC BY-NC-SA 协议开源。';
+  static const String versionLabel = '版本';
+  static const String aboutFooter = '© Xuro · 基于 CC BY-NC-SA 4.0 开源';
   static const String versionInfo = '版本信息';
   static const String openSourceLicenses = '开源许可';
   static const String feedback = '问题反馈';

@@ -2,10 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:xuro/common/constants/strings.dart';
+import 'package:xuro/core/theme/app_spacing.dart';
+import 'package:xuro/core/theme/app_text_styles.dart';
 import 'package:xuro/screens/settings/widgets/settings_group.dart';
 import 'package:xuro/screens/settings/widgets/settings_tile.dart';
 import 'package:xuro/screens/settings/widgets/settings_theme.dart';
 import 'package:xuro/presentation/widgets/update/update_dialog.dart';
+import 'package:xuro/widgets/common/app_footer.dart';
+import 'package:xuro/widgets/common/brand_wordmark.dart';
+import 'package:xuro/widgets/common/social_icon_row.dart';
 
 class AboutScreen extends StatefulWidget {
   const AboutScreen({super.key});
@@ -34,25 +39,36 @@ class _AboutScreenState extends State<AboutScreen> {
     }
   }
 
-  Widget _intro(BuildContext context) {
-    final theme = Theme.of(context);
+  // 居中品牌头：标志锁定 + 版本 + 简介（对齐参考图关于页结构）。
+  Widget _header(BuildContext context, String version) {
+    final cs = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.space24,
+        AppSpacing.space24,
+        AppSpacing.space24,
+        AppSpacing.space24,
+      ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(
-            Strings.aboutAppName,
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
+          const BrandWordmark(
+            text: Strings.aboutAppName,
+            iconSize: 36,
+            fontSize: 28,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.space12),
+          Text(
+            '${Strings.versionLabel} v$version',
+            style:
+                AppTextStyles.caption.copyWith(color: cs.onSurfaceVariant),
+          ),
+          const SizedBox(height: AppSpacing.space16),
           Text(
             Strings.aboutAppDescription,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-              height: 1.5,
+            textAlign: TextAlign.center,
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: cs.onSurfaceVariant,
             ),
           ),
         ],
@@ -72,21 +88,16 @@ class _AboutScreenState extends State<AboutScreen> {
         child: FutureBuilder<PackageInfo>(
           future: _packageInfoFuture,
           builder: (context, snapshot) {
-            final version = snapshot.hasData
-                ? '${snapshot.data!.version} (${snapshot.data!.buildNumber})'
-                : '...';
+            final version =
+                snapshot.hasData ? snapshot.data!.version : '...';
             return ListView(
-              padding: const EdgeInsets.symmetric(vertical: 16),
+              padding:
+                  const EdgeInsets.symmetric(vertical: AppSpacing.space16),
               children: [
-                _intro(context),
+                _header(context, version),
                 SettingsGroup(
                   header: Strings.about,
                   children: [
-                    SettingsTile.navigation(
-                      title: Strings.versionInfo,
-                      leading: Icons.info_outline,
-                      value: version,
-                    ),
                     SettingsTile.navigation(
                       title: Strings.checkForUpdates,
                       leading: Icons.system_update_outlined,
@@ -110,23 +121,30 @@ class _AboutScreenState extends State<AboutScreen> {
                       onTap: () => _openUrl(context, Strings.feedbackUrl),
                     ),
                     SettingsTile.navigation(
-                      title: Strings.sourceCode,
-                      leading: Icons.code_outlined,
-                      onTap: () => _openUrl(context, Strings.repoUrl),
-                    ),
-                    SettingsTile.navigation(
                       title: Strings.originalRepo,
                       leading: Icons.account_circle_outlined,
-                      onTap: () => _openUrl(context, Strings.originalRepoUrl),
-                    ),
-                    SettingsTile.navigation(
-                      title: Strings.telegramChannel,
-                      leading: Icons.send_outlined,
                       onTap: () =>
-                          _openUrl(context, Strings.telegramChannelUrl),
+                          _openUrl(context, Strings.originalRepoUrl),
                     ),
                   ],
                 ),
+                const SizedBox(height: AppSpacing.space24),
+                SocialIconRow(
+                  actions: [
+                    SocialAction(
+                      icon: Icons.send_outlined,
+                      semanticLabel: Strings.telegramChannel,
+                      onTap: () =>
+                          _openUrl(context, Strings.telegramChannelUrl),
+                    ),
+                    SocialAction(
+                      icon: Icons.code,
+                      semanticLabel: Strings.sourceCode,
+                      onTap: () => _openUrl(context, Strings.repoUrl),
+                    ),
+                  ],
+                ),
+                const AppFooter(text: Strings.aboutFooter),
               ],
             );
           },

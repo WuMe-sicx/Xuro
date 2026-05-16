@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:xuro/common/constants/strings.dart';
 import 'package:xuro/presentation/viewmodels/circles_viewmodel.dart';
 import 'package:xuro/screens/browse/widgets/browse_search_bar.dart';
 import 'package:xuro/screens/browse/widgets/browse_grid_item.dart';
@@ -12,13 +13,13 @@ class CirclesScreen extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) => CirclesViewModel(),
       child: Scaffold(
-        appBar: AppBar(title: const Text('全部社团')),
+        appBar: AppBar(title: const Text(Strings.browseAllCircles)),
         body: Consumer<CirclesViewModel>(
           builder: (context, viewModel, _) {
             return Column(
               children: [
                 BrowseSearchBar(
-                  hintText: '搜索社团...',
+                  hintText: Strings.browseSearchCirclesHint,
                   onChanged: viewModel.search,
                 ),
                 Expanded(
@@ -41,18 +42,19 @@ class CirclesScreen extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('加载失败', style: Theme.of(context).textTheme.bodyLarge),
+            Text(Strings.loadFailed,
+                style: Theme.of(context).textTheme.bodyLarge),
             const SizedBox(height: 8),
             ElevatedButton(
               onPressed: viewModel.refresh,
-              child: const Text('重试'),
+              child: const Text(Strings.retry),
             ),
           ],
         ),
       );
     }
     if (viewModel.circles.isEmpty) {
-      return const Center(child: Text('暂无社团'));
+      return const Center(child: Text(Strings.browseEmptyCircles));
     }
     return RefreshIndicator(
       onRefresh: viewModel.refresh,

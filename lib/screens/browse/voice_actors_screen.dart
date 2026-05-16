@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:xuro/common/constants/strings.dart';
 import 'package:xuro/presentation/viewmodels/voice_actors_viewmodel.dart';
 import 'package:xuro/screens/browse/widgets/browse_search_bar.dart';
 import 'package:xuro/screens/browse/widgets/browse_grid_item.dart';
@@ -12,13 +13,13 @@ class VoiceActorsScreen extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) => VoiceActorsViewModel(),
       child: Scaffold(
-        appBar: AppBar(title: const Text('全部声优')),
+        appBar: AppBar(title: const Text(Strings.browseAllVoiceActors)),
         body: Consumer<VoiceActorsViewModel>(
           builder: (context, viewModel, _) {
             return Column(
               children: [
                 BrowseSearchBar(
-                  hintText: '搜索声优...',
+                  hintText: Strings.browseSearchVoiceActorsHint,
                   onChanged: viewModel.search,
                 ),
                 Expanded(
@@ -41,18 +42,19 @@ class VoiceActorsScreen extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('加载失败', style: Theme.of(context).textTheme.bodyLarge),
+            Text(Strings.loadFailed,
+                style: Theme.of(context).textTheme.bodyLarge),
             const SizedBox(height: 8),
             ElevatedButton(
               onPressed: viewModel.refresh,
-              child: const Text('重试'),
+              child: const Text(Strings.retry),
             ),
           ],
         ),
       );
     }
     if (viewModel.voiceActors.isEmpty) {
-      return const Center(child: Text('暂无声优'));
+      return const Center(child: Text(Strings.browseEmptyVoiceActors));
     }
     return RefreshIndicator(
       onRefresh: viewModel.refresh,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+import 'package:xuro/common/constants/strings.dart';
 import 'package:xuro/presentation/viewmodels/player_viewmodel.dart';
 
 class PlayerControls extends StatelessWidget {
@@ -30,13 +31,13 @@ class PlayerControls extends StatelessWidget {
             IconButton(
               iconSize: 28,
               icon: const Icon(Icons.replay_10),
-              tooltip: '快退 10 秒',
+              tooltip: Strings.playerSeekBack10,
               onPressed: () => _seekBy(viewModel, -_seekStep),
             ),
             IconButton(
               iconSize: 32,
               icon: const Icon(Icons.skip_previous),
-              tooltip: '上一曲',
+              tooltip: Strings.playerPrevTrack,
               onPressed: viewModel.previous,
             ),
             Container(
@@ -58,13 +59,13 @@ class PlayerControls extends StatelessWidget {
             IconButton(
               iconSize: 32,
               icon: const Icon(Icons.skip_next),
-              tooltip: '下一曲',
+              tooltip: Strings.playerNextTrack,
               onPressed: viewModel.next,
             ),
             IconButton(
               iconSize: 28,
               icon: const Icon(Icons.forward_10),
-              tooltip: '快进 10 秒',
+              tooltip: Strings.playerSeekForward10,
               onPressed: () => _seekBy(viewModel, _seekStep),
             ),
           ],

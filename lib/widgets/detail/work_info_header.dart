@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:xuro/common/constants/strings.dart';
 import 'package:xuro/data/models/works/work.dart';
 import 'package:xuro/data/models/works/work_info.dart';
 import 'package:xuro/widgets/common/tag_chip.dart';
@@ -46,15 +47,15 @@ class WorkInfoHeader extends StatelessWidget {
             if (work.circle?.name != null)
               TagChip(
                 text: work.circle?.name ?? '',
-                backgroundColor: Colors.orange.withOpacity(0.2),
+                backgroundColor: Colors.orange.withValues(alpha: 0.2),
                 textColor: Colors.orange[700],
                 onTap: () => _onTagTap(context, work.circle?.name ?? ''),
               ),
             ..._buildVaChips(context),
             if (work.hasSubtitle == true)
               TagChip(
-                text: '字幕',
-                backgroundColor: Colors.blue.withOpacity(0.2),
+                text: Strings.subtitleChip,
+                backgroundColor: Colors.blue.withValues(alpha: 0.2),
                 textColor: Colors.blue[700],
               ),
           ],
@@ -95,7 +96,7 @@ class WorkInfoHeader extends StatelessWidget {
       return workInfo!.vas!.map(
         (va) => TagChip(
           text: va.name ?? '',
-          backgroundColor: Colors.green.withOpacity(0.2),
+          backgroundColor: Colors.green.withValues(alpha: 0.2),
           textColor: Colors.green[700],
           onTap: () => _onTagTap(context, va.name ?? ''),
         ),
@@ -104,7 +105,7 @@ class WorkInfoHeader extends StatelessWidget {
     return work.vas?.map(
       (va) => TagChip(
         text: va['name'] ?? '',
-        backgroundColor: Colors.green.withOpacity(0.2),
+        backgroundColor: Colors.green.withValues(alpha: 0.2),
         textColor: Colors.green[700],
         onTap: () => _onTagTap(context, va['name'] ?? ''),
       ),

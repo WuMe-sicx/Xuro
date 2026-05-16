@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:marquee/marquee.dart';
+import 'package:xuro/common/constants/strings.dart';
 import 'package:xuro/core/audio/models/playback_context.dart';
 
 class PlayerWorkInfo extends StatelessWidget {
@@ -21,7 +22,7 @@ class PlayerWorkInfo extends StatelessWidget {
           SizedBox(
             height: Theme.of(context).textTheme.titleMedium!.fontSize! * 1.5,
             child: Marquee(
-              text: this.context?.work.title ?? '未知作品',
+              text: this.context?.work.title ?? Strings.unknownWork,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -42,10 +43,10 @@ class PlayerWorkInfo extends StatelessWidget {
             this.context?.work.vas
                     ?.map((va) => va['name'] as String?)
                     .where((name) => name != null)
-                    .join('、') ?? 
-                '未知演员',
+                    .join('、') ??
+                Strings.unknownArtist,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

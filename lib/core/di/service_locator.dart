@@ -24,6 +24,8 @@ import '../../core/platform/i_lyric_overlay_controller.dart';
 import '../../core/platform/lyric_overlay_controller.dart';
 import '../../core/platform/lyric_overlay_manager.dart';
 import '../../core/platform/wakelock_controller.dart';
+import '../../core/platform/sleep_timer_controller.dart';
+import '../../core/platform/background_play_controller.dart';
 import 'package:xuro/core/settings/app_settings_service.dart';
 import 'package:xuro/core/database/database_service.dart';
 import 'package:xuro/core/subtitle/storage/i_user_subtitle_repository.dart';
@@ -145,6 +147,19 @@ Future<void> setupServiceLocator() async {
 
   // 注册 WakeLockController
   getIt.registerLazySingleton(() => WakeLockController(prefs));
+
+  // 注册 SleepTimerController（会话级；到点 pause()，不持久化）
+  getIt.registerLazySingleton(
+    () => SleepTimerController(getIt<IAudioPlayerService>()),
+  );
+
+  // 注册 BackgroundPlayController（后台播放开关执行端，main 中 initialize）
+  getIt.registerLazySingleton(
+    () => BackgroundPlayController(
+      settings: getIt<AppSettingsService>(),
+      audioService: getIt<IAudioPlayerService>(),
+    ),
+  );
 }
 
 void setupSubtitleServices() {

@@ -35,7 +35,7 @@ class WorkFilesList extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    '文件列表',
+                    Strings.fileList,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
