@@ -36,8 +36,8 @@
 - [x] **Step 3** ✅ 2026-05-16：`media_download_dialog`/`batch_download_dialog` `_start()` 包 try/catch，异常分别 `pop(DownloadResult.ioError)` / `pop(BatchDownloadOutcome(failed:audioCount))`。
 - [x] **Step 4** ✅ 2026-05-16：`local-media-download-and-video.md` 填标记移 done；`startup-loading-performance.md` 保持 active + 注明设备采数待办（不臆造）。
 - [x] **Step 5** ✅ 2026-05-16：`flutter analyze`（3 文件 No issues）+ 全量 `flutter test` **103/103 零回归**。
-- [ ] **Step 6** Codex 重审（同 SESSION_ID）→ ✅ PASS。
-- [ ] **Step 7** 提交 + push；Codex ✅ 后合并 PR #4。
+- [x] **Step 6** ✅ 2026-05-16：Codex 复审（SESSION_ID `019e2dfd-621a-7652-a5a0-eb75b483bbd8`）→ **✅ PASS**（HIGH 消解、原子写/回滚未破、对话框兜底正确、两 MEDIUM 流程可接受、无剩余阻断）。
+- [x] **Step 7** ✅ 2026-05-16：fix commit `a8ca248` 推送；PR #4 合并入 `main`（merge commit `5d28a5f`，state MERGED）。
 
 ## 5. 风险与回滚（Risks）
 
@@ -55,10 +55,10 @@
 
 ## ✅ 完成标记
 
-- 完成时间：YYYY-MM-DD HH:mm
-- 执行命令：`/init`
-- CLAUDE.md 更新摘要：<一两句话>
-- 关联 commit：<commit hash>
+- 完成时间：2026-05-16 18:36
+- 执行命令：`/init`（CLAUDE.md download 段已加：整个 `download()`（含前置 dedup/路径解析/tmp-bak）在单一 try、nullable 前置 + catch null 守卫 → 前置失败收敛 ioError；两对话框 await 兜底，不再卡死 PopScope 进度表）
+- CLAUDE.md 更新摘要：download 子系统原子写段补充「前置 IO/DB 失败错误边界 + 对话框兜底」不变量。
+- 关联 commit：`a8ca248`（修复）；PR #4 merge `5d28a5f`；本文档 finalize 为后续 doc-only 提交
 
 ---
 
