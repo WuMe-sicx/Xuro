@@ -1,3 +1,4 @@
+import 'package:xuro/common/constants/strings.dart';
 import 'package:xuro/data/models/playlists_with_exist_statu/pagination.dart';
 import 'package:xuro/data/models/playlists_with_exist_statu/playlist.dart';
 import 'package:get_it/get_it.dart';
@@ -436,7 +437,7 @@ class DetailViewModel extends ChangeNotifier {
             } catch (e) {
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('操作失败: $e')),
+                  SnackBar(content: Text(Strings.operationFailed(e))),
                 );
               }
             }
@@ -513,7 +514,7 @@ class DetailViewModel extends ChangeNotifier {
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('已标记为${status.label}'),
+                  content: Text(Strings.markedAs(status.label)),
                   duration: const Duration(seconds: 2),
                   behavior: SnackBarBehavior.floating,
                 ),
@@ -522,7 +523,7 @@ class DetailViewModel extends ChangeNotifier {
           } catch (e) {
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('标记失败: $e')),
+                SnackBar(content: Text(Strings.markFailed(e))),
               );
             }
           }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:xuro/common/constants/strings.dart';
 import 'package:xuro/core/audio/cache/audio_cache_manager.dart';
 import 'package:xuro/core/cache/cache_lifecycle_manager.dart';
+import 'package:xuro/core/platform/background_play_controller.dart';
 import 'package:xuro/core/settings/app_settings_service.dart';
 import 'package:xuro/presentation/viewmodels/auth_viewmodel.dart';
 import 'core/di/service_locator.dart';
@@ -33,6 +34,9 @@ void main() async {
   // 清理推到更靠后的帧（addPostFrameCallback 本身不主动请求下一帧）。
   CacheLifecycleManager().initialize();
   AudioCacheManager.cleanLegacyCache();
+
+  // 后台播放开关执行端：注册生命周期观察者（默认开启＝行为不变）。
+  getIt<BackgroundPlayController>().initialize();
 
   // 悬浮歌词管理器初始化会做平台通道往返，推迟到首帧绘制之后，避免拖慢首个可交互帧。
   WidgetsBinding.instance.addPostFrameCallback((_) {

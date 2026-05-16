@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:xuro/common/constants/strings.dart';
 import 'package:xuro/core/platform/i_lyric_overlay_controller.dart';
 import 'package:xuro/core/settings/app_settings_service.dart';
 import 'package:xuro/core/subtitle/i_subtitle_service.dart';
@@ -113,16 +114,16 @@ class LyricOverlayManager {
     return await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('开启悬浮歌词'),
-        content: const Text('需要悬浮窗权限来显示歌词，是否授予权限？'),
+        title: const Text(Strings.lyricOverlayPermTitle),
+        content: const Text(Strings.lyricOverlayPermContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
+            child: const Text(Strings.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('确定'),
+            child: const Text(Strings.dialogConfirm),
           ),
         ],
       ),

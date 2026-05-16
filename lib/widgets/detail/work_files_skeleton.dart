@@ -4,7 +4,7 @@ import 'package:xuro/widgets/common/skeleton_pulse.dart';
 class WorkFilesSkeleton extends StatelessWidget {
   const WorkFilesSkeleton({super.key});
 
-  Widget _buildShimmerItem(BuildContext context) {
+  Widget _buildSkeletonItem(BuildContext context) {
     final skeletonColor = Theme.of(context).colorScheme.surfaceContainerHighest;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -76,7 +76,7 @@ class WorkFilesSkeleton extends StatelessWidget {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: 6,
-              itemBuilder: (context, index) => _buildShimmerItem(context),
+              itemBuilder: (context, index) => _buildSkeletonItem(context),
             ),
           ],
         ),

@@ -16,6 +16,7 @@ class AppSettingsService extends ChangeNotifier {
   static const String _audioFormatOrderKey = 'audio_format_order';
   static const String _colorVariantKey = 'color_variant';
   static const String _lyricOverlayUnlockedKey = 'lyric_overlay_unlocked';
+  static const String _backgroundPlayKey = 'background_play_enabled';
   // 跨多个列表 ViewModel 共享的「仅看带字幕作品」筛选。收敛到此单点，
   // 取代各 VM 自行 SharedPreferences.getInstance() + dispose 回写陈旧值。
   static const String _subtitleFilterKey = 'subtitle_filter';
@@ -41,6 +42,7 @@ class AppSettingsService extends ChangeNotifier {
   late List<String> _audioFormatOrder;
   late ColorVariant _colorVariant;
   late bool _lyricOverlayUnlocked;
+  late bool _backgroundPlayEnabled;
   late bool _hasSubtitleFilter;
 
   AppSettingsService(this._prefs) {
@@ -54,6 +56,7 @@ class AppSettingsService extends ChangeNotifier {
       orElse: () => defaultColorVariant,
     );
     _lyricOverlayUnlocked = _prefs.getBool(_lyricOverlayUnlockedKey) ?? false;
+    _backgroundPlayEnabled = _prefs.getBool(_backgroundPlayKey) ?? true;
     _hasSubtitleFilter = _prefs.getBool(_subtitleFilterKey) ?? false;
   }
 
@@ -113,6 +116,17 @@ class AppSettingsService extends ChangeNotifier {
     _lyricOverlayUnlocked = unlocked;
     notifyListeners();
     await _prefs.setBool(_lyricOverlayUnlockedKey, unlocked);
+  }
+
+  // === Background Play ===
+  /// `true`（默认）→ 切后台继续播放（现有行为）；`false` → 切后台自动暂停。
+  bool get backgroundPlayEnabled => _backgroundPlayEnabled;
+
+  Future<void> setBackgroundPlayEnabled(bool enabled) async {
+    if (_backgroundPlayEnabled == enabled) return;
+    _backgroundPlayEnabled = enabled;
+    notifyListeners();
+    await _prefs.setBool(_backgroundPlayKey, enabled);
   }
 
   // === Color Variant ===

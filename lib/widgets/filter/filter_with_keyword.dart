@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:xuro/common/constants/strings.dart';
 
 class FilterWithKeyword extends StatelessWidget {
   final bool hasSubtitle;
@@ -32,7 +33,7 @@ class FilterWithKeyword extends StatelessWidget {
             Container(
               decoration: BoxDecoration(
                 border: Border.all(
-                  color: Theme.of(context).colorScheme.outline.withOpacity(0.5),
+                  color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5),
                 ),
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -57,7 +58,7 @@ class FilterWithKeyword extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          '有字幕',
+                          Strings.hasSubtitle,
                           style: TextStyle(
                             color: hasSubtitle 
                                 ? colorScheme.primary 

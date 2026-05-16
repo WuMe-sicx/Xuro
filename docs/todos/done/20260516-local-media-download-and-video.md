@@ -87,10 +87,10 @@
 
 > 全部步骤勾选完毕后填写此块，并实际执行 `/init` 刷新根目录 `CLAUDE.md`，然后把本文件移入 `docs/todos/done/`。
 
-- 完成时间：YYYY-MM-DD HH:mm
-- 执行命令：`/init`
-- CLAUDE.md 更新摘要：<一两句话>
-- 关联 commit：<commit hash>
+- 完成时间：2026-05-16 18:36
+- 执行命令：`/init`（CLAUDE.md 已含完整 download 子系统不变量段，本会话 /init 已刷新）
+- CLAUDE.md 更新摘要：`lib/core/download/*` 下载子系统（外部目录 / fileKey 隔离 / 原子写 / 容量 LRU / 扩展名优先分类 / 批量字幕配对 / 字幕预览）已成段记录于根 CLAUDE.md。
+- 关联 commit：实现随 `244c3ff`/`8f226e4`/`b745b6f`/`cf510dd`/`258c7db` 合入分支；前置错误边界修复见后续 TODO `20260516-download-preflight-error-boundary.md`
 
 ---
 

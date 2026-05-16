@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:xuro/core/theme/app_radius.dart';
+import 'package:xuro/core/theme/app_spacing.dart';
+import 'package:xuro/core/theme/app_text_styles.dart';
 
 class SettingsGroup extends StatelessWidget {
   final String? header;
@@ -6,12 +9,16 @@ class SettingsGroup extends StatelessWidget {
   final List<Widget> children;
   final EdgeInsetsGeometry margin;
 
+  // 分割线起点 = 左内边距(16) + leading 槽(40) + 文字间距(12)，对齐标题文字。
+  static const double _dividerIndent = 68;
+
   const SettingsGroup({
     super.key,
     this.header,
     this.footer,
     required this.children,
-    this.margin = const EdgeInsets.symmetric(horizontal: 16),
+    this.margin =
+        const EdgeInsets.symmetric(horizontal: AppSpacing.space16),
   });
 
   @override
@@ -25,20 +32,22 @@ class SettingsGroup extends StatelessWidget {
         children: [
           if (header != null)
             Padding(
-              padding: const EdgeInsets.only(left: 16, bottom: 8),
+              padding: const EdgeInsets.only(
+                left: AppSpacing.space16,
+                bottom: AppSpacing.space8,
+              ),
               child: Text(
                 header!,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: colorScheme.primary,
-                    ),
+                style: AppTextStyles.labelMedium
+                    .copyWith(color: colorScheme.primary),
               ),
             ),
           ClipRRect(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: AppRadius.mdAll,
             child: Container(
               decoration: BoxDecoration(
                 color: colorScheme.surface,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: AppRadius.mdAll,
               ),
               child: Column(
                 children: _buildChildrenWithSeparators(context),
@@ -47,7 +56,10 @@ class SettingsGroup extends StatelessWidget {
           ),
           if (footer != null)
             Padding(
-              padding: const EdgeInsets.only(left: 16, top: 8),
+              padding: const EdgeInsets.only(
+                left: AppSpacing.space16,
+                top: AppSpacing.space8,
+              ),
               child: Text(
                 footer!,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -69,7 +81,7 @@ class SettingsGroup extends StatelessWidget {
         list.add(Divider(
           height: 0.5,
           thickness: 0.5,
-          indent: 60,
+          indent: _dividerIndent,
           color: Theme.of(context).colorScheme.outlineVariant,
         ));
       }

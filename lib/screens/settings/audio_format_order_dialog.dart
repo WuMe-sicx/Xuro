@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:xuro/common/constants/strings.dart';
 import 'package:xuro/core/settings/app_settings_service.dart';
 
 class AudioFormatOrderDialog extends StatefulWidget {
@@ -22,7 +23,7 @@ class _AudioFormatOrderDialogState extends State<AudioFormatOrderDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('音频格式偏好'),
+      title: const Text(Strings.audioFormatPreference),
       content: SizedBox(
         width: double.maxFinite,
         height: 300,
@@ -30,7 +31,7 @@ class _AudioFormatOrderDialogState extends State<AudioFormatOrderDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '拖拽调整优先级，排在前面的格式优先播放',
+              Strings.audioFormatHint,
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: 8),
@@ -70,18 +71,18 @@ class _AudioFormatOrderDialogState extends State<AudioFormatOrderDialog> {
               _formats = List.from(AppSettingsService.defaultAudioFormatOrder);
             });
           },
-          child: const Text('重置'),
+          child: const Text(Strings.reset),
         ),
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('取消'),
+          child: const Text(Strings.cancel),
         ),
         FilledButton(
           onPressed: () {
             widget.settings.setAudioFormatOrder(_formats);
             Navigator.pop(context);
           },
-          child: const Text('保存'),
+          child: const Text(Strings.save),
         ),
       ],
     );

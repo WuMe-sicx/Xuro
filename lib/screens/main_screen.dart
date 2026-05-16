@@ -13,6 +13,7 @@ import 'package:xuro/presentation/viewmodels/popular_viewmodel.dart';
 import 'package:xuro/presentation/viewmodels/recommend_viewmodel.dart';
 import 'package:xuro/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:xuro/presentation/viewmodels/favorites_viewmodel.dart';
+import 'package:xuro/common/constants/strings.dart';
 
 /// MainScreen 是应用的主界面，负责管理底部导航栏和对应的内容页面。
 /// 它采用了集中式的状态管理架构，所有子页面的 ViewModel 都在这里初始化和提供。
@@ -39,7 +40,12 @@ class _MainScreenState extends State<MainScreen> {
   late final RecommendViewModel _recommendViewModel;
   late final FavoritesViewModel _favoritesViewModel;
 
-  final _titles = const ['收藏', '主页', '为你推荐', '热门作品'];
+  final _titles = const [
+    Strings.tabFavorites,
+    Strings.home,
+    Strings.homeTitleRecommend,
+    Strings.homeTitlePopular,
+  ];
 
   // 页面内容列表
   // 注意：这些页面不应该创建自己的 ViewModel 实例
@@ -171,22 +177,22 @@ class _MainScreenState extends State<MainScreen> {
                     NavigationDestination(
                       icon: Icon(Icons.favorite_outline),
                       selectedIcon: Icon(Icons.favorite),
-                      label: '收藏',
+                      label: Strings.tabFavorites,
                     ),
                     NavigationDestination(
                       icon: Icon(Icons.home_outlined),
                       selectedIcon: Icon(Icons.home),
-                      label: '主页',
+                      label: Strings.home,
                     ),
                     NavigationDestination(
                       icon: Icon(Icons.recommend_outlined),
                       selectedIcon: Icon(Icons.recommend),
-                      label: '推荐',
+                      label: Strings.navRecommend,
                     ),
                     NavigationDestination(
                       icon: Icon(Icons.trending_up_outlined),
                       selectedIcon: Icon(Icons.trending_up),
-                      label: '热门',
+                      label: Strings.navPopular,
                     ),
                   ],
                 ),

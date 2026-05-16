@@ -3,13 +3,16 @@ import 'package:xuro/core/theme/app_animations.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:xuro/presentation/viewmodels/player_viewmodel.dart';
+import 'package:xuro/core/theme/app_spacing.dart';
 import 'package:xuro/widgets/player/player_controls.dart';
-import 'package:xuro/widgets/player/player_progress.dart';
-import 'package:xuro/widgets/player/player_cover.dart';
+import 'package:xuro/widgets/player/waveform_progress.dart';
+import 'package:xuro/widgets/player/circular_cover.dart';
 import 'package:xuro/screens/detail_screen.dart';
 import 'package:xuro/widgets/lyrics/components/player_lyric_view.dart';
 import 'package:xuro/widgets/player/player_work_info.dart';
 import 'package:xuro/core/platform/wakelock_controller.dart';
+import 'package:xuro/core/platform/sleep_timer_controller.dart';
+import 'package:xuro/screens/settings/sleep_timer_dialog.dart';
 import 'package:xuro/common/constants/strings.dart';
 import 'package:xuro/core/subtitle/subtitle_import_service.dart';
 
@@ -76,7 +79,7 @@ class _LyricOverlayActionState extends State<_LyricOverlayAction> {
         onTap: _onTap,
         onLongPress: _onLongPress,
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(AppSpacing.space12),
           child: Icon(
             manager.isShowing ? Icons.lyrics : Icons.lyrics_outlined,
             color: iconColor,
@@ -152,19 +155,21 @@ class _PlayerScreenState extends State<PlayerScreen> {
                   key: const ValueKey('cover'),
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const SizedBox(height: 32),
+                    const SizedBox(height: AppSpacing.space32),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 32),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.space32),
                       child: Hero(
                         tag: 'mini-player-cover',
-                        child: PlayerCover(
+                        child: CircularCover(
                           coverUrl: _viewModel.currentTrackInfo?.coverUrl,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: AppSpacing.space32),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 32),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.space32),
                       child: Column(
                         children: [
                           Hero(
@@ -172,7 +177,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
                             child: Material(
                               color: Colors.transparent,
                               child: Text(
-                                _viewModel.currentTrackInfo?.title ?? '未在播放',
+                                _viewModel.currentTrackInfo?.title ??
+                                    Strings.notPlaying,
                                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -180,15 +186,14 @@ class _PlayerScreenState extends State<PlayerScreen> {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: AppSpacing.space8),
                           if (_viewModel.currentTrackInfo?.artist != null)
                             Text(
                               _viewModel.currentTrackInfo!.artist,
                               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                                     color: Theme.of(context)
                                         .colorScheme
-                                        .onSurface
-                                        .withOpacity(0.7),
+                                        .onSurfaceVariant,
                                   ),
                               textAlign: TextAlign.center,
                             ),
@@ -208,6 +213,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
   Widget build(BuildContext context) {
     final lyricManager = GetIt.I<LyricOverlayManager>();
     final wakeLockController = GetIt.I<WakeLockController>();
+    final sleepTimer = GetIt.I<SleepTimerController>();
 
     return Scaffold(
       appBar: AppBar(
@@ -218,6 +224,26 @@ class _PlayerScreenState extends State<PlayerScreen> {
           },
         ),
         actions: [
+          ListenableBuilder(
+            listenable: sleepTimer,
+            builder: (context, _) {
+              return IconButton(
+                icon: Icon(
+                  sleepTimer.isActive
+                      ? Icons.bedtime
+                      : Icons.bedtime_outlined,
+                  color: sleepTimer.isActive
+                      ? Theme.of(context).colorScheme.primary
+                      : null,
+                ),
+                tooltip: Strings.sleepTimer,
+                onPressed: () => showDialog(
+                  context: context,
+                  builder: (_) => SleepTimerDialog(controller: sleepTimer),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.info_outline),
             onPressed: () {
@@ -294,7 +320,9 @@ class _PlayerScreenState extends State<PlayerScreen> {
                     ? Icons.lightbulb
                     : Icons.lightbulb_outline,
                 ),
-                tooltip: wakeLockController.enabled ? '关闭屏幕常亮' : '开启屏幕常亮',
+                tooltip: wakeLockController.enabled
+                    ? Strings.screenAwakeOff
+                    : Strings.screenAwakeOn,
                 onPressed: () => wakeLockController.toggle(),
               );
             },
@@ -320,11 +348,12 @@ class _PlayerScreenState extends State<PlayerScreen> {
               ),
             ),
             Container(
-              padding: const EdgeInsets.fromLTRB(12, 0, 12, 32),
+              padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.space12, 0, AppSpacing.space12, AppSpacing.space32),
               child: const Column(
                 children: [
-                  PlayerProgress(),
-                  SizedBox(height: 8),
+                  WaveformProgress(),
+                  SizedBox(height: AppSpacing.space8),
                   PlayerControls(),
                 ],
               ),

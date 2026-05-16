@@ -208,7 +208,7 @@ class DetailScreen extends StatelessWidget {
                           } catch (e) {
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('播放失败: $e')),
+                                SnackBar(content: Text(Strings.playFailed(e))),
                               );
                             }
                           }

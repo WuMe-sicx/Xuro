@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:xuro/core/theme/app_animations.dart';
+import 'package:xuro/common/constants/strings.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
@@ -110,7 +111,7 @@ class _PlayerLyricViewState extends State<PlayerLyricView> {
 
         if (subtitleList == null || subtitleList.subtitles.isEmpty) {
           return const Center(
-            child: Text('无歌词'),
+            child: Text(Strings.noLyrics),
           );
         }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:xuro/common/constants/strings.dart';
 import 'package:xuro/data/models/files/child.dart';
 import 'package:xuro/utils/logger.dart';
 import 'package:xuro/utils/file_size_formatter.dart';
@@ -81,7 +82,7 @@ class WorkFileItem extends StatelessWidget {
         trailing: isAudio && onFileDownload != null
             ? IconButton(
                 icon: const Icon(Icons.download_outlined, size: 20),
-                tooltip: '下载到本地（离线播放）',
+                tooltip: Strings.downloadToLocalTooltip,
                 onPressed: () => onFileDownload!.call(file),
               )
             : isVideo

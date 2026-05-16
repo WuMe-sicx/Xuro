@@ -1,4 +1,5 @@
 import 'package:xuro/core/theme/app_animations.dart';
+import 'package:xuro/common/constants/strings.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:xuro/widgets/sidebar/sidebar_menu.dart';
@@ -69,7 +70,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       value: _viewModel,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('我的收藏'),
+          title: const Text(Strings.favorites),
         ),
         drawer: const SidebarMenu(),
         body: Consumer<FavoritesViewModel>(

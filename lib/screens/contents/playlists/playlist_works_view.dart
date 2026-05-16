@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:xuro/common/constants/strings.dart';
 import 'package:xuro/data/models/my_lists/my_playlists/playlist.dart';
 import 'package:xuro/presentation/viewmodels/playlist_works_viewmodel.dart';
 import 'package:xuro/presentation/viewmodels/playlists_viewmodel.dart';
@@ -59,7 +60,7 @@ class PlaylistWorksView extends StatelessWidget {
                   totalPages: viewModel.totalPages,
                   onPageChanged: (page) => viewModel.loadWorks(page: page),
                   layoutStrategy: _layoutStrategy,
-                  emptyMessage: '暂无作品',
+                  emptyMessage: Strings.noWorks,
                 ),
               ),
             ],

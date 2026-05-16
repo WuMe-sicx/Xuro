@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:xuro/common/constants/strings.dart';
 
 class FilterPanel extends StatelessWidget {
   final bool expanded;
@@ -23,27 +24,27 @@ class FilterPanel extends StatelessWidget {
   String _getOrderFieldText(String field) {
     switch (field) {
       case 'create_date':
-        return '收录时间';
+        return Strings.filterOrderCreateDate;
       case 'release':
-        return '发售日期';
+        return Strings.filterOrderRelease;
       case 'dl_count':
-        return '销量';
+        return Strings.filterOrderSales;
       case 'price':
-        return '价格';
+        return Strings.filterOrderPrice;
       case 'rate_average_2dp':
-        return '评价';
+        return Strings.filterOrderRating;
       case 'review_count':
-        return '评论数量';
+        return Strings.filterOrderReview;
       case 'id':
-        return 'RJ号';
+        return Strings.filterOrderRj;
       case 'rating':
-        return '我的评价';
+        return Strings.filterOrderMyRating;
       case 'nsfw':
-        return '全年龄';
+        return Strings.filterOrderAllAges;
       case 'random':
-        return '随机';
+        return Strings.filterOrderRandom;
       default:
-        return '排序';
+        return Strings.filterOrderDefault;
     }
   }
 
@@ -58,7 +59,7 @@ class FilterPanel extends StatelessWidget {
             Container(
               decoration: BoxDecoration(
                 border: Border.all(
-                  color: Theme.of(context).colorScheme.outline.withOpacity(0.5),
+                  color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5),
                 ),
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -81,7 +82,7 @@ class FilterPanel extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          '有字幕',
+                          Strings.hasSubtitle,
                           style: TextStyle(
                             color: hasSubtitle 
                                 ? Theme.of(context).colorScheme.primary 
@@ -99,7 +100,7 @@ class FilterPanel extends StatelessWidget {
             Container(
               decoration: BoxDecoration(
                 border: Border.all(
-                  color: Theme.of(context).colorScheme.outline.withOpacity(0.5),
+                  color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5),
                 ),
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -116,16 +117,19 @@ class FilterPanel extends StatelessWidget {
                   ),
                 ),
                 itemBuilder: (context) => [
-                  _buildOrderMenuItem('收录时间', 'create_date'),
-                  _buildOrderMenuItem('发售日期', 'release'),
-                  _buildOrderMenuItem('销量', 'dl_count'),
-                  _buildOrderMenuItem('价格', 'price'),
-                  _buildOrderMenuItem('评价', 'rate_average_2dp'),
-                  _buildOrderMenuItem('评论数量', 'review_count'),
-                  _buildOrderMenuItem('RJ号', 'id'),
-                  _buildOrderMenuItem('我的评价', 'rating'),
-                  _buildOrderMenuItem('全年龄', 'nsfw'),
-                  _buildOrderMenuItem('随机', 'random'),
+                  _buildOrderMenuItem(
+                      Strings.filterOrderCreateDate, 'create_date'),
+                  _buildOrderMenuItem(Strings.filterOrderRelease, 'release'),
+                  _buildOrderMenuItem(Strings.filterOrderSales, 'dl_count'),
+                  _buildOrderMenuItem(Strings.filterOrderPrice, 'price'),
+                  _buildOrderMenuItem(
+                      Strings.filterOrderRating, 'rate_average_2dp'),
+                  _buildOrderMenuItem(
+                      Strings.filterOrderReview, 'review_count'),
+                  _buildOrderMenuItem(Strings.filterOrderRj, 'id'),
+                  _buildOrderMenuItem(Strings.filterOrderMyRating, 'rating'),
+                  _buildOrderMenuItem(Strings.filterOrderAllAges, 'nsfw'),
+                  _buildOrderMenuItem(Strings.filterOrderRandom, 'random'),
                 ],
               ),
             ),
@@ -134,7 +138,7 @@ class FilterPanel extends StatelessWidget {
             Container(
               decoration: BoxDecoration(
                 border: Border.all(
-                  color: Theme.of(context).colorScheme.outline.withOpacity(0.5),
+                  color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5),
                 ),
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -148,7 +152,9 @@ class FilterPanel extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(isDescending ? '降序' : '升序'),
+                        Text(isDescending
+                            ? Strings.sortDescending
+                            : Strings.sortAscending),
                         const SizedBox(width: 4),
                         Icon(
                           isDescending ? Icons.arrow_downward : Icons.arrow_upward,

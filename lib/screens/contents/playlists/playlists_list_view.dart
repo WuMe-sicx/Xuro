@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:xuro/common/constants/strings.dart';
 import 'package:xuro/presentation/viewmodels/playlists_viewmodel.dart';
 import 'package:xuro/data/models/my_lists/my_playlists/playlist.dart';
 import 'package:xuro/widgets/pagination_controls.dart';
@@ -29,7 +30,7 @@ class PlaylistsListView extends StatelessWidget {
                 const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: viewModel.refresh,
-                  child: const Text('重试'),
+                  child: const Text(Strings.retry),
                 ),
               ],
             ),
@@ -48,7 +49,8 @@ class PlaylistsListView extends StatelessWidget {
                     return ListTile(
                       leading: const Icon(Icons.playlist_play),
                       title: Text(viewModel.getDisplayName(playlist.name)),
-                      subtitle: Text('${playlist.worksCount ?? 0} 个作品'),
+                      subtitle:
+                          Text(Strings.worksCountLabel(playlist.worksCount ?? 0)),
                       onTap: () => onPlaylistSelected(playlist),
                     );
                   },

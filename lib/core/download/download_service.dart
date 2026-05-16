@@ -213,20 +213,27 @@ class DownloadService {
 
     final key = fileKey(file);
 
-    // 去重：已完整下载直接复用。
-    final existing = await findCompleted(workId, key);
-    if (existing != null) {
-      return DownloadResult(DownloadStatus.alreadyExists, existing.filePath);
-    }
-
-    final destPath = await _destPath(workId, file);
-    final tmpPath = '$destPath.dl_tmp';
-    final bakPath = '$destPath.dl_bak';
-    final tmpFile = File(tmpPath);
-    final bakFile = File(bakPath);
+    // 前置 IO/DB（去重查询、路径解析、tmp/bak 构造）也纳入同一 try：
+    // DB 打开/迁移失败、path_provider/目录创建失败、File.exists 权限异常
+    // 均收敛为 ioError + 清理，绝不外抛未捕获异步异常。
+    String? destPath;
+    File? tmpFile;
+    File? bakFile;
     var backedUp = false;
 
     try {
+      // 去重：已完整下载直接复用（正常早返回，不进 catch）。
+      final existing = await findCompleted(workId, key);
+      if (existing != null) {
+        return DownloadResult(DownloadStatus.alreadyExists, existing.filePath);
+      }
+
+      destPath = await _destPath(workId, file);
+      final tmpPath = '$destPath.dl_tmp';
+      final bakPath = '$destPath.dl_bak';
+      tmpFile = File(tmpPath);
+      bakFile = File(bakPath);
+
       // 1. 先下载到临时文件——失败时不动既有任何文件。
       await _dio.download(
         url,
@@ -279,12 +286,16 @@ class DownloadService {
       return DownloadResult(DownloadStatus.success, destPath);
     } catch (e) {
       // 清理临时文件并还原用户原文件，失败绝不破坏既有数据。
+      // 前置失败时 tmp/bak/destPath 可能尚未赋值——null 守卫，绝不 NPE。
+      final tf = tmpFile;
+      final bf = bakFile;
+      final dp = destPath;
       try {
-        if (await tmpFile.exists()) await tmpFile.delete();
+        if (tf != null && await tf.exists()) await tf.delete();
       } catch (_) {}
-      if (backedUp) {
+      if (backedUp && bf != null && dp != null) {
         try {
-          await bakFile.rename(destPath);
+          await bf.rename(dp);
         } catch (_) {}
       }
       if (e is DioException && CancelToken.isCancel(e)) {
