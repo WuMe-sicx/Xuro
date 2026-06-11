@@ -50,3 +50,6 @@ app.*.map.json
 
 # FVM Version Cache
 .fvm/
+
+# Claude Code worktrees (local isolated workspaces; never commit)
+.claude/worktrees/

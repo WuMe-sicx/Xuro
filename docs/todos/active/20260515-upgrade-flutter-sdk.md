@@ -2,7 +2,7 @@
 
 - **创建时间**：2026-05-15
 - **负责人**：（待分配）
-- **状态**：active（**未启动**——本任务为「后续根治」占位，先观察方案 A 「禁用 Impeller」效果）
+- **状态**：active（**实施中** —— 2026-06-12 本机改动已完成，待真机冒烟 + CI 验证）
 - **关联**：
   - 前置：[`docs/todos/done/20260515-disable-impeller-android.md`](../done/20260515-disable-impeller-android.md)（已完成的应急止血）
   - 触发动机：Adreno + Vulkan + Impeller 在 HyperOS 3 / Android 16 真机上 `ErrorDeviceLost` 崩溃
@@ -33,22 +33,29 @@
 
 ## 3. 验收标准（Acceptance）
 
-- [ ] `.fvmrc` 指向新版本，`fvm install` 通过。
-- [ ] `fvm flutter pub get` 无 conflict。
-- [ ] `fvm dart run build_runner build --delete-conflicting-outputs` 通过。
-- [ ] `fvm flutter analyze` 通过；新增 warning 必须列出且评估。
-- [ ] `fvm flutter build apk --release` 与 `fvm flutter build ios --no-codesign` 通过。
-- [ ] 真机冒烟：登录 / 注册 / 列表滚动 / 详情 / 播放 / 字幕 / 悬浮歌词 / 缓存清理 全部不回归。
-- [ ] 重新评估是否在 Android 上启用 Impeller（删除 `EnableImpeller=false` meta-data 后跑 30 分钟长会话，验证 `ErrorDeviceLost` 是否仍出现）。
+- [x] `.fvmrc` 指向新版本（3.44.1），`fvm install` 通过。
+- [x] `fvm flutter pub get` 无 conflict（14 个传递依赖自动升级；112 个 outdated 包按既定决策不主动升）。
+- [x] `fvm dart run build_runner build --delete-conflicting-outputs` 通过（238 outputs / 11.1s）。
+- [x] `fvm flutter analyze` 通过；新增 warning 列出 + 评估：
+  - 3 个新 deprecation info：`Radio.groupValue` / `Radio.onChanged`（3.32 弃用，需迁 RadioGroup）、`onReorder`（3.41 弃用），按本 TODO §2 决策**本次不修**，与 33 处 `withOpacity` 一起单独 PR；
+  - 1 个 `LockCachingAudioSource` experimental warning：just_audio 升级后 API 被标 experimental，第三方 API 行为，**不动**；
+  - 5 个 pre-existing warning（unused imports/elements / logger printTime）保持不变，无新增项。
+- [x] `fvm flutter build apk --debug` 通过（assembleDebug 204.9s 含首次 NDK/SDK 安装）。
+- [x] `pod install` 通过（18 pods，确认 iOS 13.0 部署目标在 CocoaPods 层生效）。
+- [ ] `fvm flutter build apk --release` 通过 —— **本机缺 keystore，留 CI 验证**。
+- [ ] `fvm flutter build ios --no-codesign` 通过 —— **本机 Xcode 安装不完整（`flutter doctor` 报 `Xcode installation is incomplete`），留 CI 验证**。
+- [ ] 真机冒烟：登录 / 注册 / 列表滚动 / 详情 / 播放 / 字幕 / 悬浮歌词 / 缓存清理 全部不回归（待 Step 5 用户配合）。
+- [ ] 重新评估是否在 Android 上启用 Impeller —— **本次决议不动 Impeller**，已起 follow-up TODO [`20260612-impeller-android-revisit.md`](20260612-impeller-android-revisit.md) 在 SDK 升级合入后单独跟踪。
 
 ## 4. 拆解步骤（Steps）
 
-- [ ] **Step 1**：调研当前 Flutter stable 版本与该版本的 breaking changes（特别是 Material 3、Impeller、Android Gradle plugin 兼容矩阵）。
-- [ ] **Step 2**：本地分支 `chore/flutter-sdk-upgrade`，仅升 `.fvmrc`，跑 `fvm flutter pub get` 看依赖冲突。
-- [ ] **Step 3**：逐项消化依赖版本告警；必要时升 `pubspec.yaml` 中的依赖约束。
-- [ ] **Step 4**：跑 `analyze` + `test` + Android/iOS 双端 release 构建。
-- [ ] **Step 5**：真机冒烟矩阵。
-- [ ] **Step 6**：评估 Impeller 切回——若 stable，删 manifest meta-data；若仍崩，保留禁用并再开 follow-up。
+- [x] **Step 1**：调研当前 Flutter stable 版本与该版本的 breaking changes（Material 3、Impeller、AGP/KGP、Dart 3.12、iOS 部署目标、依赖兼容矩阵）。
+  - 结论摘要：3.44.1 (Dart 3.12.1)；iOS 部署目标硬抬到 13.0；AGP 9 + Built-in Kotlin 未来强制（3.44 仅 warning）；freezed 2.x 在 Dart 3.12 仍兼容（不动）；`withOpacity` 仍是 warning（不动）。
+- [x] **Step 2**：worktree `chore/flutter-sdk-upgrade`（隔离工作区），升 `.fvmrc` → 3.44.1，`fvm install` + `fvm flutter pub get` 通过。
+- [x] **Step 3**：iOS 部署目标 12.0 → 13.0（`ios/Podfile` + `ios/Runner.xcodeproj/project.pbxproj` 3 处）；`pubspec.yaml` 依赖约束保持不变（pub get 已通过，无必要主动升）。
+- [x] **Step 4**：`build_runner` / `analyze` / `test` / `build apk --debug` / `pod install` 本机全过；`build apk --release` / `build ios --no-codesign` 留 CI（host 限制详见 §3）。
+- [ ] **Step 5**：真机冒烟矩阵（待用户配合）。
+- [x] **Step 6**：本次决议不动 Impeller，已起 follow-up TODO [`20260612-impeller-android-revisit.md`](20260612-impeller-android-revisit.md)。
 
 ## 5. 风险与回滚（Risks）
 
@@ -62,6 +69,14 @@
 
 - 此 TODO 在 `disable-impeller-android` 落地后立即创建，确保「应急止血 + 长期根治」两条线都有跟踪。
 - 启动时机：等用户在 Skia 后端跑一段时间（≥ 1 周日常使用），确认无渲染回归后再着手——避免一次性引入太多变化定位困难。
+- 2026-06-12 实施记录：
+  - 目标版本由 Flutter 官方 release manifest 实时查询确定为 **3.44.1**（Dart 3.12.1）。
+  - 工作区使用 `git worktree` 隔离（`.claude/worktrees/chore+flutter-sdk-upgrade`，基于 origin/main fresh），未污染主仓与 docs 分支；`.gitignore` 同步加入 `.claude/worktrees/`。
+  - iOS 部署目标 12.0 → 13.0 是 Flutter 3.44 硬要求（用户已确认接受、放弃 iOS 12 支持）。
+  - Android 当前 AGP 8.9.1 + Kotlin 2.1.0 + Gradle 8.11.1 已较新，本次不动；Flutter migrator 自动在 `android/gradle.properties` 写入 `android.builtInKotlin=false` / `android.newDsl=false` 显式 opt-out，保留当前 KGP 模式。
+  - Built-in Kotlin 迁移 / `Radio` 系 deprecation / `onReorder` deprecation / `withOpacity` deprecation 等本次不修，留独立 PR 收口（不阻塞 SDK 升级）。
+  - `flutter_lints: ^2.0.0` 偏旧但 pub get 已通过，不阻塞，留独立 PR 升至 3.44 配套版本。
+  - 本机 release apk 与 iOS build 未能验证（缺 keystore / Xcode 不完整），CI 路径已配置，留 CI 验证。
 
 ---
 
