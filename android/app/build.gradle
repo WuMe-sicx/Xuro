@@ -14,7 +14,10 @@ if (keystorePropertiesFile.exists()) {
 android {
     namespace = "com.xuro"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    // 显式锁 NDK：Flutter 3.44 默认 26.1.10909125，但 audio_service /
+    // just_audio / wakelock_plus / flutter_secure_storage 等多个 plugin
+    // 在升级后要求 27.0.12077973，必须 override 否则 release/run 失败。
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
