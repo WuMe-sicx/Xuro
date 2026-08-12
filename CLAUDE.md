@@ -149,3 +149,17 @@ fvm dart run build_runner build --delete-conflicting-outputs
 ## Tests
 
 Pure-logic unit tests mirror the `lib/` tree under `test/` (e.g. `test/data/services/api_service_url_test.dart` covers `ApiService.buildSearchUri`; `test/data/services/update_version_compare_test.dart` + `update_release_parse_test.dart` cover `UpdateService.compareSemver`/`selectLatestRelease`, `UpdateInfo.fromReleaseJson` boundaries, and `UpdateException.fromDioException` classification; `test/core/download/download_service_test.dart` covers `DownloadService.sanitizeFileName`/`fileKey`/`diskFileName`; `test/presentation/layouts/work_layout_strategy_memo_test.dart` covers the `groupWorksIntoRows` memo). **UI-token / three-variant widget tests**: `test/core/theme/design_tokens_test.dart` locks the `AppSpacing`/`AppRadius`/`AppTextStyles` contract (incl. "md==12" card-radius regression gate, "tokens carry no color"); `test/widgets/common/atom_three_variant_test.dart` asserts atoms read accent from `colorScheme` across blue/green/mono; `test/screens/settings/settings_d1_test.dart`, `test/screens/about_screen_test.dart` (mocks `PackageInfo`), `test/widgets/sidebar/sidebar_d3_test.dart`, `test/widgets/work_card/work_cover_duration_badge_test.dart`, `test/widgets/player/circular_cover_test.dart` cover the reskinned screens/components. `test/core/platform/sleep_timer_controller_test.dart` covers `SleepTimerController` arm/cancel/replace/`<=0`/expiry-pauses-once-and-resets/dispose via `package:fake_async` — `fake_async` is now a declared `dev_dependencies` entry (deterministic timer logic, no real waits; clears the `depend_on_referenced_packages` lint). Widget tests for `PlayerProgress`/`WaveformProgress` and full screens with heavy DI are intentionally omitted (no shared harness; consistent with the existing no-full-DI policy). There is no app-level widget smoke test (the old `flutter create` counter boilerplate was removed). Skeleton loading is `SkeletonPulse` only — the `shimmer` package has been **removed from `pubspec.yaml`**; don't reintroduce it. Keep new tests network-free (the URL test short-circuits Dio via an `InterceptorsWrapper` that rejects in `onRequest`). Run one file with `fvm flutter test test/data/services/api_service_url_test.dart`.
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in GitHub Issues on `WuMe-sicx/Xuro`, driven by the `gh` CLI. See [`docs/agents/issue-tracker.md`](docs/agents/issue-tracker.md).
+
+### Triage labels
+
+The five canonical triage roles, label strings unchanged. See [`docs/agents/triage-labels.md`](docs/agents/triage-labels.md).
+
+### Domain docs
+
+Single-context: `CONTEXT.md` + `docs/adr/` at the repo root. See [`docs/agents/domain.md`](docs/agents/domain.md).
