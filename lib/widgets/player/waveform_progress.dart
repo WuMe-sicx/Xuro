@@ -11,7 +11,7 @@ import 'package:xuro/presentation/viewmodels/player_viewmodel.dart';
 /// 只换绘制；`Listenable.merge([viewModel, viewModel.positionListenable])`
 /// 订阅方式不变——`positionListenable` 是独立 notifier，避免位置每 tick
 /// 拖着整个 VM 重建（见 `PlayerViewModel` 字段注释）。
-class WaveformProgress extends StatelessWidget {
+class WaveformProgress extends StatefulWidget {
   const WaveformProgress({super.key});
 
   /// 手势命中区域高度：比 2px 视觉线宽得多，保证拖拽/点击有可用的触控热区。
@@ -19,10 +19,34 @@ class WaveformProgress extends StatelessWidget {
   static const double _trackThickness = 2;
   static const double _thumbSize = 12;
 
+  @override
+  State<WaveformProgress> createState() => _WaveformProgressState();
+}
+
+class _WaveformProgressState extends State<WaveformProgress> {
+  /// 拖动期间的目标位置比例。非 null 时滑块与左侧时间都以它为准，**不打 seek**。
+  ///
+  /// 曾经每个 `onHorizontalDragUpdate` 直通 `PlayerViewModel.seek()`，一次拖动
+  /// 实测 53 次——每次都是 `await ready` + just_audio 平台通道往返，还会让音频
+  /// 反复重新缓冲，这就是拖动卡顿的来源。改成抬手时只 seek 一次。
+  double? _dragFraction;
+
   String _fmt(Duration? d) {
     if (d == null) return '--:--';
     String two(int n) => n.toString().padLeft(2, '0');
     return '${two(d.inMinutes.remainder(60))}:${two(d.inSeconds.remainder(60))}';
+  }
+
+  Duration _targetOf(double fraction, double durMs) =>
+      Duration(milliseconds: (durMs * fraction).round());
+
+  Future<void> _commitDrag(PlayerViewModel viewModel, double durMs) async {
+    final fraction = _dragFraction;
+    if (fraction == null) return;
+    await viewModel.seek(_targetOf(fraction, durMs));
+    // 等 seek 落地后再交还控制权：提前清掉会让滑块闪回 seek 前的旧 position，
+    // 直到下一次 200ms 进度 tick 才跳到新位置。
+    if (mounted) setState(() => _dragFraction = null);
   }
 
   @override
@@ -38,12 +62,20 @@ class WaveformProgress extends StatelessWidget {
       builder: (context, _) {
         final posMs = viewModel.position?.inMilliseconds.toDouble() ?? 0;
         final durMs = viewModel.duration?.inMilliseconds.toDouble() ?? 1;
-        final fraction = durMs <= 0 ? 0.0 : (posMs / durMs).clamp(0.0, 1.0);
+        final playedFraction =
+            durMs <= 0 ? 0.0 : (posMs / durMs).clamp(0.0, 1.0);
+        final fraction = _dragFraction ?? playedFraction;
 
-        void seekToDx(double dx, double width) {
-          if (width <= 0 || durMs <= 0) return;
-          final f = (dx / width).clamp(0.0, 1.0);
-          viewModel.seek(Duration(milliseconds: (durMs * f).round()));
+        /// 返回 dx 对应的比例；宽度或时长无效时返回 null（此时既不重绘也不 seek）。
+        double? fractionAt(double dx, double width) {
+          if (width <= 0 || durMs <= 0) return null;
+          return (dx / width).clamp(0.0, 1.0);
+        }
+
+        void updateDrag(double dx, double width) {
+          final f = fractionAt(dx, width);
+          if (f == null) return;
+          setState(() => _dragFraction = f);
         }
 
         return RepaintBoundary(
@@ -52,17 +84,32 @@ class WaveformProgress extends StatelessWidget {
             child: Column(
               children: [
                 SizedBox(
-                  height: _touchHeight,
+                  height: WaveformProgress._touchHeight,
                   child: LayoutBuilder(
                     builder: (context, c) {
                       final width = c.maxWidth;
                       return GestureDetector(
                         behavior: HitTestBehavior.opaque,
-                        onTapDown: (d) => seekToDx(d.localPosition.dx, width),
+                        // 点击是单次操作，直接 seek——不存在高频问题。
+                        onTapDown: (d) {
+                          final f = fractionAt(d.localPosition.dx, width);
+                          if (f != null) viewModel.seek(_targetOf(f, durMs));
+                        },
+                        onHorizontalDragStart: (d) =>
+                            updateDrag(d.localPosition.dx, width),
                         onHorizontalDragUpdate: (d) =>
-                            seekToDx(d.localPosition.dx, width),
+                            updateDrag(d.localPosition.dx, width),
+                        onHorizontalDragEnd: (_) =>
+                            _commitDrag(viewModel, durMs),
+                        // 手势被竞技场其他 recognizer 抢走时必须清位，否则
+                        // _dragFraction 永久卡住，进度条从此不再跟随播放。
+                        onHorizontalDragCancel: () {
+                          if (_dragFraction != null) {
+                            setState(() => _dragFraction = null);
+                          }
+                        },
                         child: CustomPaint(
-                          size: Size(width, _touchHeight),
+                          size: Size(width, WaveformProgress._touchHeight),
                           painter: LinearTrackPainter(
                             fraction: fraction,
                             playedColor: cs.primary,
@@ -80,7 +127,10 @@ class WaveformProgress extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        _fmt(viewModel.position),
+                        // 拖动中显示目标时间而非播放时间，否则数字不跟手。
+                        _fmt(_dragFraction == null
+                            ? viewModel.position
+                            : _targetOf(_dragFraction!, durMs)),
                         style: AppTextStyles.caption.copyWith(
                           color: cs.onSurface.withValues(alpha: 0.55),
                         ),
