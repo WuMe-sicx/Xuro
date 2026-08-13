@@ -114,13 +114,32 @@ class PlaybackContext {
     );
   }
 
-  /// 切曲时重建上下文。构造函数会据 `files` + `newFile` 重新推导
-  /// playlist/currentIndex，所以这里只传源数据，不传派生字段。
+  /// 切曲：在**已确定的播放列表上移动游标**，不重新推导列表。
+  ///
+  /// 这里曾经走公开工厂重新推导，结果是：`PlaybackController` 在部分音源
+  /// 构造失败时用 [withFilteredPlaylist] 建立的过滤列表，会在七行之后被这个
+  /// 方法碾平回完整文件树的推导结果——而 just_audio 的队列仍是过滤后的。
+  /// 于是队列下标被拿去索引一个更长的列表，取到错位的 `Child`，锁屏标题、
+  /// 字幕、持久化的 currentFile 全部跟着错；更糟的是错位往往精确落回那个
+  /// 因 `mediaDownloadUrl == null` 而被丢弃的文件，`TrackInfoCreator` 的
+  /// 强解包便在 `currentIndexStream` 的监听器里抛出、逃逸到 zone。
+  ///
+  /// 唯一活的调用方是 `PlaybackStateManager` 的 `currentIndexStream` 监听器，
+  /// 它传的 `newFile` 字面取自 `playlist[index]`，构造上必然命中。
+  /// （`PlaybackController` 那条路径因同曲目守卫已到不了这里。）
+  /// 未命中时保留原游标而不是回退到 0。
+  ///
+  /// 已知不精确：这里按 `title` 反查下标，而监听器手上本就有精确的队列下标。
+  /// 同名文件会取到第一个——但旧实现同样按 title 反查，净差异为零，故未改
+  /// 签名去接那个下标。真要消除，得让监听器把 index 带进来。
   PlaybackContext copyWithFile(Child newFile) {
-    return PlaybackContext(
+    final index = playlist.indexWhere((f) => f.title == newFile.title);
+    return PlaybackContext._(
       work: work,
       files: files,
       currentFile: newFile,
+      playlist: playlist,
+      currentIndex: index >= 0 ? index : currentIndex,
       playMode: playMode,
     );
   }

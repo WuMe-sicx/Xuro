@@ -114,6 +114,84 @@ void main() {
     });
   });
 
+  group('copyWithFile 不得重新推导播放列表', () {
+    // 这一组是回归闸门。修复前 copyWithFile 走公开工厂重新推导，
+    // PlaybackController 刚用 withFilteredPlaylist 建立的过滤列表会在七行后
+    // 被碾平；而 just_audio 队列仍是过滤后的，队列下标去索引更长的列表 →
+    // 取到错位的 Child → 锁屏标题/字幕/持久化 currentFile 全错。
+    final all = [_audio('01.mp3'), _audio('02.mp3'), _audio('03.mp3')];
+    final files = _root(all);
+
+    PlaybackContext filtered() => PlaybackContext.withFilteredPlaylist(
+          work: _work,
+          files: files,
+          currentFile: all[0],
+          // 02 音源构造失败被丢弃，队列只剩 [01, 03]
+          playlist: [all[0], all[2]],
+        );
+
+    test('过滤后的列表在切曲后必须存活', () {
+      final next = filtered().copyWithFile(all[2]);
+      expect(next.playlist.map((f) => f.title), ['01.mp3', '03.mp3']);
+      expect(next.playlist, hasLength(2),
+          reason: '被丢弃的 02.mp3 不得从完整文件树里回流');
+    });
+
+    test('游标落在过滤后列表的正确位置', () {
+      final next = filtered().copyWithFile(all[2]);
+      // 队列里 03 是第 1 项；若列表被还原成三项，这里会错成 2
+      expect(next.currentIndex, 1);
+      expect(next.currentFile.title, '03.mp3');
+    });
+
+    test('未过滤的上下文切曲后行为不变', () {
+      final ctx = _ctx(files, all[0]);
+      final next = ctx.copyWithFile(all[1]);
+      expect(next.playlist.map((f) => f.title),
+          ['01.mp3', '02.mp3', '03.mp3']);
+      expect(next.currentIndex, 1);
+    });
+
+    test('目标不在列表中时保留原游标，不回退到 0', () {
+      final ctx = filtered().copyWithFile(all[2]); // index 1
+      final stray = ctx.copyWithFile(_audio('99.mp3'));
+      expect(stray.currentIndex, 1);
+      expect(stray.playlist, hasLength(2));
+    });
+
+    test('playMode 与源数据穿过切曲保持不变', () {
+      final next = filtered().copyWithFile(all[2]);
+      expect(next.work, _work);
+      expect(next.files, files);
+      expect(next.playMode, filtered().playMode);
+    });
+  });
+
+  group('withFilteredPlaylist', () {
+    final all = [_audio('01.mp3'), _audio('02.mp3')];
+
+    test('原样采纳传入的列表，不碰文件树', () {
+      final ctx = PlaybackContext.withFilteredPlaylist(
+        work: _work,
+        files: _root(all),
+        currentFile: all[1],
+        playlist: [all[1]],
+      );
+      expect(ctx.playlist, hasLength(1));
+      expect(ctx.currentIndex, 0);
+    });
+
+    test('currentFile 不在列表中时游标 clamp 到 0', () {
+      final ctx = PlaybackContext.withFilteredPlaylist(
+        work: _work,
+        files: _root(all),
+        currentFile: _audio('99.mp3'),
+        playlist: [all[0]],
+      );
+      expect(ctx.currentIndex, 0);
+    });
+  });
+
   group('validate', () {
     test('空播放列表抛错', () {
       final f = _audio('01.ape');
