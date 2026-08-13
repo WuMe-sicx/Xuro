@@ -7,6 +7,7 @@ import 'package:xuro/data/models/files/files.dart';
 import 'package:xuro/data/models/files/child.dart';
 import 'package:xuro/data/models/works/work.dart';
 import 'package:xuro/data/services/api_service.dart';
+import 'package:xuro/data/services/exceptions/network_exception.dart';
 import 'package:xuro/core/audio/i_audio_player_service.dart';
 import 'package:xuro/core/download/download_service.dart';
 import 'package:xuro/utils/logger.dart';
@@ -95,10 +96,11 @@ class DetailViewModel extends ChangeNotifier {
   bool get loadingPlaylists => _loadingPlaylists;
   String? get playlistsError => _playlistsError;
   List<Playlist>? get playlists => _playlists;
-  int? get playlistsTotalPages => 
-      _playlistsPagination?.totalCount != null && _playlistsPagination?.pageSize != null
-          ? (_playlistsPagination!.totalCount! / _playlistsPagination!.pageSize!).ceil()
-          : null;
+  int? get playlistsTotalPages => _playlistsPagination?.totalCount != null &&
+          _playlistsPagination?.pageSize != null
+      ? (_playlistsPagination!.totalCount! / _playlistsPagination!.pageSize!)
+          .ceil()
+      : null;
 
   Future<void> _checkRecommendations() async {
     _checkingRecommendations = true;
@@ -147,12 +149,13 @@ class DetailViewModel extends ChangeNotifier {
         work.id.toString(),
         cancelToken: _cancelToken,
       );
-      WorkFolderItem.resetExpandState(); // Reset on new data load, not on every build
+      WorkFolderItem
+          .resetExpandState(); // Reset on new data load, not on every build
       AppLogger.info('文件加载成功: ${work.id}');
     } catch (e) {
       if (e is! DioException || e.type != DioExceptionType.cancel) {
         AppLogger.info('加载文件失败');
-        _error = e.toString();
+        _error = userMessageOf(e);
       }
     } finally {
       _isLoading = false;
@@ -162,7 +165,8 @@ class DetailViewModel extends ChangeNotifier {
   Future<void> _loadWorkInfoInternal() async {
     try {
       final workId = _extractNumericId(work.sourceId) ?? work.id.toString();
-      _workInfo = await _apiService.getWorkInfo(workId, cancelToken: _cancelToken);
+      _workInfo =
+          await _apiService.getWorkInfo(workId, cancelToken: _cancelToken);
       AppLogger.info('作品详情加载成功: ${work.id}');
     } catch (e) {
       if (e is! DioException || e.type != DioExceptionType.cancel) {
@@ -207,8 +211,7 @@ class DetailViewModel extends ChangeNotifier {
   /// 静态纯判定：是音频且**不是**视频扩展名。视频扩展名优先于不可靠的
   /// API `type`，否则错标 `type:audio` 的 .mp4 会被当音频。
   static bool _isAudioChild(Child c) =>
-      (c.type ?? '').toLowerCase() == 'audio' &&
-      !_hasVideoExtension(c.title);
+      (c.type ?? '').toLowerCase() == 'audio' && !_hasVideoExtension(c.title);
 
   bool isAudioFile(Child file) => _isAudioChild(file);
 
@@ -400,13 +403,13 @@ class DetailViewModel extends ChangeNotifier {
         workId: work.id.toString(),
         page: page,
       );
-      
+
       _playlists = response.playlists;
       _playlistsPagination = response.pagination;
       AppLogger.info('收藏夹列表加载成功: ${_playlists?.length ?? 0}个收藏夹');
     } catch (e) {
       AppLogger.error('加载收藏夹列表失败', e);
-      _playlistsError = e.toString();
+      _playlistsError = userMessageOf(e);
     } finally {
       _loadingPlaylists = false;
       notifyListeners();
@@ -416,14 +419,14 @@ class DetailViewModel extends ChangeNotifier {
   Future<void> showPlaylistsDialog(BuildContext context) async {
     _loadingFavorite = true;
     notifyListeners();
-    
+
     try {
       await loadPlaylists();
       _loadingFavorite = false;
       notifyListeners();
-      
+
       if (!context.mounted) return;
-      
+
       await showDialog(
         context: context,
         builder: (context) => PlaylistSelectionDialog(
@@ -464,7 +467,7 @@ class DetailViewModel extends ChangeNotifier {
           workId: work.id.toString(),
         );
       }
-      
+
       // 更新本地收藏夹状态
       final index = _playlists?.indexWhere((p) => p.id == playlist.id);
       if (index != null && index != -1) {
@@ -472,7 +475,7 @@ class DetailViewModel extends ChangeNotifier {
           ..[index] = playlist.copyWith(exist: !(playlist.exist ?? false));
         notifyListeners();
       }
-      
+
       final action = (playlist.exist ?? false) ? '移除' : '添加';
       AppLogger.info('$action收藏成功: ${playlist.name}');
     } catch (e) {
@@ -490,7 +493,7 @@ class DetailViewModel extends ChangeNotifier {
         work.id.toString(),
         _apiService.convertMarkStatusToApi(status),
       );
-      
+
       _currentMarkStatus = status;
       AppLogger.info('更新标记状态成功: ${status.label}');
     } catch (e) {

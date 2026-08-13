@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:xuro/data/models/tags/tag_item.dart';
 import 'package:xuro/data/services/api_service.dart';
+import 'package:xuro/data/services/exceptions/network_exception.dart';
 import 'package:xuro/utils/logger.dart';
 import 'package:get_it/get_it.dart';
 
@@ -35,7 +36,7 @@ class TagsViewModel extends ChangeNotifier {
       AppLogger.info('标签列表加载成功: ${_allTags.length}个标签');
     } catch (e) {
       AppLogger.error('加载标签列表失败', e);
-      _error = e.toString();
+      _error = userMessageOf(e);
     } finally {
       _isLoading = false;
       notifyListeners();

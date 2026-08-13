@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:xuro/core/audio/cache/audio_cache_manager.dart';
+import 'package:xuro/data/services/exceptions/network_exception.dart';
 import 'package:xuro/utils/logger.dart';
 import 'package:xuro/core/subtitle/cache/subtitle_cache_manager.dart';
 import 'package:xuro/core/image/cache/image_cache_manager.dart';
@@ -16,7 +17,8 @@ class CacheManagerViewModel extends ChangeNotifier {
   int get audioCacheSize => _audioCacheSize;
   int get subtitleCacheSize => _subtitleCacheSize;
   int get imageCacheSize => _imageCacheSize;
-  int get totalCacheSize => _audioCacheSize + _subtitleCacheSize + _imageCacheSize;
+  int get totalCacheSize =>
+      _audioCacheSize + _subtitleCacheSize + _imageCacheSize;
   String? get error => _error;
 
   // 格式化缓存大小显示
@@ -45,7 +47,7 @@ class CacheManagerViewModel extends ChangeNotifier {
       _error = null;
     } catch (e) {
       AppLogger.error('加载缓存大小失败', e);
-      _error = '加载失败: $e';
+      _error = userMessageOf(e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -57,13 +59,13 @@ class CacheManagerViewModel extends ChangeNotifier {
     try {
       _isLoading = true;
       notifyListeners();
-      
+
       await AudioCacheManager.clearAllCache();
       await loadCacheSize();
       _error = null;
     } catch (e) {
       AppLogger.error('清理音频缓存失败', e);
-      _error = '清理失败: $e';
+      _error = userMessageOf(e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -75,13 +77,13 @@ class CacheManagerViewModel extends ChangeNotifier {
     try {
       _isLoading = true;
       notifyListeners();
-      
+
       await SubtitleCacheManager.clearCache();
       await loadCacheSize();
       _error = null;
     } catch (e) {
       AppLogger.error('清理字幕缓存失败', e);
-      _error = '清理失败: $e';
+      _error = userMessageOf(e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -99,7 +101,7 @@ class CacheManagerViewModel extends ChangeNotifier {
       _error = null;
     } catch (e) {
       AppLogger.error('清理图片缓存失败', e);
-      _error = '清理失败: $e';
+      _error = userMessageOf(e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -117,11 +119,11 @@ class CacheManagerViewModel extends ChangeNotifier {
       _error = null;
     } catch (e) {
       AppLogger.error('清理缓存失败', e);
-      _error = '清理失败: $e';
+      _error = userMessageOf(e);
     } finally {
       await loadCacheSize();
       _isLoading = false;
       notifyListeners();
     }
   }
-} 
+}

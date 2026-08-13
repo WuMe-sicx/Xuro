@@ -1,4 +1,3 @@
-import 'package:xuro/core/theme/app_animations.dart';
 import 'package:xuro/common/constants/strings.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -7,8 +6,7 @@ import 'package:xuro/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:xuro/presentation/viewmodels/favorites_viewmodel.dart';
 import 'package:xuro/presentation/layouts/work_layout_strategy.dart';
 import 'package:xuro/presentation/widgets/auth/login_dialog.dart';
-import 'package:xuro/widgets/pagination_controls.dart';
-import 'package:xuro/widgets/work_grid_view.dart';
+import 'package:xuro/widgets/work_grid/enhanced_work_grid_view.dart';
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
@@ -53,17 +51,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     }
   }
 
-  void _onPageChanged(int page) async {
-    await _viewModel.loadPage(page);
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        0,
-        duration: AppAnimations.medium,
-        curve: AppAnimations.enter,
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider.value(
@@ -78,7 +65,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             return Column(
               children: [
                 Expanded(
-                  child: WorkGridView(
+                  child: EnhancedWorkGridView(
                     works: viewModel.works,
                     isLoading: viewModel.isLoading,
                     error: viewModel.error,
@@ -87,14 +74,10 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     onRetry: () => viewModel.loadFavorites(),
                     layoutStrategy: _layoutStrategy,
                     scrollController: _scrollController,
-                    bottomWidget: viewModel.works.isNotEmpty
-                        ? PaginationControls(
-                            currentPage: viewModel.currentPage,
-                            totalPages: viewModel.totalPages ?? 1,
-                            onPageChanged: _onPageChanged,
-                            isLoading: viewModel.isLoading,
-                          )
-                        : null,
+                    currentPage: viewModel.currentPage,
+                    // 未知总页数按 1 兜底：与迁移前 PaginationControls 的显示一致。
+                    totalPages: viewModel.totalPages ?? 1,
+                    onPageChanged: viewModel.loadPage,
                   ),
                 ),
               ],
@@ -104,4 +87,4 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       ),
     );
   }
-} 
+}

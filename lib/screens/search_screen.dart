@@ -1,12 +1,11 @@
-import 'package:xuro/core/theme/app_animations.dart';
 import 'package:xuro/common/constants/strings.dart';
+import 'package:xuro/core/theme/app_radius.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:xuro/presentation/viewmodels/search_viewmodel.dart';
-import 'package:xuro/widgets/work_grid_view.dart';
+import 'package:xuro/widgets/work_grid/enhanced_work_grid_view.dart';
 import 'package:xuro/presentation/layouts/work_layout_strategy.dart';
 import 'package:xuro/utils/logger.dart';
-import 'package:xuro/widgets/pagination_controls.dart';
 
 class SearchScreen extends StatelessWidget {
   final String? initialKeyword;
@@ -46,7 +45,7 @@ class _SearchScreenContentState extends State<SearchScreenContent> {
   void initState() {
     super.initState();
     _searchController = TextEditingController(text: widget.initialKeyword);
-    
+
     // 如果有初始关键词，自动执行搜索
     if (widget.initialKeyword?.isNotEmpty == true) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -68,18 +67,6 @@ class _SearchScreenContentState extends State<SearchScreenContent> {
 
     AppLogger.debug('执行搜索: $keyword');
     context.read<SearchViewModel>().search(keyword);
-  }
-
-  void _onPageChanged(int page) async {
-    final viewModel = context.read<SearchViewModel>();
-    await viewModel.loadPage(page);
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        0,
-        duration: AppAnimations.medium,
-        curve: AppAnimations.enter,
-      );
-    }
   }
 
   String _getOrderText(String order, String sort) {
@@ -131,8 +118,8 @@ class _SearchScreenContentState extends State<SearchScreenContent> {
                           .colorScheme
                           .surfaceContainerHighest
                           .withValues(alpha: 0.5),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(24),
+                      border: const OutlineInputBorder(
+                        borderRadius: AppRadius.lgAll,
                         borderSide: BorderSide.none,
                       ),
                       contentPadding: const EdgeInsets.symmetric(
@@ -239,33 +226,22 @@ class _SearchScreenContentState extends State<SearchScreenContent> {
           Expanded(
             child: Consumer<SearchViewModel>(
               builder: (context, viewModel, child) {
-                Widget? emptyWidget;
-                if (viewModel.works.isEmpty && viewModel.keyword.isEmpty) {
-                  emptyWidget = const Center(
-                    child: Text(Strings.searchEmptyPrompt),
-                  );
-                } else if (viewModel.works.isEmpty) {
-                  emptyWidget = const Center(
-                    child: Text(Strings.searchNoResults),
-                  );
-                }
+                // 两个空态差异只是文案：未输入关键词 vs 已搜索但无结果。
+                final emptyMessage = viewModel.keyword.isEmpty
+                    ? Strings.searchEmptyPrompt
+                    : Strings.searchNoResults;
 
-                return WorkGridView(
+                return EnhancedWorkGridView(
                   works: viewModel.works,
                   isLoading: viewModel.isLoading,
                   error: viewModel.error,
                   onRetry: _onSearch,
-                  customEmptyWidget: emptyWidget,
+                  emptyMessage: emptyMessage,
                   layoutStrategy: _layoutStrategy,
                   scrollController: _scrollController,
-                  bottomWidget: viewModel.works.isNotEmpty
-                      ? PaginationControls(
-                          currentPage: viewModel.currentPage,
-                          totalPages: viewModel.totalPages,
-                          isLoading: viewModel.isLoading,
-                          onPageChanged: _onPageChanged,
-                        )
-                      : null,
+                  currentPage: viewModel.currentPage,
+                  totalPages: viewModel.totalPages,
+                  onPageChanged: viewModel.loadPage,
                 );
               },
             ),

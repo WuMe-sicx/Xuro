@@ -3,6 +3,7 @@ import 'package:get_it/get_it.dart';
 import 'package:xuro/data/models/works/work.dart';
 import 'package:xuro/data/models/works/pagination.dart';
 import 'package:xuro/data/services/api_service.dart';
+import 'package:xuro/data/services/exceptions/network_exception.dart';
 import 'package:xuro/utils/logger.dart';
 
 class SearchViewModel extends ChangeNotifier {
@@ -79,7 +80,7 @@ class SearchViewModel extends ChangeNotifier {
       AppLogger.info('搜索成功: ${response.works.length}个结果');
     } catch (e) {
       AppLogger.error('搜索失败', e);
-      _error = e.toString();
+      _error = userMessageOf(e);
     } finally {
       _isLoading = false;
       notifyListeners();

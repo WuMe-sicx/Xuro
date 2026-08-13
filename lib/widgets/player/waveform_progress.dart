@@ -1,20 +1,23 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:xuro/core/theme/app_spacing.dart';
 import 'package:xuro/core/theme/app_text_styles.dart';
 import 'package:xuro/presentation/viewmodels/player_viewmodel.dart';
 
-/// 波形进度条（对齐参考图），`PlayerProgress` 的视觉替代——拖拽/点击 seek
-/// 与时间绑定**完全复用** `PlayerViewModel`（同 `seek`/position/duration）。
+/// 播放器进度条：2px 直条 + 12x12 实心方块滑块（Modernist 改版，取代旧的
+/// 装饰性波形条——零圆角/直线是这套设计语言的识别特征之一）。
 ///
-/// 说明：波形条高是确定性母题（流式客户端无逐轨真实振幅数据，参考图同理），
-/// 属装饰；已播放比例 / 拖拽定位是真实数据。已播放段染 accent，余下中性。
+/// seek / 时间显示**完全复用** `PlayerViewModel`（同 `seek`/position/duration），
+/// 只换绘制；`Listenable.merge([viewModel, viewModel.positionListenable])`
+/// 订阅方式不变——`positionListenable` 是独立 notifier，避免位置每 tick
+/// 拖着整个 VM 重建（见 `PlayerViewModel` 字段注释）。
 class WaveformProgress extends StatelessWidget {
   const WaveformProgress({super.key});
 
-  static const double _height = 40;
-  static const int _bars = 56;
+  /// 手势命中区域高度：比 2px 视觉线宽得多，保证拖拽/点击有可用的触控热区。
+  static const double _touchHeight = 40;
+  static const double _trackThickness = 2;
+  static const double _thumbSize = 12;
 
   String _fmt(Duration? d) {
     if (d == null) return '--:--';
@@ -27,13 +30,15 @@ class WaveformProgress extends StatelessWidget {
     final viewModel = GetIt.I<PlayerViewModel>();
     final cs = Theme.of(context).colorScheme;
 
+    // duration 走 VM 的 notifyListeners()，position 走独立 notifier（见
+    // PlayerViewModel 字段注释）；merge 两者，否则 duration 到达时进度条
+    // 要等下一次 200ms 节流 tick 才刷新。
     return ListenableBuilder(
-      listenable: viewModel,
+      listenable: Listenable.merge([viewModel, viewModel.positionListenable]),
       builder: (context, _) {
         final posMs = viewModel.position?.inMilliseconds.toDouble() ?? 0;
         final durMs = viewModel.duration?.inMilliseconds.toDouble() ?? 1;
-        final fraction =
-            durMs <= 0 ? 0.0 : (posMs / durMs).clamp(0.0, 1.0);
+        final fraction = durMs <= 0 ? 0.0 : (posMs / durMs).clamp(0.0, 1.0);
 
         void seekToDx(double dx, double width) {
           if (width <= 0 || durMs <= 0) return;
@@ -43,28 +48,25 @@ class WaveformProgress extends StatelessWidget {
 
         return RepaintBoundary(
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.space4),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.space4),
             child: Column(
               children: [
                 SizedBox(
-                  height: _height,
+                  height: _touchHeight,
                   child: LayoutBuilder(
                     builder: (context, c) {
                       final width = c.maxWidth;
                       return GestureDetector(
                         behavior: HitTestBehavior.opaque,
-                        onTapDown: (d) =>
-                            seekToDx(d.localPosition.dx, width),
+                        onTapDown: (d) => seekToDx(d.localPosition.dx, width),
                         onHorizontalDragUpdate: (d) =>
                             seekToDx(d.localPosition.dx, width),
                         child: CustomPaint(
-                          size: Size(width, _height),
-                          painter: _WaveformPainter(
+                          size: Size(width, _touchHeight),
+                          painter: LinearTrackPainter(
                             fraction: fraction,
                             playedColor: cs.primary,
-                            restColor:
-                                cs.onSurfaceVariant.withValues(alpha: 0.35),
+                            trackColor: cs.outlineVariant,
                           ),
                         ),
                       );
@@ -72,21 +74,21 @@ class WaveformProgress extends StatelessWidget {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.space8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: AppSpacing.space8),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         _fmt(viewModel.position),
                         style: AppTextStyles.caption.copyWith(
-                          color: cs.onSurface.withValues(alpha: 0.7),
+                          color: cs.onSurface.withValues(alpha: 0.55),
                         ),
                       ),
                       Text(
                         _fmt(viewModel.duration),
                         style: AppTextStyles.caption.copyWith(
-                          color: cs.onSurface.withValues(alpha: 0.7),
+                          color: cs.onSurface.withValues(alpha: 0.55),
                         ),
                       ),
                     ],
@@ -101,54 +103,65 @@ class WaveformProgress extends StatelessWidget {
   }
 }
 
-class _WaveformPainter extends CustomPainter {
-  _WaveformPainter({
+/// 2px 直条 + 方块滑块的绘制器。几何计算拆成 [trackRect]/[thumbRect] 两个
+/// 纯函数（不碰 `Canvas`），供单测在没有 DI/Widget 环境下直接验证滑块位置
+/// 随 `fraction` 变化——`WaveformProgress` 依赖 `GetIt.I<PlayerViewModel>()`，
+/// 整个 Widget 走不了项目现有的无 DI harness 测试路线（见 CLAUDE.md 测试说明）。
+class LinearTrackPainter extends CustomPainter {
+  LinearTrackPainter({
     required this.fraction,
     required this.playedColor,
-    required this.restColor,
+    required this.trackColor,
   });
 
   final double fraction;
   final Color playedColor;
-  final Color restColor;
+  final Color trackColor;
 
-  @override
-  void paint(Canvas canvas, Size size) {
-    const n = WaveformProgress._bars;
-    final slot = size.width / n;
-    final barW = slot * 0.5;
+  static const double trackThickness = WaveformProgress._trackThickness;
+  static const double thumbSize = WaveformProgress._thumbSize;
+
+  /// 底色直条（占满宽度）。
+  static Rect trackRect(Size size) {
     final cy = size.height / 2;
-    final playedX = size.width * fraction;
+    return Rect.fromLTWH(
+        0, cy - trackThickness / 2, size.width, trackThickness);
+  }
 
-    final played = Paint()
-      ..color = playedColor
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = barW;
-    final rest = Paint()
-      ..color = restColor
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = barW;
+  /// 已播放段直条（宽度随 [fraction] 线性变化）。
+  static Rect playedRect(Size size, double fraction) {
+    final cy = size.height / 2;
+    return Rect.fromLTWH(
+        0, cy - trackThickness / 2, size.width * fraction, trackThickness);
+  }
 
-    for (var i = 0; i < n; i++) {
-      // 确定性波形母题：两组不同频率正弦叠加，看起来像波形又不抖动。
-      final t = i.toDouble();
-      final amp = 0.18 +
-          0.82 *
-              ((math.sin(t * 0.9) + 1) / 2 * 0.6 +
-                  (math.sin(t * 0.27 + 1.3) + 1) / 2 * 0.4);
-      final h = amp * size.height;
-      final x = slot * i + slot / 2;
-      canvas.drawLine(
-        Offset(x, cy - h / 2),
-        Offset(x, cy + h / 2),
-        x <= playedX ? played : rest,
-      );
-    }
+  /// 12x12 滑块，中心落在已播放位置。
+  static Rect thumbRect(Size size, double fraction) {
+    final cy = size.height / 2;
+    return Rect.fromCenter(
+      center: Offset(size.width * fraction, cy),
+      width: thumbSize,
+      height: thumbSize,
+    );
   }
 
   @override
-  bool shouldRepaint(_WaveformPainter old) =>
-      old.fraction != fraction ||
-      old.playedColor != playedColor ||
-      old.restColor != restColor;
+  void paint(Canvas canvas, Size size) {
+    canvas.drawRect(trackRect(size), Paint()..color = trackColor);
+
+    final playedX = size.width * fraction;
+    if (playedX > 0) {
+      canvas.drawRect(playedRect(size, fraction), Paint()..color = playedColor);
+    }
+
+    // 滑块：12x12 零圆角实心方块，居中于已播放位置——Modernist 稿子的方块
+    // 滑块母题（取代常规圆点）。
+    canvas.drawRect(thumbRect(size, fraction), Paint()..color = playedColor);
+  }
+
+  @override
+  bool shouldRepaint(LinearTrackPainter oldDelegate) =>
+      oldDelegate.fraction != fraction ||
+      oldDelegate.playedColor != playedColor ||
+      oldDelegate.trackColor != trackColor;
 }

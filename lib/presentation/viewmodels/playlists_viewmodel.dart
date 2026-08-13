@@ -4,12 +4,13 @@ import 'package:flutter/foundation.dart';
 import 'package:xuro/data/models/my_lists/my_playlists/playlist.dart';
 import 'package:xuro/data/models/my_lists/my_playlists/pagination.dart';
 import 'package:xuro/data/services/api_service.dart';
+import 'package:xuro/data/services/exceptions/network_exception.dart';
 import 'package:xuro/utils/logger.dart';
 import 'package:get_it/get_it.dart';
 
 class PlaylistsViewModel extends ChangeNotifier {
   final ApiService _apiService = GetIt.I<ApiService>();
-  
+
   List<Playlist>? _playlists;
   bool _isLoading = false;
   String? _error;
@@ -29,17 +30,19 @@ class PlaylistsViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
   int get currentPage => _currentPage;
-  int? get totalPages => _pagination?.totalCount != null && _pagination?.pageSize != null
-      ? (_pagination!.totalCount! / _pagination!.pageSize!).ceil()
-      : null;
+  int? get totalPages =>
+      _pagination?.totalCount != null && _pagination?.pageSize != null
+          ? (_pagination!.totalCount! / _pagination!.pageSize!).ceil()
+          : null;
   Playlist? get selectedPlaylist => _selectedPlaylist;
   List<Work> get playlistWorks => _playlistWorks;
   bool get loadingWorks => _loadingWorks;
   String? get worksError => _worksError;
   int get worksCurrentPage => _worksCurrentPage;
-  int? get worksTotalPages => _worksPagination?.totalCount != null && _worksPagination?.pageSize != null
-      ? (_worksPagination!.totalCount! / _worksPagination!.pageSize!).ceil()
-      : null;
+  int? get worksTotalPages =>
+      _worksPagination?.totalCount != null && _worksPagination?.pageSize != null
+          ? (_worksPagination!.totalCount! / _worksPagination!.pageSize!).ceil()
+          : null;
 
   PlaylistsViewModel() {
     loadPlaylists();
@@ -62,7 +65,7 @@ class PlaylistsViewModel extends ChangeNotifier {
       AppLogger.info('第$page页播放列表加载成功: ${_playlists?.length ?? 0}个播放列表');
     } catch (e) {
       AppLogger.error('加载播放列表失败', e);
-      _error = e.toString();
+      _error = userMessageOf(e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -82,7 +85,7 @@ class PlaylistsViewModel extends ChangeNotifier {
     _worksPagination = null;
     _worksCurrentPage = 1;
     notifyListeners();
-    
+
     await loadPlaylistWorks();
   }
 
@@ -99,7 +102,9 @@ class PlaylistsViewModel extends ChangeNotifier {
   /// 加载播放列表作品
   Future<void> loadPlaylistWorks({int page = 1}) async {
     if (_loadingWorks || _selectedPlaylist == null) return;
-    if (page < 1 || (worksTotalPages != null && page > worksTotalPages!)) return;
+    if (page < 1 || (worksTotalPages != null && page > worksTotalPages!)) {
+      return;
+    }
 
     _loadingWorks = true;
     _worksError = null;
@@ -110,14 +115,14 @@ class PlaylistsViewModel extends ChangeNotifier {
         playlistId: _selectedPlaylist!.id!,
         page: page,
       );
-      
+
       _playlistWorks = response.works;
       _worksPagination = response.pagination as Pagination?;
       _worksCurrentPage = page;
       AppLogger.info('第$page页播放列表作品加载成功: ${response.works.length}个作品');
     } catch (e) {
       AppLogger.error('加载播放列表作品失败', e);
-      _worksError = e.toString();
+      _worksError = userMessageOf(e);
     } finally {
       _loadingWorks = false;
       notifyListeners();
@@ -144,4 +149,4 @@ class PlaylistsViewModel extends ChangeNotifier {
     AppLogger.info('销毁 PlaylistsViewModel');
     super.dispose();
   }
-} 
+}
