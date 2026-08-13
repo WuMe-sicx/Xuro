@@ -351,34 +351,6 @@ class DownloadService {
     }
   }
 
-  Future<void> removeDownload(String workId, Child file) async {
-    final key = fileKey(file);
-    String? path;
-    try {
-      path = (await _repository.find(workId, key))?.filePath;
-    } catch (e) {
-      AppLogger.error('查询待移除下载失败', e);
-    }
-    // DB 行先删（一致性关键：失效行会让 app 误判已下载）；
-    // 本地文件 best-effort，孤儿文件只是磁盘浪费、无害。
-    var dbRemoved = false;
-    try {
-      await _repository.remove(workId, key);
-      dbRemoved = true;
-    } catch (e) {
-      AppLogger.error('移除下载 DB 行失败（保留文件以免失效行）', e);
-    }
-    if (dbRemoved && path != null) {
-      try {
-        final f = File(path);
-        if (await f.exists()) await f.delete();
-        await _pruneEmptyDir(path);
-      } catch (e) {
-        AppLogger.warning('移除下载文件失败（DB 行已删，孤儿无害）: $e');
-      }
-    }
-  }
-
   /// 真 LRU：总量超上限时从最旧开始逐条删（文件 + DB 行），直到不超上限。
   /// 删不掉的文件仍在盘上 → 必须继续计入容量、且不删其 DB 行（行仍有效），
   /// 否则容量统计偏小、实际占用可能远超上限。
