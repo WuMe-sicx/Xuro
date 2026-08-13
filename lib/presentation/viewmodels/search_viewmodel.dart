@@ -3,7 +3,7 @@ import 'package:get_it/get_it.dart';
 import 'package:xuro/data/models/works/work.dart';
 import 'package:xuro/data/models/works/pagination.dart';
 import 'package:xuro/data/services/api_service.dart';
-import 'package:xuro/data/services/exceptions/network_exception.dart';
+import 'package:xuro/presentation/models/load_failure.dart';
 import 'package:xuro/utils/logger.dart';
 
 class SearchViewModel extends ChangeNotifier {
@@ -18,8 +18,8 @@ class SearchViewModel extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
-  String? _error;
-  String? get error => _error;
+  LoadFailure? _failure;
+  LoadFailure? get failure => _failure;
 
   Pagination? _pagination;
   int get totalPages =>
@@ -61,7 +61,7 @@ class SearchViewModel extends ChangeNotifier {
 
     _keyword = keyword;
     _isLoading = true;
-    _error = null;
+    _failure = null;
     notifyListeners();
 
     try {
@@ -80,7 +80,7 @@ class SearchViewModel extends ChangeNotifier {
       AppLogger.info('搜索成功: ${response.works.length}个结果');
     } catch (e) {
       AppLogger.error('搜索失败', e);
-      _error = userMessageOf(e);
+      _failure = LoadFailure.from(e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -97,7 +97,7 @@ class SearchViewModel extends ChangeNotifier {
   void clear() {
     _works = [];
     _keyword = '';
-    _error = null;
+    _failure = null;
     _pagination = null;
     _currentPage = 1;
     notifyListeners();

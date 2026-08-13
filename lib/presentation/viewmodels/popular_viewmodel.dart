@@ -40,8 +40,4 @@ class PopularViewModel extends PaginatedWorksViewModel {
       hasSubtitle: hasSubtitle,
     );
   }
-
-  // 保持原有的便捷方法
-  Future<void> loadPopular({bool refresh = false}) =>
-      refresh ? this.refresh() : loadPage(1);
 }

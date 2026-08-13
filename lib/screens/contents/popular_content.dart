@@ -2,8 +2,10 @@ import 'package:xuro/core/theme/app_animations.dart';
 import 'package:xuro/data/models/works/work.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:xuro/presentation/models/load_failure.dart';
 import 'package:xuro/presentation/viewmodels/popular_viewmodel.dart';
 import 'package:xuro/presentation/layouts/work_layout_strategy.dart';
+import 'package:xuro/presentation/widgets/auth/prompt_login.dart';
 import 'package:xuro/widgets/work_grid/enhanced_work_grid_view.dart';
 import 'package:xuro/widgets/filter/filter_with_keyword.dart';
 
@@ -56,14 +58,14 @@ class _PopularContentState extends State<PopularContent>
             ({
               List<Work> works,
               bool isLoading,
-              String? error,
+              LoadFailure? failure,
               int currentPage,
               int? totalPages
             })>(
           selector: (_, vm) => (
             works: vm.works,
             isLoading: vm.isLoading,
-            error: vm.error,
+            failure: vm.failure,
             currentPage: vm.currentPage,
             totalPages: vm.totalPages,
           ),
@@ -71,15 +73,21 @@ class _PopularContentState extends State<PopularContent>
             return EnhancedWorkGridView(
               works: data.works,
               isLoading: data.isLoading,
-              error: data.error,
+              failure: data.failure,
+              onLogin: () => promptLogin(
+                context,
+                onLoggedIn: () => context
+                    .read<PopularViewModel>()
+                    .refresh(),
+              ),
               currentPage: data.currentPage,
               totalPages: data.totalPages,
               onPageChanged: (page) =>
                   context.read<PopularViewModel>().loadPage(page),
               onRefresh: () =>
-                  context.read<PopularViewModel>().loadPopular(refresh: true),
+                  context.read<PopularViewModel>().refresh(),
               onRetry: () =>
-                  context.read<PopularViewModel>().loadPopular(refresh: true),
+                  context.read<PopularViewModel>().refresh(),
               layoutStrategy: _layoutStrategy,
               scrollController: _scrollController,
             );

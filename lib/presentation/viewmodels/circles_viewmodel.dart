@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:xuro/data/models/circles/circle_item.dart';
 import 'package:xuro/data/services/api_service.dart';
-import 'package:xuro/data/services/exceptions/network_exception.dart';
+import 'package:xuro/presentation/models/load_failure.dart';
 import 'package:xuro/utils/logger.dart';
 import 'package:get_it/get_it.dart';
 
@@ -11,7 +11,7 @@ class CirclesViewModel extends ChangeNotifier {
   List<CircleItem> _allCircles = [];
   List<CircleItem> _filteredCircles = [];
   bool _isLoading = false;
-  String? _error;
+  LoadFailure? _failure;
   String _searchQuery = '';
 
   CirclesViewModel() {
@@ -20,13 +20,13 @@ class CirclesViewModel extends ChangeNotifier {
 
   List<CircleItem> get circles => _filteredCircles;
   bool get isLoading => _isLoading;
-  String? get error => _error;
+  LoadFailure? get failure => _failure;
   String get searchQuery => _searchQuery;
 
   Future<void> loadCircles() async {
     if (_isLoading) return;
     _isLoading = true;
-    _error = null;
+    _failure = null;
     notifyListeners();
 
     try {
@@ -36,7 +36,7 @@ class CirclesViewModel extends ChangeNotifier {
       AppLogger.info('社团列表加载成功: ${_allCircles.length}个社团');
     } catch (e) {
       AppLogger.error('加载社团列表失败', e);
-      _error = userMessageOf(e);
+      _failure = LoadFailure.from(e);
     } finally {
       _isLoading = false;
       notifyListeners();

@@ -5,7 +5,7 @@ import 'package:xuro/widgets/sidebar/sidebar_menu.dart';
 import 'package:xuro/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:xuro/presentation/viewmodels/favorites_viewmodel.dart';
 import 'package:xuro/presentation/layouts/work_layout_strategy.dart';
-import 'package:xuro/presentation/widgets/auth/login_dialog.dart';
+import 'package:xuro/presentation/widgets/auth/prompt_login.dart';
 import 'package:xuro/widgets/work_grid/enhanced_work_grid_view.dart';
 
 class FavoritesScreen extends StatefulWidget {
@@ -39,18 +39,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     super.dispose();
   }
 
-  Future<void> _promptLogin() async {
-    await showDialog(
-      context: context,
-      useRootNavigator: true,
-      builder: (_) => const LoginDialog(),
-    );
-    if (!mounted) return;
-    if (context.read<AuthViewModel>().isLoggedIn) {
-      _viewModel.loadFavorites();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider.value(
@@ -68,9 +56,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   child: EnhancedWorkGridView(
                     works: viewModel.works,
                     isLoading: viewModel.isLoading,
-                    error: viewModel.error,
-                    isLoginError: viewModel.isLoginError,
-                    onLogin: _promptLogin,
+                    failure: viewModel.failure,
+                    onLogin: () => promptLogin(
+                      context,
+                      onLoggedIn: viewModel.loadFavorites,
+                    ),
                     onRetry: () => viewModel.loadFavorites(),
                     layoutStrategy: _layoutStrategy,
                     scrollController: _scrollController,

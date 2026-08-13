@@ -99,7 +99,10 @@ class NetworkException implements Exception {
   /// or timeout almost always means the user's VPN is off — surface that
   /// actionable hint instead of the raw Dio reason. Auth failures map to the
   /// "please log in" prompt so callers can offer a login action. Everything
-  /// else falls back to the technical [message].
+  /// else falls back to a generic copy: this getter exists specifically so
+  /// technical strings like [message]（"服务器错误: 500"）never reach the
+  /// screen — falling back to [message] here would defeat that purpose.
+  /// [message] itself still reaches the user via `AppLogger`.
   String get userMessage {
     switch (type) {
       case NetworkErrorType.connectionError:
@@ -108,7 +111,7 @@ class NetworkException implements Exception {
       case NetworkErrorType.authError:
         return Strings.loginRequired;
       default:
-        return message;
+        return Strings.loadFailed;
     }
   }
 

@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:xuro/data/models/tags/tag_item.dart';
 import 'package:xuro/data/services/api_service.dart';
-import 'package:xuro/data/services/exceptions/network_exception.dart';
+import 'package:xuro/presentation/models/load_failure.dart';
 import 'package:xuro/utils/logger.dart';
 import 'package:get_it/get_it.dart';
 
@@ -11,7 +11,7 @@ class TagsViewModel extends ChangeNotifier {
   List<TagItem> _allTags = [];
   List<TagItem> _filteredTags = [];
   bool _isLoading = false;
-  String? _error;
+  LoadFailure? _failure;
   String _searchQuery = '';
 
   TagsViewModel() {
@@ -20,13 +20,13 @@ class TagsViewModel extends ChangeNotifier {
 
   List<TagItem> get tags => _filteredTags;
   bool get isLoading => _isLoading;
-  String? get error => _error;
+  LoadFailure? get failure => _failure;
   String get searchQuery => _searchQuery;
 
   Future<void> loadTags() async {
     if (_isLoading) return;
     _isLoading = true;
-    _error = null;
+    _failure = null;
     notifyListeners();
 
     try {
@@ -36,7 +36,7 @@ class TagsViewModel extends ChangeNotifier {
       AppLogger.info('标签列表加载成功: ${_allTags.length}个标签');
     } catch (e) {
       AppLogger.error('加载标签列表失败', e);
-      _error = userMessageOf(e);
+      _failure = LoadFailure.from(e);
     } finally {
       _isLoading = false;
       notifyListeners();

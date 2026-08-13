@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:xuro/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:xuro/presentation/viewmodels/favorites_viewmodel.dart';
 import 'package:xuro/presentation/layouts/work_layout_strategy.dart';
-import 'package:xuro/presentation/widgets/auth/login_dialog.dart';
+import 'package:xuro/presentation/widgets/auth/prompt_login.dart';
 import 'package:xuro/widgets/work_grid/enhanced_work_grid_view.dart';
 
 class FavoritesContent extends StatefulWidget {
@@ -35,18 +34,6 @@ class _FavoritesContentState extends State<FavoritesContent>
     super.dispose();
   }
 
-  Future<void> _promptLogin(FavoritesViewModel viewModel) async {
-    await showDialog(
-      context: context,
-      useRootNavigator: true,
-      builder: (_) => const LoginDialog(),
-    );
-    if (!mounted) return;
-    if (context.read<AuthViewModel>().isLoggedIn) {
-      viewModel.loadFavorites(refresh: true);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -55,14 +42,16 @@ class _FavoritesContentState extends State<FavoritesContent>
         return EnhancedWorkGridView(
           works: viewModel.works,
           isLoading: viewModel.isLoading,
-          error: viewModel.error,
-          isLoginError: viewModel.isLoginError,
-          onLogin: () => _promptLogin(viewModel),
+          failure: viewModel.failure,
+          onLogin: () => promptLogin(
+            context,
+            onLoggedIn: () => viewModel.loadFavorites(),
+          ),
           currentPage: viewModel.currentPage,
           totalPages: viewModel.totalPages,
           onPageChanged: (page) => viewModel.loadPage(page),
-          onRefresh: () => viewModel.loadFavorites(refresh: true),
-          onRetry: () => viewModel.loadFavorites(refresh: true),
+          onRefresh: () => viewModel.loadFavorites(),
+          onRetry: () => viewModel.loadFavorites(),
           layoutStrategy: _layoutStrategy,
           scrollController: _scrollController,
         );

@@ -14,9 +14,11 @@ import 'package:xuro/core/theme/app_text_styles.dart';
 import 'package:xuro/common/constants/strings.dart';
 import 'package:xuro/data/models/works/work.dart';
 import 'package:xuro/presentation/models/filter_state.dart';
+import 'package:xuro/presentation/models/load_failure.dart';
 import 'package:xuro/presentation/viewmodels/home_viewmodel.dart';
 import 'package:xuro/presentation/viewmodels/player_viewmodel.dart';
 import 'package:xuro/presentation/layouts/work_layout_strategy.dart';
+import 'package:xuro/presentation/widgets/auth/prompt_login.dart';
 import 'package:xuro/screens/search_screen.dart';
 import 'package:xuro/widgets/common/app_search_field.dart';
 import 'package:xuro/widgets/filter/filter_panel.dart';
@@ -172,14 +174,14 @@ class _HomeContentState extends State<HomeContent>
                     ({
                       List<Work> works,
                       bool isLoading,
-                      String? error,
+                      LoadFailure? failure,
                       int currentPage,
                       int? totalPages
                     })>(
                   selector: (_, vm) => (
                     works: vm.works,
                     isLoading: vm.isLoading,
-                    error: vm.error,
+                    failure: vm.failure,
                     currentPage: vm.currentPage,
                     totalPages: vm.totalPages,
                   ),
@@ -192,7 +194,12 @@ class _HomeContentState extends State<HomeContent>
                       child: EnhancedWorkGridView(
                         works: data.works,
                         isLoading: data.isLoading,
-                        error: data.error,
+                        failure: data.failure,
+                        onLogin: () => promptLogin(
+                          context,
+                          onLoggedIn: () =>
+                              context.read<HomeViewModel>().refresh(),
+                        ),
                         currentPage: data.currentPage,
                         totalPages: data.totalPages,
                         onPageChanged: (page) =>

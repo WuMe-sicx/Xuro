@@ -7,6 +7,7 @@ import 'package:xuro/data/models/works/work.dart';
 import 'package:xuro/presentation/viewmodels/similar_works_viewmodel.dart';
 import 'package:xuro/widgets/work_grid/enhanced_work_grid_view.dart';
 import 'package:xuro/presentation/layouts/work_layout_strategy.dart';
+import 'package:xuro/presentation/widgets/auth/prompt_login.dart';
 
 class SimilarWorksScreen extends StatefulWidget {
   final Work work;
@@ -74,7 +75,11 @@ class _SimilarWorksScreenState extends State<SimilarWorksScreen> {
                       child: EnhancedWorkGridView(
                         works: viewModel.works,
                         isLoading: viewModel.isLoading,
-                        error: viewModel.error,
+                        failure: viewModel.failure,
+                        onLogin: () => promptLogin(
+                          context,
+                          onLoggedIn: viewModel.loadSimilarWorks,
+                        ),
                         onRetry: () => viewModel.loadSimilarWorks(),
                         layoutStrategy: _layoutStrategy,
                         scrollController: _scrollController,

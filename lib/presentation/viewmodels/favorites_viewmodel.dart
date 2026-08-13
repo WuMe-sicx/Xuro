@@ -1,9 +1,8 @@
 import 'package:flutter/foundation.dart';
-import 'package:xuro/common/constants/strings.dart';
 import 'package:xuro/data/models/works/work.dart';
 import 'package:xuro/data/models/works/pagination.dart';
 import 'package:xuro/data/services/api_service.dart';
-import 'package:xuro/data/services/exceptions/network_exception.dart';
+import 'package:xuro/presentation/models/load_failure.dart';
 import 'package:xuro/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:xuro/utils/logger.dart';
 import 'package:get_it/get_it.dart';
@@ -13,8 +12,7 @@ class FavoritesViewModel extends ChangeNotifier {
   final AuthViewModel _authViewModel;
   List<Work> _works = [];
   bool _isLoading = false;
-  String? _error;
-  bool _isLoginError = false;
+  LoadFailure? _failure;
   Pagination? _pagination;
   int _currentPage = 1;
 
@@ -42,11 +40,7 @@ class FavoritesViewModel extends ChangeNotifier {
 
   List<Work> get works => _works;
   bool get isLoading => _isLoading;
-  String? get error => _error;
-
-  /// True when [error] is a "not logged in" / auth failure, so the UI can
-  /// offer a login action instead of a (useless) retry.
-  bool get isLoginError => _isLoginError;
+  LoadFailure? get failure => _failure;
   int get currentPage => _currentPage;
   int? get totalCount => _pagination?.totalCount;
   int? get totalPages =>
@@ -68,8 +62,7 @@ class FavoritesViewModel extends ChangeNotifier {
     }
 
     if (!_authViewModel.isLoggedIn) {
-      _error = Strings.loginRequired;
-      _isLoginError = true;
+      _failure = const LoadFailure.loginRequired();
       _works = [];
       _pagination = null;
       notifyListeners();
@@ -77,8 +70,7 @@ class FavoritesViewModel extends ChangeNotifier {
     }
 
     _isLoading = true;
-    _error = null;
-    _isLoginError = false;
+    _failure = null;
     notifyListeners();
 
     try {
@@ -89,8 +81,7 @@ class FavoritesViewModel extends ChangeNotifier {
       AppLogger.info('第$page页收藏列表加载成功: ${response.works.length}个作品');
     } catch (e) {
       AppLogger.error('加载收藏列表失败', e);
-      _error = userMessageOf(e);
-      _isLoginError = isAuthErrorOf(e);
+      _failure = LoadFailure.from(e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -98,7 +89,7 @@ class FavoritesViewModel extends ChangeNotifier {
   }
 
   /// 加载收藏列表(用于初始加载和刷新)
-  Future<void> loadFavorites({bool refresh = false}) async {
+  Future<void> loadFavorites() async {
     await loadPage(1);
   }
 }

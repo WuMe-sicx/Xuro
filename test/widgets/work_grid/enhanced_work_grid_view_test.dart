@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:xuro/common/constants/strings.dart';
 import 'package:xuro/data/models/works/work.dart';
+import 'package:xuro/presentation/models/load_failure.dart';
 import 'package:xuro/widgets/work_grid/components/grid_content.dart';
 import 'package:xuro/widgets/work_grid/components/grid_empty.dart';
 import 'package:xuro/widgets/work_grid/components/grid_error.dart';
@@ -34,7 +35,7 @@ void main() {
       await tester.pumpWidget(_host(const EnhancedWorkGridView(
         works: [],
         isLoading: false,
-        error: '网络错误',
+        failure: LoadFailure('网络错误'),
       )));
       expect(find.byType(GridError), findsOneWidget);
       expect(find.byType(GridLoading), findsNothing);
@@ -81,7 +82,7 @@ void main() {
       await tester.pumpWidget(_host(EnhancedWorkGridView(
         works: _works(1),
         isLoading: false,
-        error: '翻页失败',
+        failure: const LoadFailure('翻页失败'),
       )));
       expect(find.byType(GridContent), findsOneWidget);
       expect(find.byType(GridError), findsNothing);
@@ -89,30 +90,35 @@ void main() {
   });
 
   group('登录态分支', () {
-    testWidgets('isLoginError + onLogin 非空 → 出现"去登录"，不出现"重试"',
+    testWidgets('needsLogin + onLogin 非空 → 出现"去登录"，不出现"重试"',
         (tester) async {
       await tester.pumpWidget(_host(EnhancedWorkGridView(
         works: const [],
         isLoading: false,
-        error: Strings.loginRequired,
-        isLoginError: true,
+        failure: const LoadFailure(Strings.loginRequired, needsLogin: true),
         onLogin: () {},
         onRetry: () {},
       )));
       expect(find.text(Strings.goLogin), findsOneWidget);
       expect(find.text(Strings.retry), findsNothing);
+      // 图标与按钮必须同源。只钉回退那一半是不够的——把图标写死成
+      // error_outline 时，仅有回退断言的话两条都还是绿的。
+      expect(find.byIcon(Icons.lock_outline), findsOneWidget);
+      expect(find.byIcon(Icons.error_outline), findsNothing);
     });
 
-    testWidgets('onLogin 为空 → 回退"重试"', (tester) async {
+    testWidgets('onLogin 为空 → 回退"重试"，图标也随之回退为 error_outline（而非锁）',
+        (tester) async {
       await tester.pumpWidget(_host(EnhancedWorkGridView(
         works: const [],
         isLoading: false,
-        error: Strings.loginRequired,
-        isLoginError: true,
+        failure: const LoadFailure(Strings.loginRequired, needsLogin: true),
         onRetry: () {},
       )));
       expect(find.text(Strings.retry), findsOneWidget);
       expect(find.text(Strings.goLogin), findsNothing);
+      expect(find.byIcon(Icons.error_outline), findsOneWidget);
+      expect(find.byIcon(Icons.lock_outline), findsNothing);
     });
   });
 

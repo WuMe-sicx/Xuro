@@ -128,12 +128,15 @@ When adding a new HTTP-touching service, follow the `_onSettingsChanged` pattern
 
 ### Error-prompt UX (connection vs. login state)
 
-A list-page error must communicate the **right recovery action**, not just "出错了 + 重试". This invariant spans four layers — keep them consistent when adding a new paginated screen:
+**See [`CLAUDE.md`](CLAUDE.md) §"Error-prompt UX" — single source of truth.**
 
-1. **Data**: `NetworkException.userMessage` centralizes the copy (VPN hint for connection/timeout, "请先登录" for 401/403). Don't surface `e.toString()` to users.
-2. **ViewModel**: list ViewModels (`FavoritesViewModel`, `RecommendViewModel`) expose `bool isLoginError` alongside `String? error`. Set it `true` in the not-logged-in early return **and** when a caught `NetworkException.isAuthError` is true; reset to `false` before each load and on non-auth errors. The `catch` block routes through `NetworkException.userMessage`.
-3. **Widget**: `EnhancedWorkGridView` and the legacy `WorkGridView` take `isLoginError` + `onLogin` (both optional, defaulting to retry behavior so other screens are unaffected). When `isLoginError && onLogin != null` they render a **"去登录" button instead of "重试"** (retrying a not-logged-in request is pointless). `GridError` owns the actual branching.
-4. **Screen**: content screens pass `isLoginError: vm.isLoginError` and an `onLogin` that opens `LoginDialog` on the **root navigator** (`useRootNavigator: true`), `await`s it, and reloads the list if `context.read<AuthViewModel>().isLoggedIn` afterward. The standalone `FavoritesScreen` (sidebar route, still on legacy `WorkGridView`) is wired the same way for parity. `RecommendContent`'s `Selector` record must include `isLoginError` so the grid rebuilds when it flips.
+The copy that used to live here drifted: it still described `bool isLoginError`
+alongside `String? error`, and a legacy `WorkGridView` that had already been
+deleted. Both were gone from the code, and an audit found 8 of 11 list screens
+silently non-compliant with the contract these two files were separately
+describing. Two documents restating the same invariant is the same
+hand-carrying disease this section is about — so this one now points instead of
+repeating.
 
 ## CI/CD
 
