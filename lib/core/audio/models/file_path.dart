@@ -1,3 +1,4 @@
+import 'package:xuro/core/files/file_kind.dart';
 import 'package:xuro/data/models/files/files.dart';
 import 'package:xuro/data/models/files/child.dart';
 import 'package:xuro/utils/logger.dart';
@@ -38,7 +39,7 @@ class FilePath {
         return [...currentPath, child.title!];
       }
 
-      if (child.type == 'folder' && child.children != null) {
+      if (FileKinds.isFolder(child) && child.children != null) {
         final result = _findPathSegments(
             child.children, targetFile, [...currentPath, child.title!]);
         if (result != null) return result;
@@ -101,7 +102,7 @@ class FilePath {
     // 逐级查找目录
     for (final segment in segments) {
       final nextDir = current?.firstWhere(
-        (child) => child.title == segment && child.type == 'folder',
+        (child) => child.title == segment && FileKinds.isFolder(child),
         orElse: () => Child(),
       );
 
@@ -128,7 +129,7 @@ class FilePath {
       if (folder.children != null) {
         // 首先检查当前��录是否直接包含音频文件
         bool hasDirectAudio = folder.children!.any((child) {
-          if (child.type != 'folder') {
+          if (!FileKinds.isFolder(child)) {
             final fileName = child.title?.toLowerCase() ?? '';
             return formats.any((format) => fileName.endsWith(format));
           }
@@ -143,7 +144,7 @@ class FilePath {
 
         // 如果当前目录没有音频文件，递归检查子目录
         for (final child in folder.children!) {
-          if (child.type == 'folder') {
+          if (FileKinds.isFolder(child)) {
             List<String> newPath = List.from(currentPath)
               ..add(child.title ?? '');
             findPath(child, newPath);
@@ -154,7 +155,7 @@ class FilePath {
 
     // 遍历根目录下的所有文件夹
     for (final child in children) {
-      if (child.type == 'folder') {
+      if (FileKinds.isFolder(child)) {
         findPath(child, [child.title ?? '']);
         if (audioFolderPath != null) break;
       }

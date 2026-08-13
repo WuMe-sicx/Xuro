@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:xuro/common/constants/strings.dart';
+import 'package:xuro/core/files/file_kind.dart';
 import 'package:xuro/data/models/files/files.dart';
 import 'package:xuro/data/models/files/child.dart';
 import 'package:xuro/widgets/detail/work_folder_item.dart';
@@ -56,7 +57,7 @@ class WorkFilesList extends StatelessWidget {
             color: Theme.of(context).colorScheme.surfaceContainerHighest,
           ),
           ...files.children
-                  ?.map((child) => child.type == 'folder'
+                  ?.map((child) => FileKinds.isFolder(child)
                       ? WorkFolderItem(
                           folder: child,
                           indentation: 0,

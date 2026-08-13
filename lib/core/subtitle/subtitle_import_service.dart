@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:xuro/core/files/file_kind.dart';
 import 'package:xuro/core/subtitle/models/user_subtitle_entry.dart';
 import 'package:xuro/core/subtitle/parsers/subtitle_parser_factory.dart';
 import 'package:xuro/core/audio/models/subtitle.dart';
@@ -26,7 +27,6 @@ class ImportResponse {
 
 class SubtitleImportService {
   static const _maxFileSizeBytes = 5 * 1024 * 1024; // 5 MB
-  static const _supportedExtensions = ['.vtt', '.lrc'];
 
   final FilePickerService _picker;
   final UserSubtitleRepository _repository;
@@ -50,8 +50,9 @@ class SubtitleImportService {
       final originalName = p.basename(pickedPath);
       final ext = p.extension(pickedPath).toLowerCase();
 
-      // 2. Validate extension
-      if (!_supportedExtensions.contains(ext)) {
+      // 2. Validate extension. module 集合不带点，ext 带点，去掉前导点再比对。
+      if (!FileKinds.pairableSubtitleExtensions
+          .contains(ext.replaceFirst('.', ''))) {
         AppLogger.warning('字幕格式不支持: $ext');
         return const ImportResponse(ImportResult.invalidFormat);
       }

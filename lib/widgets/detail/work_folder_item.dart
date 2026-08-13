@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:xuro/common/constants/strings.dart';
+import 'package:xuro/core/files/file_kind.dart';
 import 'package:xuro/data/models/files/child.dart';
 import 'package:xuro/utils/logger.dart';
 import 'package:xuro/widgets/detail/work_file_item.dart';
@@ -100,7 +101,7 @@ class WorkFolderItem extends StatelessWidget {
           ),
           initiallyExpanded: shouldExpand,
           children: folder.children
-                  ?.map((child) => child.type == 'folder'
+                  ?.map((child) => FileKinds.isFolder(child)
                       ? WorkFolderItem(
                           folder: child,
                           indentation: indentation + 16.0,

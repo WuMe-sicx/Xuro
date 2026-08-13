@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:xuro/common/constants/strings.dart';
+import 'package:xuro/core/files/file_kind.dart';
 import 'package:xuro/data/models/files/child.dart';
 import 'package:xuro/utils/logger.dart';
 import 'package:xuro/utils/file_size_formatter.dart';
@@ -18,31 +19,12 @@ class WorkFileItem extends StatelessWidget {
     this.onFileDownload,
   });
 
-  static const _videoExtensions = {'mp4', 'mkv', 'mov', 'avi', 'webm', 'm4v'};
-
-  static const _subtitleExtensions = {'vtt', 'lrc', 'srt', 'txt'};
-
-  bool get _isAudio => file.type?.toLowerCase() == 'audio';
-
-  bool get _isVideo {
-    if ((file.type ?? '').toLowerCase() == 'video') return true;
-    final ext = file.title?.split('.').last.toLowerCase();
-    return ext != null && _videoExtensions.contains(ext);
-  }
-
-  bool get _isSubtitle {
-    final ext = file.title?.split('.').last.toLowerCase();
-    return ext != null && _subtitleExtensions.contains(ext);
-  }
-
   @override
   Widget build(BuildContext context) {
-    // 视频扩展名优先于 API `type`：asmr.one 会把视频错标 type=audio，
-    // 若当音频会进播放管线导致"播放列表为空"。这类文件按视频处理
-    // （走下载到本地用外部播放器的流程）。
-    final bool isVideo = _isVideo;
-    final bool isAudio = _isAudio && !isVideo;
-    final bool isSubtitle = !isAudio && !isVideo && _isSubtitle;
+    final FileKind kind = FileKinds.of(file);
+    final bool isAudio = kind == FileKind.audio;
+    final bool isVideo = kind == FileKind.video;
+    final bool isSubtitle = kind == FileKind.subtitle;
     final bool tappable = isAudio || isVideo || isSubtitle;
     final colorScheme = Theme.of(context).colorScheme;
 
