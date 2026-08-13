@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:xuro/core/download/download_service.dart';
+import 'package:xuro/core/download/models/download_entry.dart';
 import 'package:xuro/data/models/files/child.dart';
 
 void main() {
@@ -122,6 +123,60 @@ void main() {
     test('strips leading dots so it is not a hidden file', () {
       expect(DownloadService.sanitizeFileName('.hidden.txt'), 'hidden.txt');
       expect(DownloadService.sanitizeFileName('. . name.mp3'), 'name.mp3');
+    });
+  });
+
+  group('DownloadService.pathsByFileKey (pure, no IO)', () {
+    DownloadEntry mkEntry({
+      required String workId,
+      required String fileKey,
+      required String filePath,
+    }) =>
+        DownloadEntry(
+          workId: workId,
+          fileKey: fileKey,
+          fileName: 'name.mp3',
+          filePath: filePath,
+          mediaType: 'audio',
+          sourceUrl: 'https://x/$fileKey',
+          size: 1,
+          createdAt: 0,
+        );
+
+    test('multiple rows map to fileKey -> filePath', () {
+      final map = DownloadService.pathsByFileKey([
+        mkEntry(workId: 'w1', fileKey: 'k1', filePath: '/p/a.mp3'),
+        mkEntry(workId: 'w1', fileKey: 'k2', filePath: '/p/b.mp3'),
+      ]);
+      expect(map, {'k1': '/p/a.mp3', 'k2': '/p/b.mp3'});
+    });
+
+    test(
+        'is workId-agnostic: caller must pre-filter (localPathsForWork does '
+        'via listByWork) — rows from another work never leak in if excluded '
+        'from the input list', () {
+      // 模拟 localPathsForWork 已经用 listByWork(workId) 把行过滤到单个作品，
+      // 这里只传入过滤后的子集，验证纯函数本身不做也不需要做二次过滤。
+      final onlyWorkA = [
+        mkEntry(workId: 'A', fileKey: 'kA', filePath: '/p/a.mp3'),
+      ];
+      final map = DownloadService.pathsByFileKey(onlyWorkA);
+      expect(map, {'kA': '/p/a.mp3'});
+      expect(map.containsKey('kB'), isFalse);
+    });
+
+    test('duplicate fileKey rows collapse idempotently (later row wins, '
+        'mirrors DB UNIQUE(work_id, file_key))', () {
+      final map = DownloadService.pathsByFileKey([
+        mkEntry(workId: 'w1', fileKey: 'k1', filePath: '/old.mp3'),
+        mkEntry(workId: 'w1', fileKey: 'k1', filePath: '/new.mp3'),
+      ]);
+      expect(map.length, 1);
+      expect(map['k1'], '/new.mp3');
+    });
+
+    test('empty input -> empty map', () {
+      expect(DownloadService.pathsByFileKey(const []), isEmpty);
     });
   });
 }

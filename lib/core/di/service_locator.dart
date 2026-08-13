@@ -130,9 +130,6 @@ Future<void> setupServiceLocator() async {
     ),
   );
 
-  // 等待 AuthViewModel 完成初始化
-  await getIt<AuthViewModel>().loadSavedAuth();
-
   // 添加字幕服务注册
   getIt.registerLazySingleton<ISubtitleService>(
     () => SubtitleService(),
@@ -170,15 +167,17 @@ void setupSubtitleServices() {
     return SubtitleLoader(dio: dio);
   });
   if (Platform.isAndroid) {
-    getIt.registerLazySingleton<ILyricOverlayController>(() => LyricOverlayController());
+    getIt.registerLazySingleton<ILyricOverlayController>(
+        () => LyricOverlayController());
   } else {
-    getIt.registerLazySingleton<ILyricOverlayController>(() => DummyLyricOverlayController());
+    getIt.registerLazySingleton<ILyricOverlayController>(
+        () => DummyLyricOverlayController());
   }
   getIt.registerLazySingleton(() => LyricOverlayManager(
-    controller: getIt(),
-    subtitleService: getIt(),
-    settings: getIt<AppSettingsService>(),
-  ));
+        controller: getIt(),
+        subtitleService: getIt(),
+        settings: getIt<AppSettingsService>(),
+      ));
 }
 
 /// 首帧之后再执行的非关键启动初始化。

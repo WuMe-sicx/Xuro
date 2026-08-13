@@ -13,23 +13,18 @@ class AudioCacheManager {
 
   /// 创建音频源
   /// 内部处理缓存逻辑,对外只返回 AudioSource
-  static Future<AudioSource> createAudioSource(String url, {String? hash}) async {
+  static Future<AudioSource> createAudioSource(String url,
+      {String? hash}) async {
     try {
       final cacheFile = await _getCacheFile(url, hash: hash);
       final fileName = _generateFileName(url, hash: hash);
       AppLogger.debug('准备创建音频源 - URL: $url, 缓存文件名: $fileName');
-      
-      // 检查缓存文件是否存在且有效
-      final isValid = await _isCacheValid(cacheFile, fileName);
-      
-      if (isValid) {
-        AppLogger.debug('[$fileName] 使用已有缓存文件');
-        return _createCachingSource(url, cacheFile);
-      }
 
-      AppLogger.debug('[$fileName] 创建新的缓存源');
+      // 不再预判缓存是否"有效"：LockCachingAudioSource 自己会处理
+      // "文件已存在则直接读、否则边下边写"；过期缓存的清理是 cleanCache()
+      // 的职责（真 LRU，按 mtime 淘汰）。省掉这里每轨一次 exists()+stat()
+      // 探测——探测结果此前两个分支返回的都是同一个 _createCachingSource(...)。
       return _createCachingSource(url, cacheFile);
-      
     } catch (e, stackTrace) {
       AppLogger.warning('创建缓存音频源失败,降级为流式播放: $url');
       AppLogger.error('缓存源创建异常', e, stackTrace);
@@ -129,7 +124,7 @@ class AudioCacheManager {
     try {
       final cacheDir = await _getCacheDir();
       final files = await cacheDir.list().toList();
-      
+
       var totalSize = 0;
       for (var file in files) {
         if (file is File) {
@@ -153,36 +148,6 @@ class AudioCacheManager {
     );
   }
 
-  /// 检查缓存是否有效
-  static Future<bool> _isCacheValid(File cacheFile, String fileName) async {
-    final exists = await cacheFile.exists();
-    if (!exists) {
-      AppLogger.debug('[$fileName] 缓存验证: 文件不存在');
-      return false;
-    }
-
-    try {
-      final stat = await cacheFile.stat();
-      final size = stat.size;
-      final age = DateTime.now().difference(stat.modified);
-      
-      AppLogger.debug('[$fileName] 缓存验证: 大小=${size}bytes, 年龄=$age');
-      
-      // 移除单个文件大小检查，只保留过期检查
-      if (age > _cacheExpiration) {
-        AppLogger.debug('[$fileName] 缓存无效: 文件过期 ($age > $_cacheExpiration)');
-        await cacheFile.delete();
-        return false;
-      }
-
-      AppLogger.debug('[$fileName] 缓存验证: 有效');
-      return true;
-    } catch (e) {
-      AppLogger.error('[$fileName] 检查缓存有效性失败', e);
-      return false;
-    }
-  }
-
   /// 获取缓存文件
   static Future<File> _getCacheFile(String url, {String? hash}) async {
     final cacheDir = await _getCacheDir();
@@ -201,14 +166,30 @@ class AudioCacheManager {
     return digest.toString();
   }
 
+  // 缓存的是 Future 而非已解析的 Directory：`??=` 与赋值之间没有 await
+  // 挂起点，单线程事件循环下并发首访只会触发一次 platform channel +
+  // 目录创建（同 database_service.dart 的记忆化模式）。目录本身此后不会
+  // 被整体删除——clearAllCache() 只删目录内的文件/子目录，不删目录本身
+  // ——所以进程生命周期内长期复用是安全的。
+  static Future<Directory>? _cacheDirFuture;
+
   /// 获取缓存目录
-  static Future<Directory> _getCacheDir() async {
-    final appDir = await getApplicationSupportDirectory();
-    final audioCacheDir = Directory('${appDir.path}/audio_cache');
-    if (!await audioCacheDir.exists()) {
-      await audioCacheDir.create(recursive: true);
+  static Future<Directory> _getCacheDir() =>
+      _cacheDirFuture ??= _openCacheDir();
+
+  static Future<Directory> _openCacheDir() async {
+    try {
+      final appDir = await getApplicationSupportDirectory();
+      final audioCacheDir = Directory('${appDir.path}/audio_cache');
+      if (!await audioCacheDir.exists()) {
+        await audioCacheDir.create(recursive: true);
+      }
+      return audioCacheDir;
+    } catch (e) {
+      // 一次失败不应永久毒化后续访问：清缓存让下次访问可重试。
+      _cacheDirFuture = null;
+      rethrow;
     }
-    return audioCacheDir;
   }
 
   /// One-time cleanup of legacy temp cache directory

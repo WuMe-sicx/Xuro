@@ -18,7 +18,27 @@ class FavoritesViewModel extends ChangeNotifier {
   Pagination? _pagination;
   int _currentPage = 1;
 
-  FavoritesViewModel(this._authViewModel) : _apiService = GetIt.I<ApiService>();
+  FavoritesViewModel(this._authViewModel)
+      : _apiService = GetIt.I<ApiService>() {
+    // 鉴权尚未从本地存储恢复时补挂监听，就绪后补一次加载——防止「先误报
+    // 未登录再翻转」的闪烁（同 recommend_viewmodel.dart 的处理）。
+    if (!_authViewModel.isAuthReady) {
+      _authViewModel.addListener(_onAuthReady);
+    }
+  }
+
+  void _onAuthReady() {
+    if (!_authViewModel.isAuthReady) return;
+    _authViewModel.removeListener(_onAuthReady);
+    _isLoading = false;
+    loadPage(_currentPage);
+  }
+
+  @override
+  void dispose() {
+    _authViewModel.removeListener(_onAuthReady);
+    super.dispose();
+  }
 
   List<Work> get works => _works;
   bool get isLoading => _isLoading;
@@ -38,6 +58,14 @@ class FavoritesViewModel extends ChangeNotifier {
   Future<void> loadPage(int page) async {
     if (_isLoading) return;
     if (page < 1 || (totalPages != null && page > totalPages!)) return;
+
+    // 鉴权状态尚未从本地存储恢复：保持 loading 而非误报未登录，
+    // 等 AuthViewModel 就绪后由 _onAuthReady 补一次加载。
+    if (!_authViewModel.isAuthReady) {
+      _isLoading = true;
+      notifyListeners();
+      return;
+    }
 
     if (!_authViewModel.isLoggedIn) {
       _error = Strings.loginRequired;
@@ -61,13 +89,8 @@ class FavoritesViewModel extends ChangeNotifier {
       AppLogger.info('第$page页收藏列表加载成功: ${response.works.length}个作品');
     } catch (e) {
       AppLogger.error('加载收藏列表失败', e);
-      if (e is NetworkException) {
-        _error = e.userMessage;
-        _isLoginError = e.isAuthError;
-      } else {
-        _error = e.toString();
-        _isLoginError = false;
-      }
+      _error = userMessageOf(e);
+      _isLoginError = isAuthErrorOf(e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -78,4 +101,4 @@ class FavoritesViewModel extends ChangeNotifier {
   Future<void> loadFavorites({bool refresh = false}) async {
     await loadPage(1);
   }
-} 
+}

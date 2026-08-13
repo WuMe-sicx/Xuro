@@ -8,13 +8,9 @@ class AppLogger {
       lineLength: 120,
       colors: true,
       printEmojis: true,
-      printTime: true,
+      dateTimeFormat: DateTimeFormat.onlyTimeAndSinceStart,
     ),
   );
-
-  static void init() {
-    Logger.level = Level.debug;
-  }
 
   static void debug(String message) => _logger.d(message);
   static void info(String message) => _logger.i(message);

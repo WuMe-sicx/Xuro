@@ -28,7 +28,8 @@ class DownloadResult {
   const DownloadResult(this.status, [this.localPath]);
 
   bool get isPlayable =>
-      status == DownloadStatus.success || status == DownloadStatus.alreadyExists;
+      status == DownloadStatus.success ||
+      status == DownloadStatus.alreadyExists;
 }
 
 /// 本地媒体下载服务。
@@ -194,6 +195,45 @@ class DownloadService {
     if (file.title == null) return null;
     final entry = await findCompleted(workId, fileKey(file));
     return entry?.filePath;
+  }
+
+  /// 批量解析某作品所有已完整下载的文件，供恢复/构建一个 N 轨播放列表时
+  /// 一次性查表，取代逐轨调用 [localPathIfDownloaded]（N 次 DB 查询收敛为
+  /// 一次 [IDownloadRepository.listByWork]）。
+  ///
+  /// 语义与 [localPathIfDownloaded] 对齐：**不能省** `File.exists()` 这道
+  /// 存在性闸门——Android 下载目录在 PC 上可见，用户可能已手动删除文件；
+  /// 若不过滤，返回的路径会喂给 `AudioSource.uri(Uri.file(缺失路径))`，
+  /// 这个构造调用本身不抛，缺失文件只会在真正播放时才炸 `PlayerException`，
+  /// 而不是像今天这样自然回退到流式播放。失效行按 [findCompleted] 同样的
+  /// 顺序清理（先判存在性，不存在再删 DB 行）。
+  ///
+  /// 调用方（[PlaylistBuilder]）需要自行处理 `title == null` 的文件：
+  /// 这类文件不可能已下载（[download] 本身要求非空文件名才会落盘），
+  /// 不应该用它退化的 fileKey 去查这份 map。
+  Future<Map<String, String>> localPathsForWork(String workId) async {
+    final entries = await _repository.listByWork(workId);
+    final live = <DownloadEntry>[];
+    for (final entry in entries) {
+      if (await File(entry.filePath).exists()) {
+        live.add(entry);
+        continue;
+      }
+      AppLogger.warning('下载记录指向缺失文件，清理失效行: ${entry.filePath}');
+      try {
+        await _repository.remove(entry.workId, entry.fileKey);
+      } catch (e) {
+        AppLogger.error('清理失效下载行失败', e);
+      }
+    }
+    return pathsByFileKey(live);
+  }
+
+  /// 纯映射：DB 行列表 → fileKey→filePath；不做任何 IO，供单测直接构造
+  /// [DownloadEntry] 验证。调用方需自行保证传入的行已按作品过滤
+  /// （[localPathsForWork] 经 `listByWork(workId)` 保证）。
+  static Map<String, String> pathsByFileKey(List<DownloadEntry> entries) {
+    return {for (final e in entries) e.fileKey: e.filePath};
   }
 
   /// 下载一个文件（音频/视频/字幕）到本地下载目录（Android 为外部应用专属

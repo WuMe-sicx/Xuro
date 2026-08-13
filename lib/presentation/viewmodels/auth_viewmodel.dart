@@ -10,6 +10,7 @@ class AuthViewModel extends ChangeNotifier {
   AuthResp? _authData;
   bool _isLoading = false;
   String? _error;
+  bool _authReady = false;
 
   AuthViewModel({
     required AuthService authService,
@@ -24,6 +25,7 @@ class AuthViewModel extends ChangeNotifier {
     if (_authData != null) {
       AppLogger.info('加载保存的认证数据: ${_authData?.user?.name}');
     }
+    _authReady = true;
     notifyListeners();
   }
 
@@ -37,10 +39,10 @@ class AuthViewModel extends ChangeNotifier {
     try {
       AppLogger.info('AuthViewModel: 开始登录流程');
       _authData = await _authService.login(name, password);
-      
+
       // 保存认证数据
       await _authRepository.saveAuthData(_authData!);
-      
+
       AppLogger.info('''
 登录成功，完整数据:
 - token: ${_authData?.token}
@@ -50,7 +52,6 @@ class AuthViewModel extends ChangeNotifier {
 - email: ${_authData?.user?.email}
 - recommenderUuid: ${_authData?.user?.recommenderUuid}
       ''');
-
     } catch (e) {
       AppLogger.error('AuthViewModel: 登录失败', e);
       _error = e.toString();
@@ -103,7 +104,7 @@ class AuthViewModel extends ChangeNotifier {
 - group: ${_authData?.user?.group}
 - token: ${_authData?.token}
     ''');
-    
+
     await _authRepository.clearAuthData();
     _authData = null;
     notifyListeners();
@@ -113,6 +114,12 @@ class AuthViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
+  /// True once the first saved-auth restore has resolved. Callers that key
+  /// off [isLoggedIn] on cold start (Favorites/Recommend) must wait for this
+  /// before treating a still-loading state as "not logged in" — otherwise
+  /// they flash a login prompt before the persisted token has been read.
+  bool get isAuthReady => _authReady;
+
   /// Clears the last login/register error so a freshly opened dialog doesn't
   /// inherit a stale message from a previous attempt.
   void clearError() {
@@ -120,6 +127,7 @@ class AuthViewModel extends ChangeNotifier {
     _error = null;
     notifyListeners();
   }
+
   String? get username => _authData?.user?.name;
   String? get token => _authData?.token;
   String? get group => _authData?.user?.group;
@@ -131,6 +139,7 @@ class AuthViewModel extends ChangeNotifier {
     if (_authData != null) {
       AppLogger.info('加载保存的认证数据: ${_authData?.user?.name}');
     }
+    _authReady = true;
     notifyListeners();
   }
-} 
+}
