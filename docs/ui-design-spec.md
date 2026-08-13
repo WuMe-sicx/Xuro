@@ -186,8 +186,10 @@ snackBar / bottomSheet / dialog / chip / navigationBar`，否则零圆角在这�
 
 ### 3.2 微交互
 
-`MicroInteractions` 定义了按压缩放 0.95、收藏弹跳等常量。**目前 0 调用点**——
-交互反馈层尚未落地，见 §8。
+交互反馈层尚未落地，见 §8。曾经存在的 `MicroInteractions` 常量类（按压缩放
+0.95、收藏弹跳等）已于 2026-08-13 删除：它挂了一整套常量却始终 0 调用点，
+留着只会让人以为按压反馈已经有了规范支撑。真要做时按当时的设计重新定义，
+不要复活一份没人用过、也没被任何界面验证过的数值。
 
 ### 3.3 页面转场
 
@@ -276,7 +278,7 @@ snackBar / bottomSheet / dialog / chip / navigationBar`，否则零圆角在这�
 
 | 缺口 | 说明 |
 | :--- | :--- |
-| 交互反馈层 | `MicroInteractions` 0 调用点；按压缩放未落地；触觉只在 `settings_tile.dart` 两处；mini player 与播放器主体用 `GestureDetector` 无涟漪 |
+| 交互反馈层 | 按压缩放未落地（原 `MicroInteractions` 常量类因 0 调用点已删，见 §3.2）；触觉只在 `settings_tile.dart` 两处；mini player 与播放器主体用 `GestureDetector` 无涟漪 |
 | `disableAnimations` | 全库 0 处，真实无障碍缺口 |
 | 列表入场动画 | 未做。分页 Sliver 每次筛选/翻页/换主题都重建，stagger 会反复闪，且正对 §7.5 的 55fps 硬线 |
 | 播放器 drag-to-dismiss | 未做。当前唯一出口是左上角按钮，单手够不着 |

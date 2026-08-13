@@ -7,9 +7,9 @@ import 'package:dio/dio.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:xuro/core/download/models/download_entry.dart';
-import 'package:xuro/core/download/storage/i_download_repository.dart';
 import 'package:xuro/data/models/files/child.dart';
 import 'package:xuro/utils/logger.dart';
+import 'package:xuro/core/download/storage/download_repository.dart';
 
 enum DownloadStatus {
   success,
@@ -50,10 +50,10 @@ class DownloadResult {
 class DownloadService {
   static const int _maxTotalSize = 4 * 1024 * 1024 * 1024; // 4 GB
 
-  final IDownloadRepository _repository;
+  final DownloadRepository _repository;
   final Dio _dio;
 
-  DownloadService({required IDownloadRepository repository, Dio? dio})
+  DownloadService({required DownloadRepository repository, Dio? dio})
       : _repository = repository,
         _dio = dio ?? Dio();
 
@@ -199,7 +199,7 @@ class DownloadService {
 
   /// 批量解析某作品所有已完整下载的文件，供恢复/构建一个 N 轨播放列表时
   /// 一次性查表，取代逐轨调用 [localPathIfDownloaded]（N 次 DB 查询收敛为
-  /// 一次 [IDownloadRepository.listByWork]）。
+  /// 一次 [DownloadRepository.listByWork]）。
   ///
   /// 语义与 [localPathIfDownloaded] 对齐：**不能省** `File.exists()` 这道
   /// 存在性闸门——Android 下载目录在 PC 上可见，用户可能已手动删除文件；
@@ -348,34 +348,6 @@ class DownloadService {
       }
       AppLogger.error('下载失败: $workId/$fileName', e);
       return const DownloadResult(DownloadStatus.ioError);
-    }
-  }
-
-  Future<void> removeDownload(String workId, Child file) async {
-    final key = fileKey(file);
-    String? path;
-    try {
-      path = (await _repository.find(workId, key))?.filePath;
-    } catch (e) {
-      AppLogger.error('查询待移除下载失败', e);
-    }
-    // DB 行先删（一致性关键：失效行会让 app 误判已下载）；
-    // 本地文件 best-effort，孤儿文件只是磁盘浪费、无害。
-    var dbRemoved = false;
-    try {
-      await _repository.remove(workId, key);
-      dbRemoved = true;
-    } catch (e) {
-      AppLogger.error('移除下载 DB 行失败（保留文件以免失效行）', e);
-    }
-    if (dbRemoved && path != null) {
-      try {
-        final f = File(path);
-        if (await f.exists()) await f.delete();
-        await _pruneEmptyDir(path);
-      } catch (e) {
-        AppLogger.warning('移除下载文件失败（DB 行已删，孤儿无害）: $e');
-      }
     }
   }
 

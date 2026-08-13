@@ -17,11 +17,9 @@ class Strings {
   // Home
   static const String search = '搜索';
   static const String homeSearchHint = '搜索你喜欢的声音...';
-  static const String musicList = '音乐列表将在这里显示';
 
   // Player
   static const String nowPlaying = '正在播放';
-  static const String playerPlaceholder = '播放器控件将在这里显示';
   static const String notPlaying = '未在播放';
   static const String unknownWork = '未知作品';
   static const String unknownArtist = '未知演员';
@@ -127,7 +125,6 @@ class Strings {
   static const String fileList = '文件列表';
   static const String downloadToLocalTooltip = '下载到本地（离线播放）';
   static const String gridEmpty = '暂无内容';
-  static const String noWorks = '暂无作品';
 
   // Playlist
   static const String addToPlaylist = '添加到收藏夹';
@@ -151,7 +148,6 @@ class Strings {
 
   // Detail
   static const String detail = '音乐详情';
-  static const String detailPlaceholder = '音乐详细信息将在这里显示';
 
   // Subtitle Import
   static const String importSubtitle = '导入字幕文件';
@@ -236,7 +232,6 @@ class Strings {
       'Xuro 是一个第三方 ASMR.ONE 客户端，支持后台播放、字幕/悬浮歌词、播放列表与缓存。基于 CC BY-NC-SA 协议开源。';
   static const String versionLabel = '版本';
   static const String aboutFooter = '© Xuro · 基于 CC BY-NC-SA 4.0 开源';
-  static const String versionInfo = '版本信息';
   static const String openSourceLicenses = '开源许可';
   static const String feedback = '问题反馈';
   static const String sourceCode = '源代码';

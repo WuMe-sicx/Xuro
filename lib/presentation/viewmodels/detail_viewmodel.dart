@@ -1,5 +1,4 @@
 import 'package:xuro/common/constants/strings.dart';
-import 'package:xuro/data/models/playlists_with_exist_statu/pagination.dart';
 import 'package:xuro/data/models/playlists_with_exist_statu/playlist.dart';
 import 'package:get_it/get_it.dart';
 import 'package:flutter/material.dart';
@@ -61,7 +60,6 @@ class DetailViewModel extends ChangeNotifier {
   bool _loadingPlaylists = false;
   String? _playlistsError;
   List<Playlist>? _playlists;
-  Pagination? _playlistsPagination;
 
   bool _loadingFavorite = false;
   bool get loadingFavorite => _loadingFavorite;
@@ -90,17 +88,11 @@ class DetailViewModel extends ChangeNotifier {
   bool get hasRecommendations => _hasRecommendations;
   bool get checkingRecommendations => _checkingRecommendations;
   WorkInfo? get workInfo => _workInfo;
-  bool get isLoadingInfo => _isLoadingInfo;
 
   // 收藏夹相关 getters
   bool get loadingPlaylists => _loadingPlaylists;
   String? get playlistsError => _playlistsError;
   List<Playlist>? get playlists => _playlists;
-  int? get playlistsTotalPages => _playlistsPagination?.totalCount != null &&
-          _playlistsPagination?.pageSize != null
-      ? (_playlistsPagination!.totalCount! / _playlistsPagination!.pageSize!)
-          .ceil()
-      : null;
 
   Future<void> _checkRecommendations() async {
     _checkingRecommendations = true;
@@ -405,7 +397,6 @@ class DetailViewModel extends ChangeNotifier {
       );
 
       _playlists = response.playlists;
-      _playlistsPagination = response.pagination;
       AppLogger.info('收藏夹列表加载成功: ${_playlists?.length ?? 0}个收藏夹');
     } catch (e) {
       AppLogger.error('加载收藏夹列表失败', e);

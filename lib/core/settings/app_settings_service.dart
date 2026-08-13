@@ -112,10 +112,6 @@ class AppSettingsService extends ChangeNotifier {
     await _prefs.setStringList(_audioFormatOrderKey, _audioFormatOrder);
   }
 
-  Future<void> resetAudioFormatOrder() async {
-    await setAudioFormatOrder(List.from(defaultAudioFormatOrder));
-  }
-
   // === Lyric Overlay Lock ===
   /// `true` → 悬浮歌词可拖动调整位置；`false` → 锁定（点穿，默认）。
   bool get lyricOverlayUnlocked => _lyricOverlayUnlocked;

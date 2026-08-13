@@ -2,15 +2,13 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:xuro/utils/logger.dart';
 import 'package:xuro/data/models/playback/playback_state.dart';
-import 'i_playback_state_repository.dart';
 
-class PlaybackStateRepository implements IPlaybackStateRepository {
+class PlaybackStateRepository {
   static const _key = 'last_playback_state';
   final SharedPreferences _prefs;
 
   PlaybackStateRepository(this._prefs);
 
-  @override
   Future<void> saveState(PlaybackState state) async {
     try {
       final json = state.toJson();
@@ -23,7 +21,6 @@ class PlaybackStateRepository implements IPlaybackStateRepository {
     }
   }
 
-  @override
   Future<void> clearState() async {
     try {
       await _prefs.remove(_key);
@@ -34,7 +31,6 @@ class PlaybackStateRepository implements IPlaybackStateRepository {
     }
   }
 
-  @override
   Future<PlaybackState?> loadState() async {
     try {
       final data = _prefs.getString(_key);
