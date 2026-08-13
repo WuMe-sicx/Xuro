@@ -125,7 +125,6 @@ class Strings {
   static const String fileList = '文件列表';
   static const String downloadToLocalTooltip = '下载到本地（离线播放）';
   static const String gridEmpty = '暂无内容';
-  static const String noWorks = '暂无作品';
 
   // Playlist
   static const String addToPlaylist = '添加到收藏夹';

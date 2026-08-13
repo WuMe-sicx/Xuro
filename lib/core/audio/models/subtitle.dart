@@ -18,20 +18,6 @@ class Subtitle {
     required this.index,
   });
 
-  Subtitle? getNext(SubtitleList list) {
-    if (index < list.subtitles.length - 1) {
-      return list.subtitles[index + 1];
-    }
-    return null;
-  }
-
-  Subtitle? getPrevious(SubtitleList list) {
-    if (index > 0) {
-      return list.subtitles[index - 1];
-    }
-    return null;
-  }
-
   @override
   String toString() => '$start --> $end: $text';
 }
