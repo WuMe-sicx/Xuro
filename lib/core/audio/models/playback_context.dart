@@ -93,23 +93,29 @@ class PlaybackContext {
         .toList();
   }
 
-  /// Create a context with a pre-filtered playlist (e.g. after skipping failed audio sources).
-  /// `playlist` must be a subset of the original and `currentFile` must be in it.
-  factory PlaybackContext.withFilteredPlaylist({
+  /// 直接采纳 just_audio 队列的内容与下标——**队列是权威**。
+  ///
+  /// `playlist` 是队列的逐位镜像（构造失败的音源已被剔除），`currentIndex`
+  /// 是播放器实际起播的那一槽。`currentFile` 由二者推出，而不是反过来按
+  /// `title` 反查下标：反查在同名文件上会取到第一个，而队列下标是精确的。
+  ///
+  /// 这也是唯一能表达「列表已被过滤」的构造入口——公开工厂总是从完整文件树
+  /// 重新推导，无法承载这个事实。
+  factory PlaybackContext.fromQueue({
     required Work work,
     required Files files,
-    required Child currentFile,
     required List<Child> playlist,
+    required int currentIndex,
     PlayMode playMode = PlayMode.sequence,
   }) {
-    final currentIndex =
-        playlist.indexWhere((f) => f.title == currentFile.title);
+    assert(playlist.isNotEmpty, 'fromQueue 不接受空队列');
+    final index = currentIndex.clamp(0, playlist.length - 1);
     return PlaybackContext._(
       work: work,
       files: files,
-      currentFile: currentFile,
+      currentFile: playlist[index],
       playlist: playlist,
-      currentIndex: currentIndex >= 0 ? currentIndex : 0,
+      currentIndex: index,
       playMode: playMode,
     );
   }
@@ -117,8 +123,8 @@ class PlaybackContext {
   /// 切曲：在**已确定的播放列表上移动游标**，不重新推导列表。
   ///
   /// 这里曾经走公开工厂重新推导，结果是：`PlaybackController` 在部分音源
-  /// 构造失败时用 [withFilteredPlaylist] 建立的过滤列表，会在七行之后被这个
-  /// 方法碾平回完整文件树的推导结果——而 just_audio 的队列仍是过滤后的。
+  /// 构造失败时用 [PlaybackContext.fromQueue] 建立的过滤列表，会在七行之后被
+  /// 这个方法碾平回完整文件树的推导结果——而 just_audio 的队列仍是过滤后的。
   /// 于是队列下标被拿去索引一个更长的列表，取到错位的 `Child`，锁屏标题、
   /// 字幕、持久化的 currentFile 全部跟着错；更糟的是错位往往精确落回那个
   /// 因 `mediaDownloadUrl == null` 而被丢弃的文件，`TrackInfoCreator` 的

@@ -116,18 +116,18 @@ void main() {
 
   group('copyWithFile 不得重新推导播放列表', () {
     // 这一组是回归闸门。修复前 copyWithFile 走公开工厂重新推导，
-    // PlaybackController 刚用 withFilteredPlaylist 建立的过滤列表会在七行后
+    // PlaybackController 刚用 fromQueue 建立的过滤列表会在七行后
     // 被碾平；而 just_audio 队列仍是过滤后的，队列下标去索引更长的列表 →
     // 取到错位的 Child → 锁屏标题/字幕/持久化 currentFile 全错。
     final all = [_audio('01.mp3'), _audio('02.mp3'), _audio('03.mp3')];
     final files = _root(all);
 
-    PlaybackContext filtered() => PlaybackContext.withFilteredPlaylist(
+    PlaybackContext filtered() => PlaybackContext.fromQueue(
           work: _work,
           files: files,
-          currentFile: all[0],
           // 02 音源构造失败被丢弃，队列只剩 [01, 03]
           playlist: [all[0], all[2]],
+          currentIndex: 0,
         );
 
     test('过滤后的列表在切曲后必须存活', () {
@@ -167,28 +167,56 @@ void main() {
     });
   });
 
-  group('withFilteredPlaylist', () {
-    final all = [_audio('01.mp3'), _audio('02.mp3')];
+  group('fromQueue —— 队列是权威', () {
+    final all = [_audio('01.mp3'), _audio('02.mp3'), _audio('03.mp3')];
 
-    test('原样采纳传入的列表，不碰文件树', () {
-      final ctx = PlaybackContext.withFilteredPlaylist(
+    test('原样采纳队列内容，不碰文件树', () {
+      final ctx = PlaybackContext.fromQueue(
         work: _work,
         files: _root(all),
-        currentFile: all[1],
         playlist: [all[1]],
+        currentIndex: 0,
       );
       expect(ctx.playlist, hasLength(1));
       expect(ctx.currentIndex, 0);
+      expect(ctx.currentFile.title, '02.mp3');
     });
 
-    test('currentFile 不在列表中时游标 clamp 到 0', () {
-      final ctx = PlaybackContext.withFilteredPlaylist(
+    test('currentFile 由队列下标推出，不按 title 反查', () {
+      // 目标轨构造失败时播放器停在 remapIndex 给的槽位（原下标之后第一个
+      // 存活的轨），不是 0。此前把 currentFile 猜成 loadedFiles.first，
+      // 于是锁屏标题/字幕/持久化的 currentFile 全错。
+      final ctx = PlaybackContext.fromQueue(
         work: _work,
         files: _root(all),
-        currentFile: _audio('99.mp3'),
-        playlist: [all[0]],
+        playlist: [all[0], all[2]], // 02 被丢弃
+        currentIndex: 1, // 播放器实际停在 03
       );
-      expect(ctx.currentIndex, 0);
+      expect(ctx.currentFile.title, '03.mp3');
+      expect(ctx.currentIndex, 1);
+    });
+
+    test('同名文件不再有歧义——下标精确，title 反查会取到第一个', () {
+      final dup = [_audio('01.mp3'), _audio('01.mp3')];
+      final ctx = PlaybackContext.fromQueue(
+        work: _work,
+        files: _root(dup),
+        playlist: dup,
+        currentIndex: 1,
+      );
+      expect(ctx.currentIndex, 1);
+      expect(identical(ctx.currentFile, dup[1]), isTrue);
+    });
+
+    test('越界下标 clamp 进范围', () {
+      final ctx = PlaybackContext.fromQueue(
+        work: _work,
+        files: _root(all),
+        playlist: [all[0], all[1]],
+        currentIndex: 9,
+      );
+      expect(ctx.currentIndex, 1);
+      expect(ctx.currentFile.title, '02.mp3');
     });
   });
 

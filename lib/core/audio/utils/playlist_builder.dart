@@ -85,8 +85,13 @@ class PlaylistBuilder {
     await playlist.addAll(sources);
   }
 
-  /// Returns the list of files that were successfully loaded (matching the player queue order).
-  static Future<List<Child>> setPlaylistSource({
+  /// 换源，返回 **(队列内容, 播放器实际起播的队列下标)**。
+  ///
+  /// 两个返回值合起来才是「播放器现在在放什么」的完整描述。此前只返回
+  /// `loadedFiles`、把 [remapIndex] 算出的下标丢掉，调用方无从得知播放实际
+  /// 起始于哪一槽，只能猜 `loadedFiles.first`——目标轨构造失败时那个猜测是
+  /// 错的（`remapIndex` 给的是「原下标之后第一个存活的轨」，不是 0）。
+  static Future<(List<Child>, int)> setPlaylistSource({
     required AudioPlayer player,
     required ConcatenatingAudioSource playlist,
     required List<Child> files,
@@ -120,6 +125,6 @@ class PlaylistBuilder {
       initialPosition: initialPosition,
     );
 
-    return loadedFiles;
+    return (loadedFiles, remappedIndex);
   }
 }
