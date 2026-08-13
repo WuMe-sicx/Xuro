@@ -5,16 +5,16 @@ import '../models/playback_context.dart';
 import '../utils/audio_error_handler.dart';
 import '../utils/track_info_creator.dart';
 import 'package:xuro/data/models/playback/playback_state.dart';
-import '../storage/i_playback_state_repository.dart';
 import '../events/playback_event.dart';
 import '../events/playback_event_hub.dart';
 import 'package:xuro/data/models/files/child.dart';
 import 'package:xuro/data/models/works/work.dart';
+import 'package:xuro/core/audio/storage/playback_state_repository.dart';
 
 class PlaybackStateManager {
   final AudioPlayer _player;
   final PlaybackEventHub _eventHub;
-  final IPlaybackStateRepository _stateRepository;
+  final PlaybackStateRepository _stateRepository;
 
   AudioTrackInfo? _currentTrack;
   PlaybackContext? _currentContext;
@@ -33,7 +33,7 @@ class PlaybackStateManager {
   PlaybackStateManager({
     required AudioPlayer player,
     required PlaybackEventHub eventHub,
-    required IPlaybackStateRepository stateRepository,
+    required PlaybackStateRepository stateRepository,
   })  : _player = player,
         _eventHub = eventHub,
         _stateRepository = stateRepository;

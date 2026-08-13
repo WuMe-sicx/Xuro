@@ -1,16 +1,14 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:xuro/core/database/database_service.dart';
 import 'package:xuro/core/subtitle/models/user_subtitle_entry.dart';
-import 'package:xuro/core/subtitle/storage/i_user_subtitle_repository.dart';
 import 'package:xuro/utils/logger.dart';
 
-class UserSubtitleRepository implements IUserSubtitleRepository {
+class UserSubtitleRepository {
   static const _table = 'user_subtitles';
   final DatabaseService _db;
 
   UserSubtitleRepository(this._db);
 
-  @override
   Future<UserSubtitleEntry?> find(String workId, String fileName) async {
     final db = await _db.database;
     final results = await db.query(
@@ -23,7 +21,6 @@ class UserSubtitleRepository implements IUserSubtitleRepository {
     return UserSubtitleEntry.fromMap(results.first);
   }
 
-  @override
   Future<void> upsert(UserSubtitleEntry entry) async {
     final db = await _db.database;
     await db.insert(
@@ -34,7 +31,6 @@ class UserSubtitleRepository implements IUserSubtitleRepository {
     AppLogger.debug('用户字幕关联已保存: ${entry.workId}/${entry.fileName}');
   }
 
-  @override
   Future<void> remove(String workId, String fileName) async {
     final db = await _db.database;
     await db.delete(
@@ -45,7 +41,6 @@ class UserSubtitleRepository implements IUserSubtitleRepository {
     AppLogger.debug('用户字幕关联已删除: $workId/$fileName');
   }
 
-  @override
   Future<List<UserSubtitleEntry>> listByWork(String workId) async {
     final db = await _db.database;
     final results = await db.query(

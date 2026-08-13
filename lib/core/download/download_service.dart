@@ -7,9 +7,9 @@ import 'package:dio/dio.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:xuro/core/download/models/download_entry.dart';
-import 'package:xuro/core/download/storage/i_download_repository.dart';
 import 'package:xuro/data/models/files/child.dart';
 import 'package:xuro/utils/logger.dart';
+import 'package:xuro/core/download/storage/download_repository.dart';
 
 enum DownloadStatus {
   success,
@@ -50,10 +50,10 @@ class DownloadResult {
 class DownloadService {
   static const int _maxTotalSize = 4 * 1024 * 1024 * 1024; // 4 GB
 
-  final IDownloadRepository _repository;
+  final DownloadRepository _repository;
   final Dio _dio;
 
-  DownloadService({required IDownloadRepository repository, Dio? dio})
+  DownloadService({required DownloadRepository repository, Dio? dio})
       : _repository = repository,
         _dio = dio ?? Dio();
 
@@ -199,7 +199,7 @@ class DownloadService {
 
   /// 批量解析某作品所有已完整下载的文件，供恢复/构建一个 N 轨播放列表时
   /// 一次性查表，取代逐轨调用 [localPathIfDownloaded]（N 次 DB 查询收敛为
-  /// 一次 [IDownloadRepository.listByWork]）。
+  /// 一次 [DownloadRepository.listByWork]）。
   ///
   /// 语义与 [localPathIfDownloaded] 对齐：**不能省** `File.exists()` 这道
   /// 存在性闸门——Android 下载目录在 PC 上可见，用户可能已手动删除文件；

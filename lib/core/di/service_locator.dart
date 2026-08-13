@@ -16,7 +16,6 @@ import '../../data/repositories/auth_repository.dart';
 import '../subtitle/i_subtitle_service.dart';
 import '../subtitle/subtitle_service.dart';
 import '../subtitle/subtitle_loader.dart';
-import '../../core/audio/storage/i_playback_state_repository.dart';
 import '../../core/audio/storage/playback_state_repository.dart';
 import '../audio/events/playback_event_hub.dart';
 import '../../core/theme/theme_controller.dart';
@@ -28,12 +27,9 @@ import '../../core/platform/sleep_timer_controller.dart';
 import '../../core/platform/background_play_controller.dart';
 import 'package:xuro/core/settings/app_settings_service.dart';
 import 'package:xuro/core/database/database_service.dart';
-import 'package:xuro/core/subtitle/storage/i_user_subtitle_repository.dart';
 import 'package:xuro/core/subtitle/storage/user_subtitle_repository.dart';
-import 'package:xuro/core/subtitle/import/i_file_picker_service.dart';
 import 'package:xuro/core/subtitle/import/file_picker_service.dart';
 import 'package:xuro/core/subtitle/subtitle_import_service.dart';
-import 'package:xuro/core/download/storage/i_download_repository.dart';
 import 'package:xuro/core/download/storage/download_repository.dart';
 import 'package:xuro/core/download/download_service.dart';
 
@@ -52,31 +48,31 @@ Future<void> setupServiceLocator() async {
   getIt.registerLazySingleton<DatabaseService>(() => DatabaseService());
 
   // 用户字幕存储
-  getIt.registerLazySingleton<IUserSubtitleRepository>(
+  getIt.registerLazySingleton<UserSubtitleRepository>(
     () => UserSubtitleRepository(getIt<DatabaseService>()),
   );
 
   // 文件选择器
-  getIt.registerLazySingleton<IFilePickerService>(() => FilePickerService());
+  getIt.registerLazySingleton<FilePickerService>(() => FilePickerService());
 
   // 字幕导入服务
   getIt.registerLazySingleton<SubtitleImportService>(
     () => SubtitleImportService(
-      picker: getIt<IFilePickerService>(),
-      repository: getIt<IUserSubtitleRepository>(),
+      picker: getIt<FilePickerService>(),
+      repository: getIt<UserSubtitleRepository>(),
     ),
   );
 
   // 下载存储 + 服务（依赖 DatabaseService，已于上方注册）
-  getIt.registerLazySingleton<IDownloadRepository>(
+  getIt.registerLazySingleton<DownloadRepository>(
     () => DownloadRepository(getIt<DatabaseService>()),
   );
   getIt.registerLazySingleton<DownloadService>(
-    () => DownloadService(repository: getIt<IDownloadRepository>()),
+    () => DownloadService(repository: getIt<DownloadRepository>()),
   );
 
   // 注册 PlaybackStateRepository
-  getIt.registerLazySingleton<IPlaybackStateRepository>(
+  getIt.registerLazySingleton<PlaybackStateRepository>(
     () => PlaybackStateRepository(getIt()),
   );
 

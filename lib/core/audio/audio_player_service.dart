@@ -9,11 +9,11 @@ import './i_audio_player_service.dart';
 import './models/audio_track_info.dart';
 import './models/playback_context.dart';
 import './notification/audio_notification_service.dart';
-import './storage/i_playback_state_repository.dart';
 import './utils/audio_error_handler.dart';
 import './state/playback_state_manager.dart';
 import './controllers/playback_controller.dart';
 import './events/playback_event_hub.dart';
+import 'package:xuro/core/audio/storage/playback_state_repository.dart';
 
 class AudioPlayerService implements IAudioPlayerService {
   late final AudioPlayer _player;
@@ -22,7 +22,7 @@ class AudioPlayerService implements IAudioPlayerService {
   late final PlaybackStateManager _stateManager;
   late final PlaybackController _playbackController;
   final PlaybackEventHub _eventHub;
-  final IPlaybackStateRepository _stateRepository;
+  final PlaybackStateRepository _stateRepository;
 
   // 记忆化 Future 而非一次性 Completer：Completer 只能 complete 一次，
   // 首次初始化失败后整个 session 会永久卡在同一个 rejected future 上——
@@ -52,7 +52,7 @@ class AudioPlayerService implements IAudioPlayerService {
 
   AudioPlayerService._internal({
     required PlaybackEventHub eventHub,
-    required IPlaybackStateRepository stateRepository,
+    required PlaybackStateRepository stateRepository,
   })  : _eventHub = eventHub,
         _stateRepository = stateRepository {
     // 保持与今天一致的"构造即启动"时序：DI 解析到这个单例就立刻开始
@@ -64,7 +64,7 @@ class AudioPlayerService implements IAudioPlayerService {
 
   factory AudioPlayerService({
     required PlaybackEventHub eventHub,
-    required IPlaybackStateRepository stateRepository,
+    required PlaybackStateRepository stateRepository,
   }) {
     _instance ??= AudioPlayerService._internal(
       eventHub: eventHub,

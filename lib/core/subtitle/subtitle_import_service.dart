@@ -1,12 +1,12 @@
 import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
-import 'package:xuro/core/subtitle/import/i_file_picker_service.dart';
-import 'package:xuro/core/subtitle/storage/i_user_subtitle_repository.dart';
 import 'package:xuro/core/subtitle/models/user_subtitle_entry.dart';
 import 'package:xuro/core/subtitle/parsers/subtitle_parser_factory.dart';
 import 'package:xuro/core/audio/models/subtitle.dart';
 import 'package:xuro/utils/logger.dart';
+import 'package:xuro/core/subtitle/import/file_picker_service.dart';
+import 'package:xuro/core/subtitle/storage/user_subtitle_repository.dart';
 
 enum ImportResult {
   success,
@@ -28,12 +28,12 @@ class SubtitleImportService {
   static const _maxFileSizeBytes = 5 * 1024 * 1024; // 5 MB
   static const _supportedExtensions = ['.vtt', '.lrc'];
 
-  final IFilePickerService _picker;
-  final IUserSubtitleRepository _repository;
+  final FilePickerService _picker;
+  final UserSubtitleRepository _repository;
 
   SubtitleImportService({
-    required IFilePickerService picker,
-    required IUserSubtitleRepository repository,
+    required FilePickerService picker,
+    required UserSubtitleRepository repository,
   })  : _picker = picker,
         _repository = repository;
 

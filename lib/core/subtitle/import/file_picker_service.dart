@@ -1,8 +1,7 @@
 import 'package:file_picker/file_picker.dart';
-import 'package:xuro/core/subtitle/import/i_file_picker_service.dart';
 
-class FilePickerService implements IFilePickerService {
-  @override
+class FilePickerService {
+  /// 返回用户选中的字幕文件路径；用户取消选择时返回 null。
   Future<String?> pickSubtitleFile() async {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
