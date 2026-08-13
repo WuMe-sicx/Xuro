@@ -9,11 +9,13 @@ class SubtitleStateManager {
 
   final _subtitleController = StreamController<SubtitleList?>.broadcast();
   final _currentSubtitleController = StreamController<Subtitle?>.broadcast();
-  final _currentSubtitleWithStateController = StreamController<SubtitleWithState?>.broadcast();
+  final _currentSubtitleWithStateController =
+      StreamController<SubtitleWithState?>.broadcast();
 
   Stream<SubtitleList?> get subtitleStream => _subtitleController.stream;
-  Stream<Subtitle?> get currentSubtitleStream => _currentSubtitleController.stream;
-  Stream<SubtitleWithState?> get currentSubtitleWithStateStream => 
+  Stream<Subtitle?> get currentSubtitleStream =>
+      _currentSubtitleController.stream;
+  Stream<SubtitleWithState?> get currentSubtitleWithStateStream =>
       _currentSubtitleWithStateController.stream;
 
   Subtitle? get currentSubtitle => _currentSubtitle;
@@ -28,10 +30,12 @@ class SubtitleStateManager {
   void updatePosition(Duration position) {
     if (_subtitleList != null) {
       final newSubtitleWithState = _subtitleList!.getCurrentSubtitle(position);
-      if (newSubtitleWithState?.subtitle != _currentSubtitleWithState?.subtitle) {
+      if (newSubtitleWithState?.subtitle !=
+          _currentSubtitleWithState?.subtitle) {
         _currentSubtitleWithState = newSubtitleWithState;
         _currentSubtitle = newSubtitleWithState?.subtitle;
-        AppLogger.debug('字幕更新: ${_currentSubtitle?.text ?? '无字幕'} (${newSubtitleWithState?.state})');
+        AppLogger.debug(
+            '字幕更新: ${_currentSubtitle?.text ?? '无字幕'} (${newSubtitleWithState?.state})');
         _currentSubtitleWithStateController.add(newSubtitleWithState);
         _currentSubtitleController.add(_currentSubtitle);
       }
@@ -53,4 +57,4 @@ class SubtitleStateManager {
     _currentSubtitleController.close();
     _currentSubtitleWithStateController.close();
   }
-} 
+}

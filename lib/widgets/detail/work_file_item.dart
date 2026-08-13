@@ -18,9 +18,7 @@ class WorkFileItem extends StatelessWidget {
     this.onFileDownload,
   });
 
-  static const _videoExtensions = {
-    'mp4', 'mkv', 'mov', 'avi', 'webm', 'm4v'
-  };
+  static const _videoExtensions = {'mp4', 'mkv', 'mov', 'avi', 'webm', 'm4v'};
 
   static const _subtitleExtensions = {'vtt', 'lrc', 'srt', 'txt'};
 
@@ -47,7 +45,7 @@ class WorkFileItem extends StatelessWidget {
     final bool isSubtitle = !isAudio && !isVideo && _isSubtitle;
     final bool tappable = isAudio || isVideo || isSubtitle;
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return Padding(
       padding: EdgeInsets.only(left: indentation),
       child: ListTile(

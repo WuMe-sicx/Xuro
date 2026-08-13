@@ -55,4 +55,4 @@ class WakeLockController extends ChangeNotifier {
     }
     super.dispose();
   }
-} 
+}

@@ -49,8 +49,8 @@ class PlaylistsListView extends StatelessWidget {
                     return ListTile(
                       leading: const Icon(Icons.playlist_play),
                       title: Text(viewModel.getDisplayName(playlist.name)),
-                      subtitle:
-                          Text(Strings.worksCountLabel(playlist.worksCount ?? 0)),
+                      subtitle: Text(
+                          Strings.worksCountLabel(playlist.worksCount ?? 0)),
                       onTap: () => onPlaylistSelected(playlist),
                     );
                   },
@@ -69,4 +69,4 @@ class PlaylistsListView extends StatelessWidget {
       },
     );
   }
-} 
+}

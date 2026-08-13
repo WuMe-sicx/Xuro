@@ -33,13 +33,14 @@ class MiniPlayer extends StatelessWidget {
                 pageBuilder: (context, animation, secondaryAnimation) {
                   return const PlayerScreen();
                 },
-                transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                transitionsBuilder:
+                    (context, animation, secondaryAnimation, child) {
                   // 创建一个曲线动画
                   final curvedAnimation = CurvedAnimation(
                     parent: animation,
                     curve: AppAnimations.smoothScroll,
                   );
-                  
+
                   return Stack(
                     children: [
                       // 背景淡入效果

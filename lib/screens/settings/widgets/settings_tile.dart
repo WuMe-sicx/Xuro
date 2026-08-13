@@ -103,7 +103,9 @@ class SettingsTile extends StatelessWidget {
     return ConstrainedBox(
       constraints: const BoxConstraints(minHeight: _kRowMinHeight),
       child: InkWell(
-        onTap: _type == _TileType.toggle ? null : (onTap != null ? _handleTap : null),
+        onTap: _type == _TileType.toggle
+            ? null
+            : (onTap != null ? _handleTap : null),
         child: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.space16,

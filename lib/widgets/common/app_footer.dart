@@ -16,8 +16,7 @@ class AppFooter extends StatelessWidget {
       child: Center(
         child: Text(
           text,
-          style:
-              AppTextStyles.caption.copyWith(color: cs.onSurfaceVariant),
+          style: AppTextStyles.caption.copyWith(color: cs.onSurfaceVariant),
           textAlign: TextAlign.center,
         ),
       ),

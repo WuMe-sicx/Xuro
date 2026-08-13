@@ -12,5 +12,6 @@ class RankInfo with _$RankInfo {
     @JsonKey(name: 'rank_date') String? rankDate,
   }) = _RankInfo;
 
-  factory RankInfo.fromJson(Map<String, dynamic> json) => _$RankInfoFromJson(json);
+  factory RankInfo.fromJson(Map<String, dynamic> json) =>
+      _$RankInfoFromJson(json);
 }

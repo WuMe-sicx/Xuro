@@ -45,8 +45,8 @@ class _AudioFormatOrderDialogState extends State<AudioFormatOrderDialog> {
                     leading: Text(
                       '${index + 1}',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
                     ),
                     title: Text(_formats[index].toUpperCase()),
                     trailing: const Icon(Icons.drag_handle),

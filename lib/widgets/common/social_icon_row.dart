@@ -31,8 +31,7 @@ class SocialIconRow extends StatelessWidget {
       children: [
         for (final a in actions)
           Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: AppSpacing.space8),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.space8),
             child: Semantics(
               button: true,
               label: a.semanticLabel,
@@ -44,8 +43,7 @@ class SocialIconRow extends StatelessWidget {
                   onTap: a.onTap,
                   child: Padding(
                     padding: const EdgeInsets.all(AppSpacing.space12),
-                    child: Icon(a.icon,
-                        size: 20, color: cs.onSurfaceVariant),
+                    child: Icon(a.icon, size: 20, color: cs.onSurfaceVariant),
                   ),
                 ),
               ),

@@ -41,7 +41,7 @@ class BackgroundPlayController with WidgetsBindingObserver {
     if (state != AppLifecycleState.paused) return;
     if (_settings.backgroundPlayEnabled) return;
     _audioService.pause().catchError(
-      (Object e) => AppLogger.error('[$_tag] 切后台暂停失败', e),
-    );
+          (Object e) => AppLogger.error('[$_tag] 切后台暂停失败', e),
+        );
   }
 }

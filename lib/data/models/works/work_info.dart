@@ -49,5 +49,6 @@ class WorkInfo with _$WorkInfo {
     String? mainCoverUrl,
   }) = _WorkInfo;
 
-  factory WorkInfo.fromJson(Map<String, dynamic> json) => _$WorkInfoFromJson(json);
+  factory WorkInfo.fromJson(Map<String, dynamic> json) =>
+      _$WorkInfoFromJson(json);
 }

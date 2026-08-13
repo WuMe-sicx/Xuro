@@ -4,4 +4,4 @@ abstract class IPlaybackStateRepository {
   Future<void> saveState(PlaybackState state);
   Future<PlaybackState?> loadState();
   Future<void> clearState();
-} 
+}

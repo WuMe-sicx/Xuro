@@ -1,9 +1,9 @@
 import 'dart:math' as math;
 
 enum SubtitleState {
-  current,  // 当前播放的字幕
-  waiting,  // 即将播放的字幕
-  passed    // 已经播放过的字幕
+  current, // 当前播放的字幕
+  waiting, // 即将播放的字幕
+  passed // 已经播放过的字幕
 }
 
 class Subtitle {
@@ -41,15 +41,17 @@ class SubtitleList {
   final List<Subtitle> subtitles;
   int _currentIndex = -1;
 
-  SubtitleList(List<Subtitle> subtitles) 
-    : subtitles = subtitles.asMap().entries.map(
-        (entry) => Subtitle(
-          start: entry.value.start,
-          end: entry.value.end,
-          text: entry.value.text,
-          index: entry.key,
-        )
-      ).toList();
+  SubtitleList(List<Subtitle> subtitles)
+      : subtitles = subtitles
+            .asMap()
+            .entries
+            .map((entry) => Subtitle(
+                  start: entry.value.start,
+                  end: entry.value.end,
+                  text: entry.value.text,
+                  index: entry.key,
+                ))
+            .toList();
 
   SubtitleWithState? getCurrentSubtitle(Duration position) {
     if (subtitles.isEmpty) return null;
@@ -119,18 +121,20 @@ class SubtitleList {
 
   (Subtitle?, Subtitle?, Subtitle?) getCurrentContext() {
     if (_currentIndex == -1) return (null, null, null);
-    
+
     final previous = _currentIndex > 0 ? subtitles[_currentIndex - 1] : null;
     final current = subtitles[_currentIndex];
-    final next = _currentIndex < subtitles.length - 1 ? subtitles[_currentIndex + 1] : null;
-    
+    final next = _currentIndex < subtitles.length - 1
+        ? subtitles[_currentIndex + 1]
+        : null;
+
     return (previous, current, next);
   }
 
   static SubtitleList parse(String vttContent) {
     final lines = vttContent.split('\n');
     final subtitles = <Subtitle>[];
-    
+
     int i = 0;
     while (i < lines.length && !lines[i].contains('-->')) {
       i++;
@@ -138,13 +142,13 @@ class SubtitleList {
 
     while (i < lines.length) {
       final line = lines[i].trim();
-      
+
       if (line.contains('-->')) {
         final times = line.split('-->');
         if (times.length == 2) {
           final start = _parseTimestamp(times[0].trim());
           final end = _parseTimestamp(times[1].trim());
-          
+
           i++;
           String text = '';
           while (i < lines.length && lines[i].trim().isNotEmpty) {
@@ -152,7 +156,7 @@ class SubtitleList {
             text += lines[i].trim();
             i++;
           }
-          
+
           if (start != null && end != null && text.isNotEmpty) {
             subtitles.add(Subtitle(
               start: start,
@@ -178,7 +182,8 @@ class SubtitleList {
           hours: int.parse(parts[0]),
           minutes: int.parse(parts[1]),
           seconds: int.parse(seconds[0]),
-          milliseconds: seconds.length > 1 ? int.parse(seconds[1].padRight(3, '0')) : 0,
+          milliseconds:
+              seconds.length > 1 ? int.parse(seconds[1].padRight(3, '0')) : 0,
         );
       }
     } catch (e) {
@@ -193,4 +198,4 @@ class SubtitleWithState {
   final SubtitleState state;
 
   SubtitleWithState(this.subtitle, this.state);
-} 
+}

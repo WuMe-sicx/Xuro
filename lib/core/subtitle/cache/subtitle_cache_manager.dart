@@ -6,7 +6,7 @@ import 'package:xuro/utils/logger.dart';
 
 class SubtitleCacheManager {
   static const String key = 'subtitleCache';
-  
+
   static final CacheManager instance = CacheManager(
     Config(
       key,
@@ -71,4 +71,4 @@ class SubtitleCacheManager {
       return 0;
     }
   }
-} 
+}

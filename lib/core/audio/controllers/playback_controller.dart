@@ -10,7 +10,6 @@ import '../models/play_mode.dart';
 import 'package:xuro/data/models/files/child.dart';
 import 'package:xuro/data/models/works/work.dart';
 
-
 class PlaybackController {
   final AudioPlayer _player;
   final PlaybackStateManager _stateManager;
@@ -22,17 +21,18 @@ class PlaybackController {
     required PlaybackStateManager stateManager,
     required ConcatenatingAudioSource playlist,
     required PlaybackEventHub eventHub,
-  }) : _player = player,
-       _stateManager = stateManager,
-       _playlist = playlist,
-       _eventHub = eventHub;
+  })  : _player = player,
+        _stateManager = stateManager,
+        _playlist = playlist,
+        _eventHub = eventHub;
 
   // 基础播放控制
   Future<void> play() => _player.play();
   Future<void> pause() => _player.pause();
   Future<void> stop() => _player.stop();
-  Future<void> seek(Duration position, {int? index}) => _player.seek(position, index: index);
-  
+  Future<void> seek(Duration position, {int? index}) =>
+      _player.seek(position, index: index);
+
   // 播放列表控制
   Future<void> next() async {
     try {
@@ -87,10 +87,13 @@ class PlaybackController {
   }
 
   // 播放上下文设置
-  Future<void> setPlaybackContext(PlaybackContext originalContext, {Duration? initialPosition}) async {
+  Future<void> setPlaybackContext(PlaybackContext originalContext,
+      {Duration? initialPosition}) async {
     try {
-      AppLogger.debug('准备设置播放上下文: workId=${originalContext.work.id}, file=${originalContext.currentFile.title}');
-      AppLogger.debug('播放列表状态: 长度=${originalContext.playlist.length}, 当前索引=${originalContext.currentIndex}');
+      AppLogger.debug(
+          '准备设置播放上下文: workId=${originalContext.work.id}, file=${originalContext.currentFile.title}');
+      AppLogger.debug(
+          '播放列表状态: 长度=${originalContext.playlist.length}, 当前索引=${originalContext.currentIndex}');
 
       // 验证上下文
       try {
@@ -163,4 +166,4 @@ class PlaybackController {
     AppLogger.debug('更新轨道和上下文: file=${file.title}');
     _stateManager.updateTrackAndContext(file, work);
   }
-} 
+}

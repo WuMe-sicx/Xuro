@@ -8,16 +8,18 @@ class SubtitleMatcher {
 
   static bool isSubtitleFile(String? fileName) {
     if (fileName == null) return false;
-    return supportedFormats.any((format) =>
-        fileName.toLowerCase().endsWith(format));
+    return supportedFormats
+        .any((format) => fileName.toLowerCase().endsWith(format));
   }
 
   /// Find matching subtitle for an audio file using 3-tier strategy:
   /// 1. Exact match (basename or basename+ext)
   /// 2. Prefix match
   /// 3. Similarity match (Levenshtein-based, threshold >= 0.6)
-  static Child? findMatchingSubtitle(String audioFileName, List<Child> siblings) {
-    final subtitleFiles = siblings.where((f) => isSubtitleFile(f.title)).toList();
+  static Child? findMatchingSubtitle(
+      String audioFileName, List<Child> siblings) {
+    final subtitleFiles =
+        siblings.where((f) => isSubtitleFile(f.title)).toList();
     if (subtitleFiles.isEmpty) return null;
 
     final audioBase = _getBaseName(audioFileName).toLowerCase();
@@ -50,7 +52,8 @@ class SubtitleMatcher {
   }
 
   /// Tier 1: Exact basename match (existing logic preserved)
-  static Child? _findExactMatch(String audioFileName, List<Child> subtitleFiles) {
+  static Child? _findExactMatch(
+      String audioFileName, List<Child> subtitleFiles) {
     final possibleNames = _getPossibleSubtitleNames(audioFileName);
     for (final name in possibleNames) {
       for (final file in subtitleFiles) {
@@ -73,7 +76,8 @@ class SubtitleMatcher {
 
     for (final file in subtitleFiles) {
       final subtitleBase = _getBaseName(file.title!).toLowerCase();
-      if (subtitleBase.startsWith(audioBase) || audioBase.startsWith(subtitleBase)) {
+      if (subtitleBase.startsWith(audioBase) ||
+          audioBase.startsWith(subtitleBase)) {
         final lengthDiff = (subtitleBase.length - audioBase.length).abs();
         if (lengthDiff < bestLengthDiff) {
           bestLengthDiff = lengthDiff;
@@ -103,7 +107,8 @@ class SubtitleMatcher {
     }
 
     if (bestMatch != null) {
-      AppLogger.debug('字幕相似度最高: ${bestMatch.title} (score: ${bestScore.toStringAsFixed(2)})');
+      AppLogger.debug(
+          '字幕相似度最高: ${bestMatch.title} (score: ${bestScore.toStringAsFixed(2)})');
     }
     return bestMatch;
   }

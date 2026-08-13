@@ -21,7 +21,7 @@ class PlaylistWorksView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final playlistsViewModel = context.read<PlaylistsViewModel>();
-    
+
     return ChangeNotifierProvider(
       create: (_) => PlaylistWorksViewModel(playlist)..loadWorks(),
       child: Consumer<PlaylistWorksViewModel>(
@@ -69,4 +69,4 @@ class PlaylistWorksView extends StatelessWidget {
       ),
     );
   }
-} 
+}

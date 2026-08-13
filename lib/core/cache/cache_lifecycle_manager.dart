@@ -5,7 +5,8 @@ import 'package:xuro/utils/logger.dart';
 /// 缓存生命周期管理器
 /// 监听应用生命周期事件，自动触发缓存维护
 class CacheLifecycleManager with WidgetsBindingObserver {
-  static final CacheLifecycleManager _instance = CacheLifecycleManager._internal();
+  static final CacheLifecycleManager _instance =
+      CacheLifecycleManager._internal();
   factory CacheLifecycleManager() => _instance;
   CacheLifecycleManager._internal();
 

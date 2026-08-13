@@ -16,10 +16,10 @@ class PlaybackState with _$PlaybackState {
     required Files files,
     required Child currentFile,
     required PlayMode playMode,
-    required int position,  // 使用毫秒存储
-    required String timestamp,  // ISO8601 格式
+    required int position, // 使用毫秒存储
+    required String timestamp, // ISO8601 格式
   }) = _PlaybackState;
 
-  factory PlaybackState.fromJson(Map<String, dynamic> json) => 
+  factory PlaybackState.fromJson(Map<String, dynamic> json) =>
       _$PlaybackStateFromJson(json);
-} 
+}

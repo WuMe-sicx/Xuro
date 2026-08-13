@@ -10,7 +10,8 @@ class PlaylistsContent extends StatefulWidget {
   State<PlaylistsContent> createState() => _PlaylistsContentState();
 }
 
-class _PlaylistsContentState extends State<PlaylistsContent> with AutomaticKeepAliveClientMixin {
+class _PlaylistsContentState extends State<PlaylistsContent>
+    with AutomaticKeepAliveClientMixin {
   Playlist? _selectedPlaylist;
 
   @override
@@ -39,7 +40,7 @@ class _PlaylistsContentState extends State<PlaylistsContent> with AutomaticKeepA
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    
+
     return PopScope(
       canPop: _selectedPlaylist == null,
       onPopInvokedWithResult: (didPop, result) {

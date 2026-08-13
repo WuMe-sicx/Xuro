@@ -8,22 +8,29 @@ class AppAnimations {
   // === Curves ===
   /// Element enter: decelerate to stop
   static const Curve enter = Curves.easeOutCubic;
+
   /// Element exit: accelerate away
   static const Curve exit = Curves.easeInCubic;
+
   /// State transition: standard crossfade
   static const Curve standard = Curves.easeInOutCubic;
+
   /// Emphasis: elastic bounce
   static const Curve emphasis = Curves.elasticOut;
+
   /// Lyric scroll / long list
   static const Curve smoothScroll = Curves.easeOutQuart;
 
   // === Durations ===
   /// Micro: ripple, color change, opacity toggle
   static const Duration micro = Duration(milliseconds: 100);
+
   /// Short: tag popup, menu expand, chip toggle
   static const Duration short = Duration(milliseconds: 200);
+
   /// Medium: list enter, card expand, lyric sync
   static const Duration medium = Duration(milliseconds: 300);
+
   /// Long: player fullscreen transition, page route
   static const Duration long = Duration(milliseconds: 450);
 

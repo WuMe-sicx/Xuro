@@ -65,7 +65,8 @@ class DetailScreen extends StatelessWidget {
                       PageRouteBuilder(
                         pageBuilder: (context, animation, secondaryAnimation) =>
                             SimilarWorksScreen(work: work),
-                        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                        transitionsBuilder:
+                            (context, animation, secondaryAnimation, child) {
                           const begin = Offset(1.0, 0.0);
                           const end = Offset.zero;
                           const curve = AppAnimations.standard;
@@ -132,8 +133,7 @@ class DetailScreen extends StatelessWidget {
                       final messenger = ScaffoldMessenger.of(context);
                       if (result.isPlayable && result.localPath != null) {
                         if (openOnDone) {
-                          final open =
-                              await OpenFilex.open(result.localPath!);
+                          final open = await OpenFilex.open(result.localPath!);
                           if (open.type != ResultType.done) {
                             messenger.showSnackBar(const SnackBar(
                               content: Text(Strings.downloadOpenFailed),
@@ -148,8 +148,7 @@ class DetailScreen extends StatelessWidget {
                         messenger.showSnackBar(const SnackBar(
                           content: Text(Strings.downloadCancelled),
                         ));
-                      } else if (result.status ==
-                          DownloadStatus.networkError) {
+                      } else if (result.status == DownloadStatus.networkError) {
                         messenger.showSnackBar(const SnackBar(
                           content: Text(Strings.downloadNetworkError),
                         ));

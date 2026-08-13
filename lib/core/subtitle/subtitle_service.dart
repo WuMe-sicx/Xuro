@@ -6,20 +6,20 @@ import 'package:get_it/get_it.dart';
 import 'package:xuro/core/subtitle/subtitle_loader.dart';
 import 'package:xuro/core/subtitle/managers/subtitle_state_manager.dart';
 
-
 class SubtitleService implements ISubtitleService {
   final _subtitleLoader = GetIt.I<SubtitleLoader>();
   final _stateManager = SubtitleStateManager();
-  
+
   @override
   Stream<SubtitleList?> get subtitleStream => _stateManager.subtitleStream;
-  
+
   @override
-  Stream<Subtitle?> get currentSubtitleStream => _stateManager.currentSubtitleStream;
-  
+  Stream<Subtitle?> get currentSubtitleStream =>
+      _stateManager.currentSubtitleStream;
+
   @override
   Subtitle? get currentSubtitle => _stateManager.currentSubtitle;
-  
+
   @override
   Future<void> loadSubtitle(String url) async {
     try {
@@ -32,7 +32,7 @@ class SubtitleService implements ISubtitleService {
       rethrow;
     }
   }
-  
+
   @override
   Future<void> loadSubtitleFromContent(SubtitleList subtitleList) async {
     clearSubtitle();
@@ -58,10 +58,10 @@ class SubtitleService implements ISubtitleService {
   }
 
   @override
-  Stream<SubtitleWithState?> get currentSubtitleWithStateStream => 
+  Stream<SubtitleWithState?> get currentSubtitleWithStateStream =>
       _stateManager.currentSubtitleWithStateStream;
-  
+
   @override
-  SubtitleWithState? get currentSubtitleWithState => 
+  SubtitleWithState? get currentSubtitleWithState =>
       _stateManager.currentSubtitleWithState;
-} 
+}

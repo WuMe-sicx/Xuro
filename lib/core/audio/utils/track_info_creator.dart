@@ -16,7 +16,7 @@ class TrackInfoCreator {
       url: url,
     );
   }
-  
+
   static AudioTrackInfo createFromFile(Child file, Work work) {
     return createTrackInfo(
       title: file.title ?? '',
@@ -25,4 +25,4 @@ class TrackInfoCreator {
       url: file.mediaDownloadUrl!,
     );
   }
-} 
+}

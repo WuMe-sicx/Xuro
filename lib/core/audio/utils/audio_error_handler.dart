@@ -1,11 +1,11 @@
 import 'package:xuro/utils/logger.dart';
 
 enum AudioErrorType {
-  playback,    // 播放错误
-  playlist,    // 播放列表错误
-  state,       // 状态错误
-  context,     // 上下文错误
-  init,        // 初始化错误
+  playback, // 播放错误
+  playlist, // 播放列表错误
+  state, // 状态错误
+  context, // 上下文错误
+  init, // 初始化错误
 }
 
 class AudioError implements Exception {
@@ -16,7 +16,8 @@ class AudioError implements Exception {
   AudioError(this.type, this.message, [this.originalError]);
 
   @override
-  String toString() => '$message${originalError != null ? ': $originalError' : ''}';
+  String toString() =>
+      '$message${originalError != null ? ': $originalError' : ''}';
 }
 
 class AudioErrorHandler {
@@ -29,7 +30,7 @@ class AudioErrorHandler {
     final message = _getErrorMessage(type, operation);
     AppLogger.error(message, error, stack);
   }
-  
+
   static Never throwError(
     AudioErrorType type,
     String operation,
@@ -53,4 +54,4 @@ class AudioErrorHandler {
         return '初始化失败: $operation';
     }
   }
-} 
+}

@@ -43,5 +43,5 @@ class PopularViewModel extends PaginatedWorksViewModel {
 
   // 保持原有的便捷方法
   Future<void> loadPopular({bool refresh = false}) =>
-    refresh ? this.refresh() : loadPage(1);
-} 
+      refresh ? this.refresh() : loadPage(1);
+}

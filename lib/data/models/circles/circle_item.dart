@@ -13,5 +13,6 @@ class CircleItem with _$CircleItem {
     I18n? i18n,
   }) = _CircleItem;
 
-  factory CircleItem.fromJson(Map<String, dynamic> json) => _$CircleItemFromJson(json);
+  factory CircleItem.fromJson(Map<String, dynamic> json) =>
+      _$CircleItemFromJson(json);
 }

@@ -13,5 +13,6 @@ class VoiceActor with _$VoiceActor {
     I18n? i18n,
   }) = _VoiceActor;
 
-  factory VoiceActor.fromJson(Map<String, dynamic> json) => _$VoiceActorFromJson(json);
+  factory VoiceActor.fromJson(Map<String, dynamic> json) =>
+      _$VoiceActorFromJson(json);
 }

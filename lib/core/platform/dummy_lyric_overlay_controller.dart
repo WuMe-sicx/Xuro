@@ -5,23 +5,16 @@ class DummyLyricOverlayController implements ILyricOverlayController {
   static const _tag = 'LyricOverlay';
 
   @override
-  Future<void> initialize() async {
-  }
+  Future<void> initialize() async {}
 
   @override
-  Future<void> show() async {
-
-  }
+  Future<void> show() async {}
 
   @override
-  Future<void> hide() async {
-
-  }
+  Future<void> hide() async {}
 
   @override
-  Future<void> updateLyric(String? text) async {
-
-  }
+  Future<void> updateLyric(String? text) async {}
 
   @override
   Future<bool> checkPermission() async {
@@ -35,9 +28,7 @@ class DummyLyricOverlayController implements ILyricOverlayController {
   }
 
   @override
-  Future<void> dispose() async {
-
-  }
+  Future<void> dispose() async {}
 
   @override
   Future<bool> isShowing() async {
