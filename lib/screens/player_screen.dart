@@ -1,12 +1,16 @@
 import 'package:xuro/core/platform/lyric_overlay_manager.dart';
 import 'package:xuro/core/theme/app_animations.dart';
+import 'package:xuro/core/theme/app_radius.dart';
+import 'package:xuro/core/theme/app_text_styles.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+import 'package:xuro/core/audio/models/playback_context.dart';
+import 'package:xuro/core/download/download_service.dart';
 import 'package:xuro/presentation/viewmodels/player_viewmodel.dart';
 import 'package:xuro/core/theme/app_spacing.dart';
 import 'package:xuro/widgets/player/player_controls.dart';
 import 'package:xuro/widgets/player/waveform_progress.dart';
-import 'package:xuro/widgets/player/circular_cover.dart';
+import 'package:xuro/widgets/player/square_cover.dart';
 import 'package:xuro/screens/detail_screen.dart';
 import 'package:xuro/widgets/lyrics/components/player_lyric_view.dart';
 import 'package:xuro/widgets/player/player_work_info.dart';
@@ -90,6 +94,76 @@ class _LyricOverlayActionState extends State<_LyricOverlayAction> {
   }
 }
 
+/// 顶栏右侧「在线 / 本地」角标：按下载表判定当前曲目是否已离线可用。
+/// 拿不到判定结果（未在播放 / 查询异常）时不渲染任何东西——不能写死成
+/// 「在线」，那会在下载表查询失败时给用户一个错误的离线状态承诺。
+class _DownloadStatusBadge extends StatefulWidget {
+  const _DownloadStatusBadge({required this.context});
+
+  final PlaybackContext? context;
+
+  @override
+  State<_DownloadStatusBadge> createState() => _DownloadStatusBadgeState();
+}
+
+class _DownloadStatusBadgeState extends State<_DownloadStatusBadge> {
+  bool? _isLocal;
+
+  @override
+  void initState() {
+    super.initState();
+    _resolve();
+  }
+
+  @override
+  void didUpdateWidget(covariant _DownloadStatusBadge oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.context?.currentFile != widget.context?.currentFile ||
+        oldWidget.context?.work.id != widget.context?.work.id) {
+      _resolve();
+    }
+  }
+
+  Future<void> _resolve() async {
+    final ctx = widget.context;
+    final workId = ctx?.work.id?.toString();
+    if (ctx == null || workId == null) {
+      if (mounted) setState(() => _isLocal = null);
+      return;
+    }
+    try {
+      final path = await GetIt.I<DownloadService>()
+          .localPathIfDownloaded(workId, ctx.currentFile);
+      if (!mounted) return;
+      setState(() => _isLocal = path != null);
+    } catch (_) {
+      // 下载表查询失败：宁可不显示角标，也不能误导用户「在线」。
+      if (mounted) setState(() => _isLocal = null);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLocal == null) return const SizedBox.shrink();
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: AppSpacing.space4),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.space8,
+        vertical: AppSpacing.space4,
+      ),
+      decoration: BoxDecoration(
+        border: Border.all(color: cs.outlineVariant, width: 1),
+        borderRadius: AppRadius.smAll,
+      ),
+      child: Text(
+        _isLocal! ? Strings.playerLocal : Strings.playerOnline,
+        style: AppTextStyles.labelMedium.copyWith(color: cs.onSurfaceVariant),
+      ),
+    );
+  }
+}
+
 class _PlayerScreenState extends State<PlayerScreen> {
   bool _showLyrics = false;
   bool _canSwitchView = true;
@@ -108,7 +182,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
       switchOutCurve: AppAnimations.exit,
       transitionBuilder: (Widget child, Animation<double> animation) {
         final isLyrics = (child as dynamic).key == const ValueKey('lyrics');
-        
+
         return FadeTransition(
           opacity: animation,
           child: SlideTransition(
@@ -151,6 +225,9 @@ class _PlayerScreenState extends State<PlayerScreen> {
           : ListenableBuilder(
               listenable: _viewModel,
               builder: (context, _) {
+                final cs = Theme.of(context).colorScheme;
+                final trackInfo = _viewModel.currentTrackInfo;
+                final kicker = trackInfo?.artist ?? '';
                 return Column(
                   key: const ValueKey('cover'),
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -161,8 +238,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
                           horizontal: AppSpacing.space32),
                       child: Hero(
                         tag: 'mini-player-cover',
-                        child: CircularCover(
-                          coverUrl: _viewModel.currentTrackInfo?.coverUrl,
+                        child: SquareCover(
+                          coverUrl: trackInfo?.coverUrl,
                         ),
                       ),
                     ),
@@ -172,31 +249,31 @@ class _PlayerScreenState extends State<PlayerScreen> {
                           horizontal: AppSpacing.space32),
                       child: Column(
                         children: [
+                          // kicker：社团名，Modernist 三段式曲目信息
+                          // （kicker/曲名/副标）的第一段，accent 色。
+                          if (kicker.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                  bottom: AppSpacing.space8),
+                              child: Text(
+                                kicker,
+                                style: AppTextStyles.labelMedium
+                                    .copyWith(color: cs.primary),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
                           Hero(
                             tag: 'player-title',
                             child: Material(
                               color: Colors.transparent,
                               child: Text(
-                                _viewModel.currentTrackInfo?.title ??
-                                    Strings.notPlaying,
-                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                trackInfo?.title ?? Strings.notPlaying,
+                                style: AppTextStyles.headlineMedium
+                                    .copyWith(color: cs.onSurface),
                                 textAlign: TextAlign.center,
                               ),
                             ),
                           ),
-                          const SizedBox(height: AppSpacing.space8),
-                          if (_viewModel.currentTrackInfo?.artist != null)
-                            Text(
-                              _viewModel.currentTrackInfo!.artist,
-                              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurfaceVariant,
-                                  ),
-                              textAlign: TextAlign.center,
-                            ),
                         ],
                       ),
                     ),
@@ -209,11 +286,62 @@ class _PlayerScreenState extends State<PlayerScreen> {
     );
   }
 
+  Widget _buildSleepTimerFooter(SleepTimerController sleepTimer) {
+    return ListenableBuilder(
+      listenable: sleepTimer,
+      builder: (context, _) {
+        final cs = Theme.of(context).colorScheme;
+        final minutes = sleepTimer.minutes;
+        return Column(
+          children: [
+            const Divider(),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.space24,
+                AppSpacing.space16,
+                AppSpacing.space24,
+                0,
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.bedtime_outlined, size: 18, color: cs.primary),
+                  const SizedBox(width: AppSpacing.space8),
+                  Expanded(
+                    child: Text(
+                      minutes != null
+                          ? Strings.playerSleepTimerActive(minutes)
+                          : Strings.playerSleepTimerInactive,
+                      style: AppTextStyles.labelMedium
+                          .copyWith(color: cs.onSurface),
+                    ),
+                  ),
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => showDialog(
+                      context: context,
+                      builder: (_) => SleepTimerDialog(controller: sleepTimer),
+                    ),
+                    child: Text(
+                      Strings.playerSleepTimerChange,
+                      style:
+                          AppTextStyles.labelMedium.copyWith(color: cs.primary),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final lyricManager = GetIt.I<LyricOverlayManager>();
     final wakeLockController = GetIt.I<WakeLockController>();
     final sleepTimer = GetIt.I<SleepTimerController>();
+    final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
@@ -223,15 +351,23 @@ class _PlayerScreenState extends State<PlayerScreen> {
             Navigator.of(context).pop();
           },
         ),
+        title: Text(
+          Strings.nowPlaying.toUpperCase(),
+          style: AppTextStyles.labelMedium
+              .copyWith(color: cs.onSurface.withValues(alpha: 0.5)),
+        ),
         actions: [
+          ListenableBuilder(
+            listenable: _viewModel,
+            builder: (context, _) =>
+                _DownloadStatusBadge(context: _viewModel.currentContext),
+          ),
           ListenableBuilder(
             listenable: sleepTimer,
             builder: (context, _) {
               return IconButton(
                 icon: Icon(
-                  sleepTimer.isActive
-                      ? Icons.bedtime
-                      : Icons.bedtime_outlined,
+                  sleepTimer.isActive ? Icons.bedtime : Icons.bedtime_outlined,
                   color: sleepTimer.isActive
                       ? Theme.of(context).colorScheme.primary
                       : null,
@@ -316,9 +452,9 @@ class _PlayerScreenState extends State<PlayerScreen> {
             builder: (context, _) {
               return IconButton(
                 icon: Icon(
-                  wakeLockController.enabled 
-                    ? Icons.lightbulb
-                    : Icons.lightbulb_outline,
+                  wakeLockController.enabled
+                      ? Icons.lightbulb
+                      : Icons.lightbulb_outline,
                 ),
                 tooltip: wakeLockController.enabled
                     ? Strings.screenAwakeOff
@@ -347,14 +483,15 @@ class _PlayerScreenState extends State<PlayerScreen> {
                 child: _buildContent(),
               ),
             ),
-            Container(
-              padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.space12, 0, AppSpacing.space12, AppSpacing.space32),
-              child: const Column(
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.space32),
+              child: Column(
                 children: [
-                  WaveformProgress(),
-                  SizedBox(height: AppSpacing.space8),
-                  PlayerControls(),
+                  const WaveformProgress(),
+                  const SizedBox(height: AppSpacing.space16),
+                  const PlayerControls(),
+                  const SizedBox(height: AppSpacing.space20),
+                  _buildSleepTimerFooter(sleepTimer),
                 ],
               ),
             ),

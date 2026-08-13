@@ -47,16 +47,14 @@ class WorkInfoHeader extends StatelessWidget {
             if (work.circle?.name != null)
               TagChip(
                 text: work.circle?.name ?? '',
-                backgroundColor: Colors.orange.withValues(alpha: 0.2),
-                textColor: Colors.orange[700],
+                tone: TagTone.neutral,
                 onTap: () => _onTagTap(context, work.circle?.name ?? ''),
               ),
             ..._buildVaChips(context),
             if (work.hasSubtitle == true)
-              TagChip(
+              const TagChip(
                 text: Strings.subtitleChip,
-                backgroundColor: Colors.blue.withValues(alpha: 0.2),
-                textColor: Colors.blue[700],
+                tone: TagTone.primary,
               ),
           ],
         ),
@@ -69,9 +67,9 @@ class WorkInfoHeader extends StatelessWidget {
                 Text(
                   '${workInfo!.price} JPY',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
               if (workInfo!.sourceUrl != null)
                 GestureDetector(
@@ -79,9 +77,9 @@ class WorkInfoHeader extends StatelessWidget {
                   child: Text(
                     'DLsite',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.blue,
-                      decoration: TextDecoration.underline,
-                    ),
+                          color: Colors.blue,
+                          decoration: TextDecoration.underline,
+                        ),
                   ),
                 ),
             ],
@@ -93,23 +91,26 @@ class WorkInfoHeader extends StatelessWidget {
 
   List<Widget> _buildVaChips(BuildContext context) {
     if (workInfo?.vas != null && workInfo!.vas!.isNotEmpty) {
-      return workInfo!.vas!.map(
-        (va) => TagChip(
-          text: va.name ?? '',
-          backgroundColor: Colors.green.withValues(alpha: 0.2),
-          textColor: Colors.green[700],
-          onTap: () => _onTagTap(context, va.name ?? ''),
-        ),
-      ).toList();
+      return workInfo!.vas!
+          .map(
+            (va) => TagChip(
+              text: va.name ?? '',
+              tone: TagTone.outline,
+              onTap: () => _onTagTap(context, va.name ?? ''),
+            ),
+          )
+          .toList();
     }
-    return work.vas?.map(
-      (va) => TagChip(
-        text: va['name'] ?? '',
-        backgroundColor: Colors.green.withValues(alpha: 0.2),
-        textColor: Colors.green[700],
-        onTap: () => _onTagTap(context, va['name'] ?? ''),
-      ),
-    ).toList() ?? [];
+    return work.vas
+            ?.map(
+              (va) => TagChip(
+                text: va['name'] ?? '',
+                tone: TagTone.outline,
+                onTap: () => _onTagTap(context, va['name'] ?? ''),
+              ),
+            )
+            .toList() ??
+        [];
   }
 
   Future<void> _launchUrl(String url) async {
@@ -118,4 +119,4 @@ class WorkInfoHeader extends StatelessWidget {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
   }
-} 
+}

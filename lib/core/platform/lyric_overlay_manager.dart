@@ -18,9 +18,9 @@ class LyricOverlayManager {
     required ILyricOverlayController controller,
     required ISubtitleService subtitleService,
     required AppSettingsService settings,
-  }) : _controller = controller,
-       _subtitleService = subtitleService,
-       _settings = settings;
+  })  : _controller = controller,
+        _subtitleService = subtitleService,
+        _settings = settings;
 
   Future<void> initialize() async {
     await _controller.initialize();
@@ -29,19 +29,19 @@ class LyricOverlayManager {
         _controller.updateLyric(subtitle?.text);
       }
     });
-    
+
     _isShowing = await _controller.isShowing();
-    
+
     if (_isShowing) {
       await show();
     }
   }
-  
+
   Future<void> dispose() async {
     await _subscription?.cancel();
     await _controller.dispose();
   }
-  
+
   Future<bool> checkPermission() async {
     return await _controller.checkPermission();
   }
@@ -112,22 +112,23 @@ class LyricOverlayManager {
 
   Future<bool> _showPermissionDialog(BuildContext context) async {
     return await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text(Strings.lyricOverlayPermTitle),
-        content: const Text(Strings.lyricOverlayPermContent),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text(Strings.cancel),
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text(Strings.lyricOverlayPermTitle),
+            content: const Text(Strings.lyricOverlayPermContent),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text(Strings.cancel),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text(Strings.dialogConfirm),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text(Strings.dialogConfirm),
-          ),
-        ],
-      ),
-    ) ?? false;
+        ) ??
+        false;
   }
 
   /// 切换显示/隐藏状态
@@ -138,10 +139,10 @@ class LyricOverlayManager {
       await showWithPermissionCheck(context);
     }
   }
-  
+
   // 其他控制方法...
 
   Future<void> syncState() async {
     _isShowing = await _controller.isShowing();
   }
-} 
+}

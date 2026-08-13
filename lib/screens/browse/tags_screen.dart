@@ -1,9 +1,13 @@
+/// tags_screen.dart：分类屏——真实 `/tags/` 接口标签的编号列表。
+///
+/// @author  Elvis Juan (thanhtran0606en@gmail.com)
+/// @created 2026-08-13
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:xuro/common/constants/strings.dart';
 import 'package:xuro/presentation/viewmodels/tags_viewmodel.dart';
-import 'package:xuro/screens/browse/widgets/browse_search_bar.dart';
-import 'package:xuro/screens/browse/widgets/browse_grid_item.dart';
+import 'package:xuro/screens/browse/widgets/browse_list_item.dart';
+import 'package:xuro/widgets/common/app_search_field.dart';
 
 class TagsScreen extends StatelessWidget {
   const TagsScreen({super.key});
@@ -13,14 +17,18 @@ class TagsScreen extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) => TagsViewModel(),
       child: Scaffold(
-        appBar: AppBar(title: const Text(Strings.browseAllTags)),
+        appBar: browseAppBar(context, Strings.browseAllTags),
         body: Consumer<TagsViewModel>(
           builder: (context, viewModel, _) {
             return Column(
               children: [
-                BrowseSearchBar(
-                  hintText: Strings.browseSearchTagsHint,
-                  onChanged: viewModel.search,
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: AppSearchField(
+                    hintText: Strings.browseSearchTagsHint,
+                    onChanged: viewModel.search,
+                    onClear: () => viewModel.search(''),
+                  ),
                 ),
                 Expanded(
                   child: _buildContent(context, viewModel),
@@ -58,22 +66,21 @@ class TagsScreen extends StatelessWidget {
     }
     return RefreshIndicator(
       onRefresh: viewModel.refresh,
-      child: GridView.builder(
-        padding: const EdgeInsets.all(8),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 3,
-          crossAxisSpacing: 8,
-          mainAxisSpacing: 8,
-        ),
+      child: ListView.separated(
         itemCount: viewModel.tags.length,
+        separatorBuilder: (context, _) => Divider(
+          height: BrowseListItem.rowDividerThickness,
+          thickness: BrowseListItem.rowDividerThickness,
+          color: Theme.of(context).colorScheme.outlineVariant,
+        ),
         itemBuilder: (context, index) {
           final tag = viewModel.tags[index];
           final displayName = tag.i18n?.zhCn?.name ?? tag.name ?? '';
           final searchName = tag.name ?? '';
-          return BrowseGridItem(
+          return BrowseListItem(
+            index: index + 1,
             name: displayName,
-            count: tag.count ?? 0,
+            count: tag.count,
             onTap: searchName.isNotEmpty
                 ? () => _onTagTap(context, searchName)
                 : null,

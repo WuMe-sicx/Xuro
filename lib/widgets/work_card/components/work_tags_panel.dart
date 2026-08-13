@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:xuro/common/constants/strings.dart';
 import 'package:xuro/data/models/works/work.dart';
 import 'package:xuro/data/models/works/tag.dart';
+import 'package:xuro/widgets/common/tag_chip.dart';
 
 class WorkTagsPanel extends StatelessWidget {
   final Work work;
@@ -21,74 +22,34 @@ class WorkTagsPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 基调与详情页 WorkInfoHeader 保持一致：字幕是唯一值得强调的角标走 accent，
+    // 声优用描边与填充的社团/普通标签区分开。
     return Wrap(
       spacing: 4,
       runSpacing: 2,
       children: [
         if (work.circle?.name != null)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(
-              color: Colors.orange.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Text(
-              work.circle?.name ?? '',
-              style: TextStyle(
-                fontSize: 10,
-                color: Colors.orange[700],
-              ),
-            ),
+          TagChip(
+            text: work.circle!.name!,
+            tone: TagTone.neutral,
+            dense: true,
           ),
-        ...?work.vas?.map((va) => Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: Colors.green.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                va['name'] ?? '',
-                style: TextStyle(
-                  fontSize: 10,
-                  color: Colors.green[700],
-                ),
-              ),
+        ...?work.vas?.map((va) => TagChip(
+              text: va['name'] ?? '',
+              tone: TagTone.outline,
+              dense: true,
             )),
         if (work.hasSubtitle == true)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(
-              color: Colors.blue.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Text(
-              Strings.subtitleChip,
-              style: TextStyle(
-                fontSize: 10,
-                color: Colors.blue[700],
-              ),
-            ),
+          const TagChip(
+            text: Strings.subtitleChip,
+            tone: TagTone.primary,
+            dense: true,
           ),
-        ...work.tags
-                ?.map((tag) => Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        _getLocalizedTagName(tag),
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ))
-                .toList() ??
-            [],
+        ...?work.tags?.map((tag) => TagChip(
+              text: _getLocalizedTagName(tag),
+              tone: TagTone.neutral,
+              dense: true,
+            )),
       ],
     );
   }

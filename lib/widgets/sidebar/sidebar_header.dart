@@ -131,8 +131,10 @@ class _SidebarHeaderState extends State<SidebarHeader> {
                       Container(
                         width: 48,
                         height: 48,
+                        // 实心 accent 方块，呼应播放器主按钮的处理。
+                        // 圆形是「最大圆角」，与零圆角这条设计语言直接冲突。
                         decoration: BoxDecoration(
-                          shape: BoxShape.circle,
+                          borderRadius: AppRadius.smAll,
                           color: cs.primary,
                         ),
                         child: Icon(

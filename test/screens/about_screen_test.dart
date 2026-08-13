@@ -25,10 +25,11 @@ void main() {
     await tester.pumpWidget(const MaterialApp(home: AboutScreen()));
     await tester.pumpAndSettle();
 
-    // 居中品牌锁定（品牌名取 Strings.aboutAppName='Xuro'，非模板 'ASMR'）
+    // 居中品牌锁定（品牌名取 Strings.aboutAppName='Xuro'，非模板 'ASMR'）。
+    // 渲染出的纯文本带 accent 句点，故断言组件参数而非字面文本——
+    // 后者会把品牌的排版细节焊进这个屏幕测试里。
     final wordmark = tester.widget<BrandWordmark>(find.byType(BrandWordmark));
     expect(wordmark.text, Strings.aboutAppName);
-    expect(find.text('Xuro'), findsOneWidget);
 
     // 版本在头部，不在列表（旧 '版本信息' tile 已移除）
     expect(find.text('${Strings.versionLabel} v9.9.9'), findsOneWidget);

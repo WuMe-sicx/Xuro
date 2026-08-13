@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:xuro/core/image/cache/image_cache_manager.dart';
+import 'package:xuro/core/theme/app_radius.dart';
 import 'package:xuro/widgets/common/skeleton_pulse.dart';
 
-/// 播放器圆形封面 + 细环。规范 §2.2。
+/// 播放器方形大封面。Modernist 改版（原 `CircularCover` 已废弃，取消其
+/// 圆形 + accent 细环，改为零圆角方形 + 1px 中性描边，无阴影——Modernist
+/// 用分隔线表达层级、不用阴影，见 `app_theme.dart`）。
 ///
-/// 图片加载与 [PlayerCover] 一致（`ImageCacheManager` + `SkeletonPulse`），
-/// 但形状改为圆形并加 accent 细环；透明度用 `.withValues`（非 `withOpacity`）。
+/// 图片加载与旧实现一致（`ImageCacheManager` + `SkeletonPulse`）。
 /// 调用方负责包 `Hero(tag:'mini-player-cover')`（保留现有过渡）。
-class CircularCover extends StatelessWidget {
-  const CircularCover({
+///
+/// 无封面时的回退图标刻意染 accent 色（而非中性色）：这是本组件里
+/// 唯一随配色轮换的元素，用于验证三配色不变量（见同名测试）。
+class SquareCover extends StatelessWidget {
+  const SquareCover({
     super.key,
     this.coverUrl,
     this.maxSize = 320,
@@ -26,21 +31,12 @@ class CircularCover extends StatelessWidget {
       child: Container(
         constraints: BoxConstraints(maxWidth: maxSize, maxHeight: maxSize),
         decoration: BoxDecoration(
-          shape: BoxShape.circle,
+          borderRadius: AppRadius.mdAll,
           color: cs.surfaceContainerHighest,
-          border: Border.all(
-            color: cs.primary.withValues(alpha: 0.25),
-            width: 2,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.12),
-              blurRadius: 24,
-              offset: const Offset(0, 10),
-            ),
-          ],
+          border: Border.all(color: cs.outlineVariant, width: 1),
         ),
-        child: ClipOval(
+        child: ClipRRect(
+          borderRadius: AppRadius.mdAll,
           child: coverUrl != null
               ? LayoutBuilder(
                   builder: (context, constraints) {
@@ -70,7 +66,7 @@ class CircularCover extends StatelessWidget {
                     );
                   },
                 )
-              : Icon(Icons.music_note, size: 96, color: cs.onSurfaceVariant),
+              : Icon(Icons.music_note, size: 96, color: cs.primary),
         ),
       ),
     );

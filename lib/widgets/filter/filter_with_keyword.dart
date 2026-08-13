@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:xuro/core/theme/app_radius.dart';
 import 'package:xuro/common/constants/strings.dart';
 
 class FilterWithKeyword extends StatelessWidget {
@@ -33,35 +34,39 @@ class FilterWithKeyword extends StatelessWidget {
             Container(
               decoration: BoxDecoration(
                 border: Border.all(
-                  color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .outline
+                      .withValues(alpha: 0.5),
                 ),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: AppRadius.smAll,
               ),
               child: Material(
                 type: MaterialType.transparency,
                 child: InkWell(
                   onTap: () => onSubtitleChanged(!hasSubtitle),
-                  borderRadius: BorderRadius.circular(7),
+                  borderRadius: AppRadius.smAll,
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          hasSubtitle 
-                              ? Icons.check_box 
+                          hasSubtitle
+                              ? Icons.check_box
                               : Icons.check_box_outline_blank,
                           size: 20,
-                          color: hasSubtitle 
-                              ? colorScheme.primary 
+                          color: hasSubtitle
+                              ? colorScheme.primary
                               : colorScheme.onSurfaceVariant,
                         ),
                         const SizedBox(width: 8),
                         Text(
                           Strings.hasSubtitle,
                           style: TextStyle(
-                            color: hasSubtitle 
-                                ? colorScheme.primary 
+                            color: hasSubtitle
+                                ? colorScheme.primary
                                 : colorScheme.onSurface,
                           ),
                         ),
@@ -76,4 +81,4 @@ class FilterWithKeyword extends StatelessWidget {
       ),
     );
   }
-} 
+}

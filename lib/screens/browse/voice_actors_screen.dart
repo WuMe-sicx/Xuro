@@ -1,9 +1,13 @@
+/// voice_actors_screen.dart：分类屏——真实 `/vas/` 接口声优的编号列表。
+///
+/// @author  Elvis Juan (thanhtran0606en@gmail.com)
+/// @created 2026-08-13
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:xuro/common/constants/strings.dart';
 import 'package:xuro/presentation/viewmodels/voice_actors_viewmodel.dart';
-import 'package:xuro/screens/browse/widgets/browse_search_bar.dart';
-import 'package:xuro/screens/browse/widgets/browse_grid_item.dart';
+import 'package:xuro/screens/browse/widgets/browse_list_item.dart';
+import 'package:xuro/widgets/common/app_search_field.dart';
 
 class VoiceActorsScreen extends StatelessWidget {
   const VoiceActorsScreen({super.key});
@@ -13,14 +17,18 @@ class VoiceActorsScreen extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) => VoiceActorsViewModel(),
       child: Scaffold(
-        appBar: AppBar(title: const Text(Strings.browseAllVoiceActors)),
+        appBar: browseAppBar(context, Strings.browseAllVoiceActors),
         body: Consumer<VoiceActorsViewModel>(
           builder: (context, viewModel, _) {
             return Column(
               children: [
-                BrowseSearchBar(
-                  hintText: Strings.browseSearchVoiceActorsHint,
-                  onChanged: viewModel.search,
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: AppSearchField(
+                    hintText: Strings.browseSearchVoiceActorsHint,
+                    onChanged: viewModel.search,
+                    onClear: () => viewModel.search(''),
+                  ),
                 ),
                 Expanded(
                   child: _buildContent(context, viewModel),
@@ -58,24 +66,21 @@ class VoiceActorsScreen extends StatelessWidget {
     }
     return RefreshIndicator(
       onRefresh: viewModel.refresh,
-      child: GridView.builder(
-        padding: const EdgeInsets.all(8),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 3,
-          crossAxisSpacing: 8,
-          mainAxisSpacing: 8,
-        ),
+      child: ListView.separated(
         itemCount: viewModel.voiceActors.length,
+        separatorBuilder: (context, _) => Divider(
+          height: BrowseListItem.rowDividerThickness,
+          thickness: BrowseListItem.rowDividerThickness,
+          color: Theme.of(context).colorScheme.outlineVariant,
+        ),
         itemBuilder: (context, index) {
           final va = viewModel.voiceActors[index];
           final name = va.name ?? '';
-          return BrowseGridItem(
+          return BrowseListItem(
+            index: index + 1,
             name: name,
-            count: va.count ?? 0,
-            onTap: name.isNotEmpty
-                ? () => _onVATap(context, name)
-                : null,
+            count: va.count,
+            onTap: name.isNotEmpty ? () => _onVATap(context, name) : null,
           );
         },
       ),

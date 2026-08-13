@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:xuro/core/settings/app_settings_service.dart';
 import 'package:xuro/core/theme/app_colors.dart';
-import 'package:xuro/widgets/common/accent_pill.dart';
 import 'package:xuro/widgets/common/brand_wordmark.dart';
-import 'package:xuro/widgets/common/category_chip.dart';
 
 /// 三配色不变量回归：同一原子在不同 [ColorVariant] 下，accent 元素颜色
 /// 必须严格等于该 scheme 的 primary/primaryContainer——证明组件从 Theme 取色、
@@ -19,56 +17,9 @@ void main() {
   final green = AppColors.lightSchemeFor(ColorVariant.green);
   final mono = AppColors.lightSchemeFor(ColorVariant.mono);
 
-  group('AccentPill 底色 == colorScheme.primary（随配色轮换）', () {
-    for (final (name, scheme) in [
-      ('blue', blue),
-      ('green', green),
-      ('mono', mono),
-    ]) {
-      testWidgets(name, (tester) async {
-        await tester.pumpWidget(
-          _host(scheme, const AccentPill(label: '关注')),
-        );
-        final m = tester.widget<Material>(
-          find.descendant(
-            of: find.byType(AccentPill),
-            matching: find.byType(Material),
-          ),
-        );
-        expect(m.color, scheme.primary);
-      });
-    }
-
-    testWidgets('blue 与 green primary 确实不同（轮换有效）', (tester) async {
-      expect(blue.primary, isNot(green.primary));
-    });
-  });
-
-  group('CategoryChip 软底 == colorScheme.primaryContainer', () {
-    for (final (name, scheme) in [
-      ('blue', blue),
-      ('green', green),
-      ('mono', mono),
-    ]) {
-      testWidgets(name, (tester) async {
-        await tester.pumpWidget(
-          _host(
-            scheme,
-            const CategoryChip(icon: Icons.spa, label: '助眠'),
-          ),
-        );
-        final m = tester.widget<Material>(
-          find.descendant(
-            of: find.byType(CategoryChip),
-            matching: find.byType(Material),
-          ),
-        );
-        expect(m.color, scheme.primaryContainer);
-      });
-    }
-  });
-
-  group('BrandWordmark 图标 == colorScheme.primary', () {
+  // 品牌是纯排版：字标 onSurface + 句点 accent。句点是唯一着色的字符，
+  // 这条断言同时守住「多配色只轮换 accent」和「品牌不用图标」两件事。
+  group('BrandWordmark 句点 == colorScheme.primary，字标 == onSurface', () {
     for (final (name, scheme) in [
       ('blue', blue),
       ('green', green),
@@ -76,13 +27,23 @@ void main() {
     ]) {
       testWidgets(name, (tester) async {
         await tester.pumpWidget(_host(scheme, const BrandWordmark()));
-        final icon = tester.widget<Icon>(
+        expect(
           find.descendant(
             of: find.byType(BrandWordmark),
             matching: find.byType(Icon),
           ),
+          findsNothing,
         );
-        expect(icon.color, scheme.primary);
+        final text = tester.widget<Text>(
+          find.descendant(
+            of: find.byType(BrandWordmark),
+            matching: find.byType(Text),
+          ),
+        );
+        final spans = (text.textSpan! as TextSpan).children!;
+        expect((spans[0] as TextSpan).style?.color, scheme.onSurface);
+        expect((spans[1] as TextSpan).text, '.');
+        expect((spans[1] as TextSpan).style?.color, scheme.primary);
       });
     }
   });

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:xuro/core/theme/app_radius.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:xuro/widgets/common/skeleton_pulse.dart';
 import 'package:xuro/core/image/cache/image_cache_manager.dart';
@@ -26,7 +27,7 @@ class MiniPlayerCover extends StatelessWidget {
       cacheWidth = p < 1 ? 1 : p;
     }
     return ClipRRect(
-      borderRadius: BorderRadius.circular(4),
+      borderRadius: AppRadius.smAll,
       child: CachedNetworkImage(
         imageUrl: coverUrl!,
         width: size,
@@ -47,7 +48,7 @@ class MiniPlayerCover extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: AppRadius.smAll,
       ),
       child: const Icon(Icons.music_note, color: Colors.grey),
     );
@@ -60,7 +61,7 @@ class MiniPlayerCover extends StatelessWidget {
         height: size,
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(4),
+          borderRadius: AppRadius.smAll,
         ),
       ),
     );
@@ -72,7 +73,7 @@ class MiniPlayerCover extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         color: Colors.grey[300],
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: AppRadius.smAll,
       ),
       child: const Icon(Icons.broken_image, color: Colors.grey),
     );

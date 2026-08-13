@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:marquee/marquee.dart';
 import 'package:xuro/common/constants/strings.dart';
 import 'package:xuro/core/audio/models/playback_context.dart';
+import 'package:xuro/core/theme/app_spacing.dart';
+import 'package:xuro/core/theme/app_text_styles.dart';
 
+/// 播放器「副标」区：作品名（跑马灯）+ 声优名。Modernist 三段式曲目信息
+/// （kicker/曲名/副标）里最不显眼的一层，前两段（社团名 kicker、曲目大标题）
+/// 由 `PlayerScreen` 直接渲染在这个组件上方。
 class PlayerWorkInfo extends StatelessWidget {
   final PlaybackContext? context;
 
@@ -13,19 +18,24 @@ class PlayerWorkInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final mutedColor =
+        Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.55);
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.space16,
+        0,
+        AppSpacing.space16,
+        AppSpacing.space8,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            height: Theme.of(context).textTheme.titleMedium!.fontSize! * 1.5,
+            height: AppTextStyles.bodyMedium.fontSize! * 1.5,
             child: Marquee(
               text: this.context?.work.title ?? Strings.unknownWork,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+              style: AppTextStyles.bodyMedium.copyWith(color: mutedColor),
               scrollAxis: Axis.horizontal,
               crossAxisAlignment: CrossAxisAlignment.start,
               blankSpace: 50.0,
@@ -38,16 +48,17 @@ class PlayerWorkInfo extends StatelessWidget {
               decelerationCurve: Curves.easeOut,
             ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: AppSpacing.space4),
           Text(
-            this.context?.work.vas
+            this
+                    .context
+                    ?.work
+                    .vas
                     ?.map((va) => va['name'] as String?)
                     .where((name) => name != null)
                     .join('、') ??
                 Strings.unknownArtist,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-                ),
+            style: AppTextStyles.caption.copyWith(color: mutedColor),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -55,4 +66,4 @@ class PlayerWorkInfo extends StatelessWidget {
       ),
     );
   }
-} 
+}

@@ -15,64 +15,37 @@ class MarkSelectionDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    
     return AlertDialog(
-      backgroundColor: isDark ? const Color(0xFF2C2C2C) : Colors.white,
-      title: Text(
-        '标记状态',
-        style: TextStyle(
-          color: isDark ? Colors.white70 : Colors.black87,
-        ),
-      ),
+      title: const Text('标记状态'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: MarkStatus.values.map((status) {
-          final isSelected = status == currentStatus;
           return ListTile(
             enabled: !loading,
+            // 不覆盖 fillColor：M3 默认选中态即 colorScheme.primary，
+            // 手动指定灰色会让三配色轮换在这里失效。
             leading: Radio<MarkStatus>(
               value: status,
               groupValue: currentStatus,
-              onChanged: loading ? null : (MarkStatus? value) {
-                if (value != null) {
-                  onMarkSelected(value);
-                  Navigator.of(context).pop();
-                }
-              },
-              fillColor: WidgetStateProperty.resolveWith((states) {
-                if (states.contains(WidgetState.disabled)) {
-                  return isDark ? Colors.white24 : Colors.black26;
-                }
-                if (states.contains(WidgetState.selected)) {
-                  return isDark ? Colors.white70 : Colors.black87;
-                }
-                return isDark ? Colors.white38 : Colors.black45;
-              }),
+              onChanged: loading
+                  ? null
+                  : (MarkStatus? value) {
+                      if (value != null) {
+                        onMarkSelected(value);
+                        Navigator.of(context).pop();
+                      }
+                    },
             ),
-            title: Text(
-              status.label,
-              style: TextStyle(
-                color: loading
-                    ? (isDark ? Colors.white38 : Colors.black38)
-                    : (isSelected
-                        ? (isDark ? Colors.white : Colors.black87)
-                        : (isDark ? Colors.white70 : Colors.black54)),
-              ),
-            ),
-            onTap: loading ? null : () {
-              onMarkSelected(status);
-              Navigator.of(context).pop();
-            },
-            hoverColor: isDark 
-                ? Colors.white.withValues(alpha: 0.05) 
-                : Colors.black.withValues(alpha: 0.05),
+            title: Text(status.label),
+            onTap: loading
+                ? null
+                : () {
+                    onMarkSelected(status);
+                    Navigator.of(context).pop();
+                  },
           );
         }).toList(),
       ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
     );
   }
-} 
+}

@@ -8,6 +8,10 @@ enum ColorVariant {
   blue,
   mono,
   green,
+
+  /// Modernist 设计稿的招牌红。持久化按 `name` 存取，旧存档解析不到时
+  /// 由 `orElse` 落回默认值，因此新增枚举值不影响已安装用户。
+  still,
 }
 
 class AppSettingsService extends ChangeNotifier {
@@ -24,7 +28,12 @@ class AppSettingsService extends ChangeNotifier {
   static const String defaultServerUrl = 'https://api.asmr.one/api';
   static const ColorVariant defaultColorVariant = ColorVariant.blue;
   static const List<String> defaultAudioFormatOrder = [
-    'mp3', 'flac', 'wav', 'opus', 'm4a', 'aac'
+    'mp3',
+    'flac',
+    'wav',
+    'opus',
+    'm4a',
+    'aac'
   ];
 
   /// Available server options

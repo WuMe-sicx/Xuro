@@ -88,6 +88,19 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
+  # Archivo（OFL）：Modernist 设计语言的标题与数字字形。
+  # 它没有中日文字形，CJK 会自动回退到系统字体——这是已知且可接受的，
+  # 稿子里的中文同样是回退渲染的。
+  fonts:
+    - family: Archivo
+      fonts:
+        - asset: assets/fonts/Archivo-400.ttf
+          weight: 400
+        - asset: assets/fonts/Archivo-600.ttf
+          weight: 600
+        - asset: assets/fonts/Archivo-800.ttf
+          weight: 800
+
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg

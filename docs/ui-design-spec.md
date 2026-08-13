@@ -144,12 +144,12 @@ Layer 2  屏幕组合   Sidebar/Home/Player/Settings/About 仅做布局组合
 | 原子组件 | 侧边栏 | 首页 | 播放器 | 设置 | 关于 | 代码归宿 |
 | :--- | :-: | :-: | :-: | :-: | :-: | :--- |
 | `BrandWordmark`（≈ASMR 标志） | ● | | | | ● | `lib/widgets/common/` 新建 |
-| `AccentPill`（选中胶囊/关注/主按钮） | ● | | ● | | | `lib/widgets/common/` 新建 |
-| `SectionHeader`（标题 + 更多>） | | ● | | ● | ● | `lib/widgets/common/` 新建 |
-| `AppSearchField`（圆角搜索框） | | ● | | | | 由 `browse_search_bar.dart` 抽公共 |
+| `AccentPill`†（选中胶囊/关注/主按钮） | ● | | ● | | | `lib/widgets/common/` 新建 |
+| `SectionHeader`†（标题 + 更多>） | | ● | | ● | ● | `lib/widgets/common/` 新建 |
+| `AppSearchField`（圆角搜索框） | | ● | | | | 已吸收 `browse_search_bar.dart`（2026-08-13 起 tags/circles/voice_actors 三屏复用，该文件已删除） |
 | `AppListTile`（图标+标题+尾控件） | ● | | | ● | ● | 泛化 `settings/widgets/settings_tile.dart` |
 | `AppListGroup`（分组+头+脚） | | | | ● | ● | 上提 `settings/widgets/settings_group.dart` |
-| `CategoryChip`（图标+标签 chip） | | ● | | | | 演进 `widgets/common/tag_chip.dart` |
+| `CategoryChip`†（图标+标签 chip） | | ● | | | | 演进 `widgets/common/tag_chip.dart` |
 | `WorkCoverCard`（封面+时长角标+标题） | | ● | | | | `widgets/work_card/*` + 时长角标 |
 | `CircularCover`（圆形封面+环） | | | ● | | | 改 `widgets/player/player_cover.dart` |
 | `WaveformProgress`（波形进度） | | | ● | | | 替换 `widgets/player/player_progress.dart` 视觉层 |
@@ -160,16 +160,18 @@ Layer 2  屏幕组合   Sidebar/Home/Player/Settings/About 仅做布局组合
 
 复用率：设置/关于 ≈80% 复用现有 `SettingsGroup`/`SettingsTile`（已含 `.navigation/.toggle/.selection` 工厂变体）；首页为最大净增组合但全由原子拼成；播放器改动集中在 `CircularCover` + `WaveformProgress`。
 
+> †延后未建（2026-08-13 UI 收敛任务结论）：`AccentPill`/`SectionHeader`/`CategoryChip` 在本 App 中全部零调用点，指定消费方不存在——首页策展区（"热门分类"两列网格、"推荐音频"/"最新上传" 分区标题）没有对应的数据源与屏幕；"关注" 功能没有对应后端；侧边栏选中态已由 `SidebarTile` 实现（且刻意用 `AppRadius.lg` 而非 `full` 圆角，与本节原描述不同）。三者连同专属测试组已删除；本节以下正文仍保留原表述作为设计意图记录，实现时以“延后未建”为准，不要为了对齐这里反向造功能。
+
 ### 2.2 五屏布局规格（对参考图）
 
-**侧边栏**：顶 `BrandWordmark`；导航列表，选中项 = `AccentPill`（实心 accent 底 + `onPrimary` 文字 + Full 圆角），未选中为纯文本+线性图标；底部 `SidebarDecoration`（蓝/绿叶、黑配色月+山）。移动端宽 `min(屏宽×72%, 360px)`，右侧上下圆角 28px，沿用现有玻璃拟态深色策略（见 `lib/widgets/sidebar/`，不回退）。
+**侧边栏**：顶 `BrandWordmark`；导航列表，选中项 = `AccentPill`†（实心 accent 底 + `onPrimary` 文字 + Full 圆角），未选中为纯文本+线性图标；底部 `SidebarDecoration`（蓝/绿叶、黑配色月+山）。移动端宽 `min(屏宽×72%, 360px)`，右侧上下圆角 28px，沿用现有玻璃拟态深色策略（见 `lib/widgets/sidebar/`，不回退）。
 
-**首页**：AppBar 标题 + 通知铃；`AppSearchField`（Full 圆角，Surface L2 底，尾部放大镜）；`SectionHeader("推荐音频", 更多>)` + `WorkCoverCard` 横滑（Medium 圆角封面 + 左下时长 Caption 角标 + 标题）；`SectionHeader("热门分类")` + `CategoryChip` 两列网格（图标+标签，`primaryContainer` 软底）；`SectionHeader("最新上传", 更多>)` + `NowPlayingRow`（方形小封面 + 标题 + "正在播放" + 迷你播放控件）。
+**首页**：AppBar 标题 + 通知铃；`AppSearchField`（Full 圆角，Surface L2 底，尾部放大镜）；`SectionHeader`†`("推荐音频", 更多>)` + `WorkCoverCard` 横滑（Medium 圆角封面 + 左下时长 Caption 角标 + 标题）；`SectionHeader`†`("热门分类")` + `CategoryChip`†两列网格（图标+标签，`primaryContainer` 软底）；`SectionHeader`†`("最新上传", 更多>)` + `NowPlayingRow`（方形小封面 + 标题 + "正在播放" + 迷你播放控件）。
 
-**播放器**：AppBar 下箭头收起 + "播放器" + 收藏心 + 更多⋮；曲名 Title Large + 副标 Body Medium("ASMR · 自然") + `AccentPill("关注")`；`CircularCover`（大圆形封面 + 细环，保留 `Hero(tag:'mini-player-cover')`）；`WaveformProgress`（波形 + 时间 Caption `12:34 / 30:45`，拖拽 seek 逻辑复用现 `PlayerProgress`）；主控行 `[循环][上一首][实心 accent 大播放][下一首][列表]`；底部动作行 定时关闭/倍速播放/音效设置/加入收藏（图标+Label）。
+**播放器**：AppBar 下箭头收起 + "播放器" + 收藏心 + 更多⋮；曲名 Title Large + 副标 Body Medium("ASMR · 自然") + `AccentPill`†`("关注")`；`CircularCover`（大圆形封面 + 细环，保留 `Hero(tag:'mini-player-cover')`）；`WaveformProgress`（波形 + 时间 Caption `12:34 / 30:45`，拖拽 seek 逻辑复用现 `PlayerProgress`）；主控行 `[循环][上一首][实心 accent 大播放][下一首][列表]`；底部动作行 定时关闭/倍速播放/音效设置/加入收藏（图标+Label）。
 > 控制区遵守**播放器极简原则**：扩展现有单控制行，禁止堆叠重复/歧义图标；底部动作行中无后端支撑的项（倍速/音效/均衡器/定时）只做占位或暂不纳入，不为对齐 UI 反向造功能。
 
-**设置**：AppBar "设置"；`AppListGroup` 分区（accent `SectionHeader`）：播放设置 / 声音设置 / 通用设置；每行 `AppListTile` = 线性 leading 图标 + 标题 + 尾控件（值+`>` / 开关 / 滑块）。沿用现有 `SettingsTheme.pageBackground` + `noSplashTheme`。
+**设置**：AppBar "设置"；`AppListGroup` 分区（accent `SectionHeader`†）：播放设置 / 声音设置 / 通用设置；每行 `AppListTile` = 线性 leading 图标 + 标题 + 尾控件（值+`>` / 开关 / 滑块）。沿用现有 `SettingsTheme.pageBackground` + `noSplashTheme`。
 
 **关于我们**：AppBar 返回 + "关于我们"；居中 `BrandWordmark` + "版本 Vx.y.z"（来自 `package_info_plus`，非硬编码）；产品简介段；`AppListGroup`（用户协议/隐私政策/意见反馈 等 `>` 项，复用现有 7 个 `SettingsTile.navigation`）；联系我们 + 邮箱；`SocialIconRow`；`AppFooter` 版权。
 

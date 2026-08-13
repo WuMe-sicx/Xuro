@@ -123,6 +123,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               selected: settings.colorVariant == ColorVariant.green,
               onTap: () => settings.setColorVariant(ColorVariant.green),
             ),
+            SettingsTile.selection(
+              title: Strings.colorVariantStill,
+              leading: Icons.circle,
+              leadingColor: _variantSwatch(context, ColorVariant.still),
+              selected: settings.colorVariant == ColorVariant.still,
+              onTap: () => settings.setColorVariant(ColorVariant.still),
+            ),
           ],
         ),
       );

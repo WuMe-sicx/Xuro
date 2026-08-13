@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:xuro/common/constants/strings.dart';
-import 'package:xuro/core/settings/app_settings_service.dart';
+import 'package:xuro/core/theme/app_colors.dart';
 import 'package:xuro/core/theme/app_radius.dart';
 import 'package:xuro/core/theme/app_spacing.dart';
 import 'package:xuro/core/theme/app_text_styles.dart';
@@ -17,16 +17,15 @@ import 'package:xuro/screens/about_screen.dart';
 import 'package:xuro/screens/favorites_screen.dart';
 import 'package:xuro/screens/settings/settings_screen.dart';
 import 'package:xuro/widgets/common/brand_wordmark.dart';
-import 'package:xuro/widgets/sidebar/sidebar_decoration.dart';
 import 'package:xuro/widgets/sidebar/sidebar_group.dart';
 import 'package:xuro/widgets/sidebar/sidebar_header.dart';
 import 'package:xuro/widgets/sidebar/sidebar_tile.dart';
 
-/// 侧边抽屉。2026-05-16 用户决策：推翻旧「深色玻璃拟态不可回退」视觉不变量，
-/// 改为**跟随应用主题的清爽列表**（对齐参考图：浅色模式=浅色，暗色/mono=深色）。
-/// 保留的性能教训：**不引入任何全屏 BackdropFilter**（旧版 256ms 真机 jank，
-/// 见 docs/todos/done/20260515-sidebar-first-open-jank.md）；参考图为扁平设计，
-/// 本就不需要模糊。
+/// 侧边抽屉：跟随应用主题的清爽列表，层级由 2px（组）/ 1px（行）分隔线表达。
+///
+/// 两条不可回退的约束：玻璃拟态已被用户以产品负责人身份推翻，不得重新引入；
+/// **不引入任何全屏 BackdropFilter**（旧版真机 256ms 首开 jank，见
+/// docs/todos/done/20260515-sidebar-first-open-jank.md）。
 class SidebarMenu extends StatelessWidget {
   const SidebarMenu({super.key});
 
@@ -34,7 +33,6 @@ class SidebarMenu extends StatelessWidget {
   static const _drawerMobileMaxWidth = 360.0;
   static const _drawerTabletWidth = 304.0;
   static const _tabletBreakpoint = 800.0;
-  static const _cornerRadius = 28.0;
 
   void _navigate(BuildContext context, Widget screen) {
     final rootNavigator = Navigator.of(context, rootNavigator: true);
@@ -82,6 +80,14 @@ class SidebarMenu extends StatelessWidget {
     }
   }
 
+  /// 组间分隔线：2px，粗于 [SidebarGroup] 内部的 1px 行分隔线——
+  /// Modernist 用这一粗细差别表达「组」比「行」高一级的层级。
+  Widget _groupDivider(ColorScheme cs) => Divider(
+        height: AppSpacing.space16,
+        thickness: AppColors.dividerThickness,
+        color: cs.outlineVariant,
+      );
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -92,158 +98,143 @@ class SidebarMenu extends StatelessWidget {
             _drawerMobileMaxWidth,
           );
 
-    // SidebarDecoration 仍按 ColorVariant 选「叶/月山」母题；颜色走当前主题
-    // colorScheme（已随 variant 轮换），不再强制深色。
-    final variant = context.watch<AppSettingsService>().colorVariant;
     final cs = Theme.of(context).colorScheme;
 
     return Drawer(
       backgroundColor: cs.surface,
       elevation: 0,
       width: width,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topRight: Radius.circular(_cornerRadius),
-          bottomRight: Radius.circular(_cornerRadius),
-        ),
-      ),
+      // Modernist 零圆角：不留 Material3 Drawer 默认的圆角边，抽屉与其余屏
+      // 保持同一套「层级由分隔线表达」的语言。
+      shape: const RoundedRectangleBorder(borderRadius: AppRadius.mdAll),
       child: ClipRRect(
-        borderRadius: const BorderRadius.only(
-          topRight: Radius.circular(_cornerRadius),
-          bottomRight: Radius.circular(_cornerRadius),
-        ),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            // 底部装饰水印（参考图）：内容之下、可点穿；无 BackdropFilter。
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: SidebarDecoration(variant: variant),
-            ),
-            SafeArea(
-              child: CustomScrollView(
-                physics: const BouncingScrollPhysics(),
-                slivers: [
-                  SliverToBoxAdapter(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+        borderRadius: AppRadius.mdAll,
+        child: SafeArea(
+          child: CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              SliverToBoxAdapter(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        AppSpacing.space24,
+                        AppSpacing.space20,
+                        AppSpacing.space16,
+                        AppSpacing.space8,
+                      ),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: BrandWordmark(
+                          text: Strings.aboutAppName,
+                          fontSize: 22,
+                        ),
+                      ),
+                    ),
+                    // 品牌区底部 2px 分隔线（对应设计系统 `.nav`
+                    // `border-bottom`），与下方 SidebarGroup 组间分隔线
+                    // 同厚度但独立于列表滚动区之外，标记「品牌/导航」边界。
+                    Divider(
+                      height: AppSpacing.space16,
+                      thickness: AppColors.dividerThickness,
+                      color: cs.outlineVariant,
+                    ),
+                    const SidebarHeader(),
+                    const SizedBox(height: AppSpacing.space8),
+                    SidebarGroup(
+                      header: Strings.drawerSectionContent,
                       children: [
-                        const Padding(
-                          padding: EdgeInsets.fromLTRB(
-                            AppSpacing.space24,
-                            AppSpacing.space20,
-                            AppSpacing.space16,
-                            AppSpacing.space8,
-                          ),
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: BrandWordmark(
-                              text: Strings.aboutAppName,
-                              iconSize: 26,
-                              fontSize: 22,
-                            ),
+                        SidebarTile(
+                          icon: CupertinoIcons.heart,
+                          title: Strings.favorites,
+                          onTap: () => _navigateToFavorites(context),
+                        ),
+                        SidebarTile(
+                          icon: CupertinoIcons.clock,
+                          title: Strings.recentPlay,
+                          onTap: () => _showComingSoon(
+                            context,
+                            Strings.recentPlay,
                           ),
                         ),
-                        const SidebarHeader(),
-                        const SizedBox(height: AppSpacing.space8),
-                        SidebarGroup(
-                          header: Strings.drawerSectionContent,
-                          children: [
-                            SidebarTile(
-                              icon: CupertinoIcons.heart,
-                              title: Strings.favorites,
-                              onTap: () => _navigateToFavorites(context),
-                            ),
-                            SidebarTile(
-                              icon: CupertinoIcons.clock,
-                              title: Strings.recentPlay,
-                              onTap: () => _showComingSoon(
-                                context,
-                                Strings.recentPlay,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: AppSpacing.space16),
-                        SidebarGroup(
-                          header: Strings.drawerSectionDiscover,
-                          children: [
-                            SidebarTile(
-                              icon: CupertinoIcons.tag,
-                              title: Strings.tags,
-                              onTap: () =>
-                                  _navigate(context, const TagsScreen()),
-                            ),
-                            SidebarTile(
-                              icon: Icons.group_outlined,
-                              title: Strings.circles,
-                              onTap: () =>
-                                  _navigate(context, const CirclesScreen()),
-                            ),
-                            SidebarTile(
-                              icon: CupertinoIcons.mic,
-                              title: Strings.voiceActors,
-                              onTap: () => _navigate(
-                                context,
-                                const VoiceActorsScreen(),
-                              ),
-                            ),
-                            SidebarTile(
-                              icon: Icons.bar_chart_rounded,
-                              title: Strings.ranking,
-                              onTap: () =>
-                                  _showComingSoon(context, Strings.ranking),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: AppSpacing.space16),
-                        Consumer<ThemeController>(
-                          builder: (context, themeController, _) {
-                            return SidebarGroup(
-                              header: Strings.drawerSectionSystem,
-                              children: [
-                                SidebarTile(
-                                  icon: CupertinoIcons.settings,
-                                  title: Strings.settings,
-                                  onTap: () => _navigate(
-                                    context,
-                                    const SettingsScreen(),
-                                  ),
-                                ),
-                                SidebarTile(
-                                  icon: CupertinoIcons.moon_stars,
-                                  title: Strings.darkModeMenu,
-                                  onTap: themeController.toggleThemeMode,
-                                  trailing: _ThemeModeBadge(
-                                    label: _themeModeLabel(
-                                      themeController.themeMode,
-                                    ),
-                                  ),
-                                ),
-                                SidebarTile(
-                                  icon: CupertinoIcons.info,
-                                  title: Strings.aboutUs,
-                                  onTap: () => _navigate(
-                                    context,
-                                    const AboutScreen(),
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
-                        ),
-                        const SizedBox(height: AppSpacing.space32),
-                        const _SidebarFooter(),
-                        const SizedBox(height: AppSpacing.space16),
                       ],
                     ),
-                  ),
-                ],
+                    _groupDivider(cs),
+                    SidebarGroup(
+                      header: Strings.drawerSectionDiscover,
+                      children: [
+                        SidebarTile(
+                          icon: CupertinoIcons.tag,
+                          title: Strings.tags,
+                          onTap: () => _navigate(context, const TagsScreen()),
+                        ),
+                        SidebarTile(
+                          icon: Icons.group_outlined,
+                          title: Strings.circles,
+                          onTap: () =>
+                              _navigate(context, const CirclesScreen()),
+                        ),
+                        SidebarTile(
+                          icon: CupertinoIcons.mic,
+                          title: Strings.voiceActors,
+                          onTap: () => _navigate(
+                            context,
+                            const VoiceActorsScreen(),
+                          ),
+                        ),
+                        SidebarTile(
+                          icon: Icons.bar_chart_rounded,
+                          title: Strings.ranking,
+                          onTap: () =>
+                              _showComingSoon(context, Strings.ranking),
+                        ),
+                      ],
+                    ),
+                    _groupDivider(cs),
+                    Consumer<ThemeController>(
+                      builder: (context, themeController, _) {
+                        return SidebarGroup(
+                          header: Strings.drawerSectionSystem,
+                          children: [
+                            SidebarTile(
+                              icon: CupertinoIcons.settings,
+                              title: Strings.settings,
+                              onTap: () => _navigate(
+                                context,
+                                const SettingsScreen(),
+                              ),
+                            ),
+                            SidebarTile(
+                              icon: CupertinoIcons.moon_stars,
+                              title: Strings.darkModeMenu,
+                              onTap: themeController.toggleThemeMode,
+                              trailing: _ThemeModeBadge(
+                                label: _themeModeLabel(
+                                  themeController.themeMode,
+                                ),
+                              ),
+                            ),
+                            SidebarTile(
+                              icon: CupertinoIcons.info,
+                              title: Strings.aboutUs,
+                              onTap: () => _navigate(
+                                context,
+                                const AboutScreen(),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                    const SizedBox(height: AppSpacing.space32),
+                    const _SidebarFooter(),
+                    const SizedBox(height: AppSpacing.space16),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -296,9 +287,8 @@ class _SidebarFooterState extends State<_SidebarFooter> {
       child: FutureBuilder<PackageInfo>(
         future: _packageInfoFuture,
         builder: (context, snapshot) {
-          final label = snapshot.hasData
-              ? 'Xuro v${snapshot.data!.version}'
-              : 'Xuro';
+          final label =
+              snapshot.hasData ? 'Xuro v${snapshot.data!.version}' : 'Xuro';
           return Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -306,7 +296,7 @@ class _SidebarFooterState extends State<_SidebarFooter> {
                 width: 6,
                 height: 6,
                 decoration: BoxDecoration(
-                  shape: BoxShape.circle,
+                  borderRadius: AppRadius.smAll,
                   color: cs.primary,
                 ),
               ),

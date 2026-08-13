@@ -16,7 +16,8 @@ class RecommendContent extends StatefulWidget {
   State<RecommendContent> createState() => _RecommendContentState();
 }
 
-class _RecommendContentState extends State<RecommendContent> with AutomaticKeepAliveClientMixin {
+class _RecommendContentState extends State<RecommendContent>
+    with AutomaticKeepAliveClientMixin {
   final _layoutStrategy = const WorkLayoutStrategy();
   final _scrollController = ScrollController();
 
@@ -24,7 +25,10 @@ class _RecommendContentState extends State<RecommendContent> with AutomaticKeepA
   bool get wantKeepAlive => true;
 
   void _onScroll() {
-    if (_scrollController.position.pixels == _scrollController.position.minScrollExtent) return;
+    if (_scrollController.position.pixels ==
+        _scrollController.position.minScrollExtent) {
+      return;
+    }
     context.read<RecommendViewModel>().closeFilterPanel();
   }
 
@@ -32,6 +36,9 @@ class _RecommendContentState extends State<RecommendContent> with AutomaticKeepA
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<RecommendViewModel>().loadRecommendations();
+    });
   }
 
   @override
@@ -58,7 +65,16 @@ class _RecommendContentState extends State<RecommendContent> with AutomaticKeepA
     return Stack(
       children: [
         // Grid: only rebuilds when list data changes
-        Selector<RecommendViewModel, ({List<Work> works, bool isLoading, String? error, bool isLoginError, int currentPage, int? totalPages})>(
+        Selector<
+            RecommendViewModel,
+            ({
+              List<Work> works,
+              bool isLoading,
+              String? error,
+              bool isLoginError,
+              int currentPage,
+              int? totalPages
+            })>(
           selector: (_, vm) => (
             works: vm.works,
             isLoading: vm.isLoading,
@@ -76,9 +92,14 @@ class _RecommendContentState extends State<RecommendContent> with AutomaticKeepA
               onLogin: _promptLogin,
               currentPage: data.currentPage,
               totalPages: data.totalPages,
-              onPageChanged: (page) => context.read<RecommendViewModel>().loadPage(page),
-              onRefresh: () => context.read<RecommendViewModel>().loadRecommendations(refresh: true),
-              onRetry: () => context.read<RecommendViewModel>().loadRecommendations(refresh: true),
+              onPageChanged: (page) =>
+                  context.read<RecommendViewModel>().loadPage(page),
+              onRefresh: () => context
+                  .read<RecommendViewModel>()
+                  .loadRecommendations(refresh: true),
+              onRetry: () => context
+                  .read<RecommendViewModel>()
+                  .loadRecommendations(refresh: true),
               layoutStrategy: _layoutStrategy,
               scrollController: _scrollController,
             );
@@ -89,7 +110,8 @@ class _RecommendContentState extends State<RecommendContent> with AutomaticKeepA
           top: 0,
           left: 0,
           right: 0,
-          child: Selector<RecommendViewModel, ({bool expanded, bool hasSubtitle})>(
+          child:
+              Selector<RecommendViewModel, ({bool expanded, bool hasSubtitle})>(
             selector: (_, vm) => (
               expanded: vm.filterPanelExpanded,
               hasSubtitle: vm.hasSubtitle,
@@ -101,7 +123,8 @@ class _RecommendContentState extends State<RecommendContent> with AutomaticKeepA
                 offset: Offset(0, data.expanded ? 0 : -1),
                 child: FilterWithKeyword(
                   hasSubtitle: data.hasSubtitle,
-                  onSubtitleChanged: (_) => context.read<RecommendViewModel>().toggleSubtitleFilter(),
+                  onSubtitleChanged: (_) =>
+                      context.read<RecommendViewModel>().toggleSubtitleFilter(),
                 ),
               );
             },

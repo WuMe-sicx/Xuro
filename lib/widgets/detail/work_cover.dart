@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:xuro/core/theme/app_radius.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:xuro/core/image/cache/image_cache_manager.dart';
 
@@ -8,7 +9,6 @@ class WorkCover extends StatelessWidget {
   final String sourceId;
   final String? releaseDate;
   final String? heroTag;
-
 
   const WorkCover({
     super.key,
@@ -53,7 +53,7 @@ class WorkCover extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
               color: Colors.black.withValues(alpha: 0.7),
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: AppRadius.smAll,
             ),
             child: Text(
               sourceId,
@@ -72,7 +72,7 @@ class WorkCover extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
                 color: Colors.black.withValues(alpha: 0.7),
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: AppRadius.smAll,
               ),
               child: Text(
                 releaseDate!,

@@ -42,7 +42,9 @@ class SubtitleImportService {
     try {
       // 1. Pick file
       final pickedPath = await _picker.pickSubtitleFile();
-      if (pickedPath == null) return const ImportResponse(ImportResult.cancelled);
+      if (pickedPath == null) {
+        return const ImportResponse(ImportResult.cancelled);
+      }
 
       final file = File(pickedPath);
       final originalName = p.basename(pickedPath);
@@ -221,7 +223,8 @@ class SubtitleImportService {
   }
 
   /// Compute destination path (creates directory if needed).
-  Future<String> _getDestPath(String workId, String audioFileName, String ext) async {
+  Future<String> _getDestPath(
+      String workId, String audioFileName, String ext) async {
     final docsDir = await getApplicationDocumentsDirectory();
     final destDir = Directory(p.join(docsDir.path, 'user_subtitles', workId));
     if (!await destDir.exists()) await destDir.create(recursive: true);
