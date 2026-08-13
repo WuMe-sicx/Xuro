@@ -24,8 +24,25 @@ class RecommendViewModel extends ChangeNotifier {
   RecommendViewModel(this._authViewModel)
       : _apiService = GetIt.I<ApiService>(),
         _settings = GetIt.I<AppSettingsService>() {
-    // 共享筛选值由 AppSettingsService 同步提供，构造即可直接首载。
-    loadRecommendations(refresh: true);
+    // 首载改由内容 widget 的 postFrameCallback 触发（见 recommend_content.dart），
+    // 避免所有 tab 的 VM 在启动时一起并发发请求。鉴权尚未就绪时补挂监听，
+    // 就绪后自动补一次首载，防止「先误报未登录再翻转」的闪烁。
+    if (!_authViewModel.isAuthReady) {
+      _authViewModel.addListener(_onAuthReady);
+    }
+  }
+
+  void _onAuthReady() {
+    if (!_authViewModel.isAuthReady) return;
+    _authViewModel.removeListener(_onAuthReady);
+    _isLoading = false;
+    loadPage(_currentPage);
+  }
+
+  @override
+  void dispose() {
+    _authViewModel.removeListener(_onAuthReady);
+    super.dispose();
   }
 
   // Getters
@@ -69,7 +86,15 @@ class RecommendViewModel extends ChangeNotifier {
   Future<void> loadPage(int page) async {
     if (_isLoading) return;
     if (page < 1 || (totalPages != null && page > totalPages!)) return;
-    
+
+    // 鉴权状态尚未从本地存储恢复：保持 loading 而非误报未登录，
+    // 等 AuthViewModel 就绪后由 _onAuthReady 补一次加载。
+    if (!_authViewModel.isAuthReady) {
+      _isLoading = true;
+      notifyListeners();
+      return;
+    }
+
     // 检查是否已登录
     final uuid = _authViewModel.recommenderUuid;
     if (uuid == null) {
@@ -96,13 +121,8 @@ class RecommendViewModel extends ChangeNotifier {
       AppLogger.info('第$page页推荐列表加载成功: ${response.works.length}个作品');
     } catch (e) {
       AppLogger.error('加载推荐列表失败', e);
-      if (e is NetworkException) {
-        _error = e.userMessage;
-        _isLoginError = e.isAuthError;
-      } else {
-        _error = e.toString();
-        _isLoginError = false;
-      }
+      _error = userMessageOf(e);
+      _isLoginError = isAuthErrorOf(e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -113,5 +133,4 @@ class RecommendViewModel extends ChangeNotifier {
   Future<void> loadRecommendations({bool refresh = false}) async {
     await loadPage(1);
   }
-
-} 
+}

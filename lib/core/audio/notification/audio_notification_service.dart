@@ -33,12 +33,6 @@ class AudioNotificationService {
 
   Future<void> init() async {
     try {
-      // Request notification permission (Android 13+)
-      final status = await Permission.notification.status;
-      if (!status.isGranted) {
-        await Permission.notification.request();
-      }
-
       _audioHandler = await AudioService.init(
         builder: () => AudioPlayerHandler(_player, _eventHub),
         config: const AudioServiceConfig(
@@ -54,6 +48,29 @@ class AudioNotificationService {
     } catch (e) {
       AppLogger.error('通知栏服务初始化失败', e);
       rethrow;
+    }
+  }
+
+  // 并发首调共享同一个 in-flight Future（`??=` 与赋值之间无 await，同
+  // database_service.dart 的记忆化模式）：latch 化，之后每次调用都是瞬时
+  // 返回，可以放心塞进 resume()/playWithContext() 的调用路径而不产生开销。
+  Future<void>? _permissionFuture;
+
+  /// 通知权限（Android 13+）查询/请求，从 init() 摘出、改由播放服务在真正
+  /// 开始播放前调用——冷启动不再弹权限对话框，只在首次播放前弹一次；
+  /// 用户拒绝的话跟今天一样没有通知栏，不阻塞播放本身（吞掉异常，never
+  /// 让权限请求失败中断播放流程）。
+  Future<void> ensureNotificationPermission() =>
+      _permissionFuture ??= _requestNotificationPermission();
+
+  Future<void> _requestNotificationPermission() async {
+    try {
+      final status = await Permission.notification.status;
+      if (!status.isGranted) {
+        await Permission.notification.request();
+      }
+    } catch (e) {
+      AppLogger.warning('通知权限请求失败: $e');
     }
   }
 

@@ -19,7 +19,8 @@ class PlaylistSelectionDialog extends StatefulWidget {
   });
 
   @override
-  State<PlaylistSelectionDialog> createState() => _PlaylistSelectionDialogState();
+  State<PlaylistSelectionDialog> createState() =>
+      _PlaylistSelectionDialogState();
 }
 
 class _PlaylistSelectionDialogState extends State<PlaylistSelectionDialog> {
@@ -41,7 +42,7 @@ class _PlaylistSelectionDialogState extends State<PlaylistSelectionDialog> {
 
   void _updateItemStates() {
     if (widget.playlists == null) return;
-    
+
     final newStates = <String, _PlaylistItemState>{};
     for (final playlist in widget.playlists!) {
       newStates[playlist.id!] = _PlaylistItemState(
@@ -136,12 +137,12 @@ class _PlaylistSelectionDialogState extends State<PlaylistSelectionDialog> {
 
     try {
       await widget.onPlaylistTap!(state.playlist);
-      
+
       if (mounted) {
         final newPlaylist = state.playlist.copyWith(
           exist: !(state.playlist.exist ?? false),
         );
-        
+
         _itemStates[state.playlist.id!] = _PlaylistItemState(
           playlist: newPlaylist,
           isLoading: false,
@@ -157,13 +158,14 @@ class _PlaylistSelectionDialogState extends State<PlaylistSelectionDialog> {
               ),
             ),
             duration: const Duration(seconds: 1),
-            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+            backgroundColor:
+                Theme.of(context).colorScheme.surfaceContainerHighest,
             showCloseIcon: true,
             closeIconColor: Theme.of(context).colorScheme.onSurface,
             behavior: SnackBarBehavior.floating,
           ),
         );
-        
+
         setState(() {});
       }
     } finally {
@@ -232,9 +234,9 @@ class _PlaylistItem extends StatelessWidget {
 class _PlaylistItemState {
   final Playlist playlist;
   bool isLoading;
-  
+
   _PlaylistItemState({
     required this.playlist,
     this.isLoading = false,
   });
-} 
+}

@@ -52,4 +52,4 @@ class PlaybackStateRepository implements IPlaybackStateRepository {
       return null;
     }
   }
-} 
+}

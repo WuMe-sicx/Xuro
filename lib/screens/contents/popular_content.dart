@@ -14,7 +14,8 @@ class PopularContent extends StatefulWidget {
   State<PopularContent> createState() => _PopularContentState();
 }
 
-class _PopularContentState extends State<PopularContent> with AutomaticKeepAliveClientMixin {
+class _PopularContentState extends State<PopularContent>
+    with AutomaticKeepAliveClientMixin {
   final _layoutStrategy = const WorkLayoutStrategy();
   final _scrollController = ScrollController();
 
@@ -25,6 +26,9 @@ class _PopularContentState extends State<PopularContent> with AutomaticKeepAlive
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<PopularViewModel>().ensureFirstLoad();
+    });
   }
 
   @override
@@ -34,7 +38,10 @@ class _PopularContentState extends State<PopularContent> with AutomaticKeepAlive
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels == _scrollController.position.minScrollExtent) return;
+    if (_scrollController.position.pixels ==
+        _scrollController.position.minScrollExtent) {
+      return;
+    }
     context.read<PopularViewModel>().closeFilterPanel();
   }
 
@@ -44,7 +51,15 @@ class _PopularContentState extends State<PopularContent> with AutomaticKeepAlive
     return Stack(
       children: [
         // Grid: only rebuilds when list data changes
-        Selector<PopularViewModel, ({List<Work> works, bool isLoading, String? error, int currentPage, int? totalPages})>(
+        Selector<
+            PopularViewModel,
+            ({
+              List<Work> works,
+              bool isLoading,
+              String? error,
+              int currentPage,
+              int? totalPages
+            })>(
           selector: (_, vm) => (
             works: vm.works,
             isLoading: vm.isLoading,
@@ -59,9 +74,12 @@ class _PopularContentState extends State<PopularContent> with AutomaticKeepAlive
               error: data.error,
               currentPage: data.currentPage,
               totalPages: data.totalPages,
-              onPageChanged: (page) => context.read<PopularViewModel>().loadPage(page),
-              onRefresh: () => context.read<PopularViewModel>().loadPopular(refresh: true),
-              onRetry: () => context.read<PopularViewModel>().loadPopular(refresh: true),
+              onPageChanged: (page) =>
+                  context.read<PopularViewModel>().loadPage(page),
+              onRefresh: () =>
+                  context.read<PopularViewModel>().loadPopular(refresh: true),
+              onRetry: () =>
+                  context.read<PopularViewModel>().loadPopular(refresh: true),
               layoutStrategy: _layoutStrategy,
               scrollController: _scrollController,
             );
@@ -72,7 +90,8 @@ class _PopularContentState extends State<PopularContent> with AutomaticKeepAlive
           top: 0,
           left: 0,
           right: 0,
-          child: Selector<PopularViewModel, ({bool expanded, bool hasSubtitle})>(
+          child:
+              Selector<PopularViewModel, ({bool expanded, bool hasSubtitle})>(
             selector: (_, vm) => (
               expanded: vm.filterPanelExpanded,
               hasSubtitle: vm.hasSubtitle,
@@ -84,7 +103,8 @@ class _PopularContentState extends State<PopularContent> with AutomaticKeepAlive
                 offset: Offset(0, data.expanded ? 0 : -1),
                 child: FilterWithKeyword(
                   hasSubtitle: data.hasSubtitle,
-                  onSubtitleChanged: (_) => context.read<PopularViewModel>().toggleSubtitleFilter(),
+                  onSubtitleChanged: (_) =>
+                      context.read<PopularViewModel>().toggleSubtitleFilter(),
                 ),
               );
             },

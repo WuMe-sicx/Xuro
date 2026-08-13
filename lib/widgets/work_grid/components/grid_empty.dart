@@ -1,32 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:xuro/common/constants/strings.dart';
+import 'package:xuro/core/theme/app_spacing.dart';
 
 class GridEmpty extends StatelessWidget {
   final String? message;
-  final Widget? customWidget;
 
   const GridEmpty({
     super.key,
     this.message,
-    this.customWidget,
   });
 
   @override
   Widget build(BuildContext context) {
-    if (customWidget != null) {
-      return customWidget!;
-    }
-
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
             Icons.inbox_outlined,
-            size: 48,
+            size: AppSpacing.space48,
             color: Theme.of(context).colorScheme.outline,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.space16),
           Text(
             message ?? Strings.gridEmpty,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
@@ -37,4 +32,4 @@ class GridEmpty extends StatelessWidget {
       ),
     );
   }
-} 
+}

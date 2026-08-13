@@ -17,8 +17,7 @@ class SettingsGroup extends StatelessWidget {
     this.header,
     this.footer,
     required this.children,
-    this.margin =
-        const EdgeInsets.symmetric(horizontal: AppSpacing.space16),
+    this.margin = const EdgeInsets.symmetric(horizontal: AppSpacing.space16),
   });
 
   @override

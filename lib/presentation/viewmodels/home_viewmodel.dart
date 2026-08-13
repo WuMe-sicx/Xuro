@@ -99,5 +99,4 @@ class HomeViewModel extends PaginatedWorksViewModel {
       sort: _filterState.sortValue,
     );
   }
-
 }

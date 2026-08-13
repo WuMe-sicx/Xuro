@@ -3,34 +3,27 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:xuro/core/settings/app_settings_service.dart';
 import 'package:xuro/core/theme/app_colors.dart';
 import 'package:xuro/widgets/common/brand_wordmark.dart';
-import 'package:xuro/widgets/sidebar/sidebar_decoration.dart';
 
-/// D3：侧边栏装饰水印三配色（暗色 scheme，抽屉强制深色）正常渲染；
-/// BrandWordmark 在抽屉局部深色 Theme 下文字=onSurface(白)、图标=primary
-/// (该配色暗色 accent)——回归 CLAUDE.md 关切的「抽屉内 accent 不可见」陷阱。
+/// `BrandWordmark` 在抽屉的深色 scheme 下仍然可读：字标取 `onSurface`、
+/// 句点取 `primary`——回归 CLAUDE.md 记录的「抽屉内 accent 不可见」陷阱。
 Widget _darkHost(ColorScheme s, Widget child) => MaterialApp(
       theme: ThemeData(colorScheme: s, useMaterial3: true),
       home: Scaffold(body: child),
     );
 
-void main() {
-  group('SidebarDecoration 三配色暗色 scheme 渲染 smoke', () {
-    for (final v in ColorVariant.values) {
-      testWidgets(v.name, (tester) async {
-        final scheme = AppColors.darkSchemeFor(v);
-        await tester.pumpWidget(
-          _darkHost(scheme, SidebarDecoration(variant: v)),
-        );
-        expect(find.byType(CustomPaint), findsWidgets);
-        final deco = tester.widget<SidebarDecoration>(
-          find.byType(SidebarDecoration),
-        );
-        expect(deco.variant, v);
-        expect(tester.takeException(), isNull);
-      });
-    }
-  });
+/// 取出 `Text.rich` 的两个 span：字标与句点。
+(TextSpan wordmark, TextSpan period) _spans(WidgetTester tester) {
+  final text = tester.widget<Text>(
+    find.descendant(
+      of: find.byType(BrandWordmark),
+      matching: find.byType(Text),
+    ),
+  );
+  final children = (text.textSpan! as TextSpan).children!;
+  return (children[0] as TextSpan, children[1] as TextSpan);
+}
 
+void main() {
   group('BrandWordmark 在抽屉深色 Theme 下可见', () {
     for (final v in ColorVariant.values) {
       testWidgets(v.name, (tester) async {
@@ -38,20 +31,13 @@ void main() {
         await tester.pumpWidget(
           _darkHost(dark, const BrandWordmark(text: 'Xuro')),
         );
-        final icon = tester.widget<Icon>(
-          find.descendant(
-            of: find.byType(BrandWordmark),
-            matching: find.byType(Icon),
-          ),
-        );
-        final text = tester.widget<Text>(
-          find.descendant(
-            of: find.byType(BrandWordmark),
-            matching: find.byType(Text),
-          ),
-        );
-        expect(icon.color, dark.primary); // accent，随配色轮换
-        expect(text.style?.color, dark.onSurface); // 白，玻璃拟态可读
+        final (wordmark, period) = _spans(tester);
+        expect(wordmark.text, 'Xuro');
+        expect(wordmark.style?.color, dark.onSurface);
+        // 句点是品牌里唯一着色的字符，必须是该配色的 accent。
+        expect(period.text, '.');
+        expect(period.style?.color, dark.primary);
+        expect(tester.takeException(), isNull);
       });
     }
   });

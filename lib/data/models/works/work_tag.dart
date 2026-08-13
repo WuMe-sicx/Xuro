@@ -16,5 +16,6 @@ class WorkTag with _$WorkTag {
     int? voteStatus,
   }) = _WorkTag;
 
-  factory WorkTag.fromJson(Map<String, dynamic> json) => _$WorkTagFromJson(json);
+  factory WorkTag.fromJson(Map<String, dynamic> json) =>
+      _$WorkTagFromJson(json);
 }

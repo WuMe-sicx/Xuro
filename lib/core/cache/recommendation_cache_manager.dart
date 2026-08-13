@@ -4,13 +4,14 @@ import 'package:xuro/utils/logger.dart';
 
 class RecommendationCacheManager {
   // 单例模式
-  static final RecommendationCacheManager _instance = RecommendationCacheManager._internal();
+  static final RecommendationCacheManager _instance =
+      RecommendationCacheManager._internal();
   factory RecommendationCacheManager() => _instance;
   RecommendationCacheManager._internal();
 
   // 使用 LinkedHashMap 便于按访问顺序管理缓存
   final _cache = <String, _CacheItem>{};
-  
+
   // 缓存配置
   static const int _maxCacheSize = 1000; // 最大缓存条目数
   static const Duration _cacheDuration = Duration(hours: 24); // 缓存有效期
@@ -43,7 +44,7 @@ class RecommendationCacheManager {
   /// 存储缓存数据
   void set(String itemId, int page, int subtitle, WorksResponse data) {
     final key = _generateKey(itemId, page, subtitle);
-    
+
     // 检查缓存大小,如果达到上限则移除最早的条目
     if (_cache.length >= _maxCacheSize) {
       _cache.remove(_cache.keys.first);
@@ -73,6 +74,7 @@ class _CacheItem {
 
   _CacheItem(this.data) : timestamp = DateTime.now();
 
-  bool get isExpired => 
-    DateTime.now().difference(timestamp) > RecommendationCacheManager._cacheDuration;
-} 
+  bool get isExpired =>
+      DateTime.now().difference(timestamp) >
+      RecommendationCacheManager._cacheDuration;
+}

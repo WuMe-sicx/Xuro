@@ -5,9 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:xuro/data/models/works/work.dart';
 import 'package:xuro/presentation/viewmodels/similar_works_viewmodel.dart';
-import 'package:xuro/widgets/work_grid_view.dart';
+import 'package:xuro/widgets/work_grid/enhanced_work_grid_view.dart';
 import 'package:xuro/presentation/layouts/work_layout_strategy.dart';
-import 'package:xuro/widgets/pagination_controls.dart';
 
 class SimilarWorksScreen extends StatefulWidget {
   final Work work;
@@ -41,20 +40,11 @@ class _SimilarWorksScreenState extends State<SimilarWorksScreen> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels != _scrollController.position.minScrollExtent) {
+    if (_scrollController.position.pixels !=
+        _scrollController.position.minScrollExtent) {
       if (_viewModel.filterPanelExpanded) {
         _viewModel.closeFilterPanel();
       }
-    }
-  }
-
-  void _scrollToTop() {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        0,
-        duration: AppAnimations.medium,
-        curve: AppAnimations.enter,
-      );
     }
   }
 
@@ -81,24 +71,17 @@ class _SimilarWorksScreenState extends State<SimilarWorksScreen> {
                 Column(
                   children: [
                     Expanded(
-                      child: WorkGridView(
+                      child: EnhancedWorkGridView(
                         works: viewModel.works,
                         isLoading: viewModel.isLoading,
                         error: viewModel.error,
                         onRetry: () => viewModel.loadSimilarWorks(),
                         layoutStrategy: _layoutStrategy,
                         scrollController: _scrollController,
-                        bottomWidget: viewModel.works.isNotEmpty
-                            ? PaginationControls(
-                                currentPage: viewModel.currentPage,
-                                totalPages: viewModel.totalPages ?? 1,
-                                onPageChanged: (page) {
-                                  viewModel.loadPage(page);
-                                  _scrollToTop();
-                                },
-                                isLoading: viewModel.isLoading,
-                              )
-                            : null,
+                        currentPage: viewModel.currentPage,
+                        // 未知总页数按 1 兜底：与迁移前 PaginationControls 的显示一致。
+                        totalPages: viewModel.totalPages ?? 1,
+                        onPageChanged: viewModel.loadPage,
                       ),
                     ),
                   ],
@@ -113,7 +96,8 @@ class _SimilarWorksScreenState extends State<SimilarWorksScreen> {
                     offset: Offset(0, viewModel.filterPanelExpanded ? 0 : -1),
                     child: FilterWithKeyword(
                       hasSubtitle: viewModel.hasSubtitle,
-                      onSubtitleChanged: (_) => viewModel.toggleSubtitleFilter(),
+                      onSubtitleChanged: (_) =>
+                          viewModel.toggleSubtitleFilter(),
                     ),
                   ),
                 ),
@@ -124,4 +108,4 @@ class _SimilarWorksScreenState extends State<SimilarWorksScreen> {
       ),
     );
   }
-} 
+}

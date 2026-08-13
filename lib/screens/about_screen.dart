@@ -54,14 +54,12 @@ class _AboutScreenState extends State<AboutScreen> {
         children: [
           const BrandWordmark(
             text: Strings.aboutAppName,
-            iconSize: 36,
             fontSize: 28,
           ),
           const SizedBox(height: AppSpacing.space12),
           Text(
             '${Strings.versionLabel} v$version',
-            style:
-                AppTextStyles.caption.copyWith(color: cs.onSurfaceVariant),
+            style: AppTextStyles.caption.copyWith(color: cs.onSurfaceVariant),
           ),
           const SizedBox(height: AppSpacing.space16),
           Text(
@@ -88,11 +86,9 @@ class _AboutScreenState extends State<AboutScreen> {
         child: FutureBuilder<PackageInfo>(
           future: _packageInfoFuture,
           builder: (context, snapshot) {
-            final version =
-                snapshot.hasData ? snapshot.data!.version : '...';
+            final version = snapshot.hasData ? snapshot.data!.version : '...';
             return ListView(
-              padding:
-                  const EdgeInsets.symmetric(vertical: AppSpacing.space16),
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.space16),
               children: [
                 _header(context, version),
                 SettingsGroup(
@@ -123,8 +119,7 @@ class _AboutScreenState extends State<AboutScreen> {
                     SettingsTile.navigation(
                       title: Strings.originalRepo,
                       leading: Icons.account_circle_outlined,
-                      onTap: () =>
-                          _openUrl(context, Strings.originalRepoUrl),
+                      onTap: () => _openUrl(context, Strings.originalRepoUrl),
                     ),
                   ],
                 ),

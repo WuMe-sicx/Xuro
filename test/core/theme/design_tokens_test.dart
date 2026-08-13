@@ -44,47 +44,66 @@ void main() {
     });
   });
 
-  group('AppRadius — 圆角令牌 (规范 §1.4)', () {
-    test('标量值与规范一致', () {
-      expect(AppRadius.sm, 8);
-      expect(AppRadius.md, 12);
-      expect(AppRadius.lg, 16);
-      expect(AppRadius.full, 999);
+  group('AppRadius — 圆角令牌（Modernist：全档为 0）', () {
+    test('四档全部为 0', () {
+      expect(AppRadius.sm, 0);
+      expect(AppRadius.md, 0);
+      expect(AppRadius.lg, 0);
+      expect(AppRadius.full, 0);
     });
 
-    test('*All 为对应半径的 BorderRadius（const 等价）', () {
-      expect(AppRadius.smAll, BorderRadius.circular(8));
-      expect(AppRadius.mdAll, BorderRadius.circular(12));
-      expect(AppRadius.lgAll, BorderRadius.circular(16));
-      expect(AppRadius.fullAll, BorderRadius.circular(999));
+    test('*All 均为 BorderRadius.zero（const 等价）', () {
+      expect(AppRadius.smAll, BorderRadius.zero);
+      expect(AppRadius.mdAll, BorderRadius.zero);
+      expect(AppRadius.lgAll, BorderRadius.zero);
+      expect(AppRadius.fullAll, BorderRadius.zero);
     });
 
-    test('app_theme 卡片圆角接入点：md 必须仍是 12（视觉零变化保证）', () {
-      // app_theme.dart 用 AppRadius.mdAll 替换原硬编码 Radius.circular(12)。
-      // 若有人改了 md，卡片观感会变——此断言充当回归闸。
-      expect(AppRadius.md, 12);
-      expect(AppRadius.mdAll, const BorderRadius.all(Radius.circular(12)));
+    test('零圆角是设计语言的硬约束，不是巧合', () {
+      // Modernist 用 2px 分隔线与留白表达层级，不用圆角和阴影。
+      // 任何一档变回非 0 都会让该层级的元素与其余界面脱节——此断言充当回归闸。
+      // 若将来整体切回圆角体系，改 AppRadius 一个文件并同步改这里。
+      for (final r in [
+        AppRadius.sm,
+        AppRadius.md,
+        AppRadius.lg,
+        AppRadius.full,
+      ]) {
+        expect(r, 0, reason: 'Modernist 不允许圆角；层级请用分隔线表达');
+      }
     });
   });
 
-  group('AppTextStyles — 排版令牌 (规范 §1.2)', () {
-    test('字号 / 字重 / 行高 与规范表一致', () {
+  group('AppTextStyles — 排版令牌（Modernist）', () {
+    test('字号 / 字重 / 行高 与设计系统一致', () {
       void check(TextStyle s, double size, FontWeight weight, double height) {
         expect(s.fontSize, size);
         expect(s.fontWeight, weight);
         expect(s.height, height);
       }
 
-      check(AppTextStyles.headlineMedium, 28, FontWeight.w500, 1.2);
-      check(AppTextStyles.titleLarge, 22, FontWeight.w500, 1.3);
-      check(AppTextStyles.titleMedium, 16, FontWeight.w500, 1.5);
-      check(AppTextStyles.bodyLarge, 16, FontWeight.w400, 1.5);
-      check(AppTextStyles.bodyMedium, 14, FontWeight.w400, 1.5);
-      check(AppTextStyles.labelMedium, 12, FontWeight.w500, 1.3);
-      check(AppTextStyles.caption, 10, FontWeight.w400, 1.2);
+      check(AppTextStyles.headlineMedium, 28, FontWeight.w800, 1.12);
+      check(AppTextStyles.titleLarge, 22, FontWeight.w800, 1.12);
+      check(AppTextStyles.titleMedium, 16, FontWeight.w800, 1.2);
+      check(AppTextStyles.bodyLarge, 15, FontWeight.w400, 1.55);
+      check(AppTextStyles.bodyMedium, 13, FontWeight.w400, 1.5);
+      check(AppTextStyles.labelMedium, 11, FontWeight.w800, 1.3);
+      check(AppTextStyles.caption, 10, FontWeight.w600, 1.2);
     });
 
-    test('令牌不绑定颜色（维持三配色不变量）', () {
+    test('标题走 800 字重 + 负字距（Modernist 的主要识别特征）', () {
+      // 极重标题 vs 克制正文的对比，比颜色更承担这套语言的观感。
+      for (final s in [
+        AppTextStyles.headlineMedium,
+        AppTextStyles.titleLarge,
+      ]) {
+        expect(s.fontWeight, FontWeight.w800);
+        expect(s.letterSpacing, isNotNull);
+        expect(s.letterSpacing!, lessThan(0));
+      }
+    });
+
+    test('令牌不绑定颜色（维持多配色不变量）', () {
       for (final s in [
         AppTextStyles.headlineMedium,
         AppTextStyles.titleLarge,

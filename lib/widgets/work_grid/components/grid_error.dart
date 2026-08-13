@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:xuro/common/constants/strings.dart';
+import 'package:xuro/core/theme/app_spacing.dart';
 
 class GridError extends StatelessWidget {
   final String error;
@@ -29,24 +30,24 @@ class GridError extends StatelessWidget {
         children: [
           Icon(
             isLoginError ? Icons.lock_outline : Icons.error_outline,
-            size: 48,
+            size: AppSpacing.space48,
             color: Theme.of(context).colorScheme.error,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.space16),
           Text(
             error,
             style: Theme.of(context).textTheme.bodyLarge,
             textAlign: TextAlign.center,
           ),
           if (showLogin) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.space16),
             FilledButton.icon(
               onPressed: onLogin,
               icon: const Icon(Icons.login),
               label: const Text(Strings.goLogin),
             ),
           ] else if (onRetry != null) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.space16),
             FilledButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh),

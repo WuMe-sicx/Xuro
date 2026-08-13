@@ -4,7 +4,6 @@ import 'package:xuro/data/models/works/work.dart';
 import 'package:xuro/presentation/layouts/work_layout_strategy.dart';
 import 'package:xuro/widgets/work_grid.dart';
 import 'package:xuro/widgets/pagination_controls.dart';
-import 'package:xuro/widgets/work_grid/models/grid_config.dart';
 import 'package:xuro/screens/detail_screen.dart';
 
 class GridContent extends StatelessWidget {
@@ -15,7 +14,6 @@ class GridContent extends StatelessWidget {
   final int? totalPages;
   final Future<void> Function(int page)? onPageChanged;
   final ScrollController? scrollController;
-  final GridConfig? config;
 
   const GridContent({
     super.key,
@@ -26,15 +24,14 @@ class GridContent extends StatelessWidget {
     this.totalPages,
     this.onPageChanged,
     this.scrollController,
-    this.config,
   });
 
   void _scrollToTop() {
     if (scrollController?.hasClients ?? false) {
       scrollController!.animateTo(
         0,
-        duration: config?.scrollDuration ?? AppAnimations.medium,
-        curve: config?.scrollCurve ?? AppAnimations.enter,
+        duration: AppAnimations.medium,
+        curve: AppAnimations.enter,
       );
     }
   }
@@ -43,10 +40,9 @@ class GridContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomScrollView(
       controller: scrollController,
-      physics: config?.physics,
       slivers: [
         SliverPadding(
-          padding: config?.padding ?? layoutStrategy.getPadding(context),
+          padding: layoutStrategy.getPadding(context),
           sliver: WorkGrid(
             works: works,
             layoutStrategy: layoutStrategy,
@@ -60,9 +56,7 @@ class GridContent extends StatelessWidget {
             },
           ),
         ),
-        if (config?.enablePagination != false && 
-            currentPage != null && 
-            totalPages != null)
+        if (currentPage != null && totalPages != null)
           SliverToBoxAdapter(
             child: PaginationControls(
               currentPage: currentPage!,
@@ -79,4 +73,4 @@ class GridContent extends StatelessWidget {
       ],
     );
   }
-} 
+}

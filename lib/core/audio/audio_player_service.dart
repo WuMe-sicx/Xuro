@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/widgets.dart';
 import 'package:get_it/get_it.dart';
 import 'package:xuro/utils/logger.dart';
 import 'package:xuro/core/subtitle/i_subtitle_service.dart';
@@ -22,21 +23,45 @@ class AudioPlayerService implements IAudioPlayerService {
   late final PlaybackController _playbackController;
   final PlaybackEventHub _eventHub;
   final IPlaybackStateRepository _stateRepository;
-  final Completer<void> _initCompleter = Completer<void>();
 
-  /// Await this before calling any public method to ensure init is complete
-  Future<void> get ready => _initCompleter.future;
+  // 记忆化 Future 而非一次性 Completer：Completer 只能 complete 一次，
+  // 首次初始化失败后整个 session 会永久卡在同一个 rejected future 上——
+  // 对单例是致命的（音频功能不可恢复）。改成 database_service.dart 同款的
+  // 「缓存 Future，失败清空」模式：下一次 `await ready` 会自动重新触发
+  // `_init()`。
+  Future<void>? _readyFuture;
+
+  /// Await this before calling any public method to ensure init is complete.
+  /// 失败后允许重试：见 [_init] 内失败分支对 [_readyFuture] 的清空。
+  Future<void> get ready => _readyFuture ??= _init();
+
+  // audio_service 包用 `assert(_cacheManager == null)` 守护"一个 isolate
+  // 只能成功调用一次 AudioService.init()"——赋值发生在该断言之后、任何
+  // await 之前，因此哪怕这次调用本身失败，也已经不可逆地占用了这个
+  // 一次性名额。重试 _init() 时绝不能再调一次，否则 debug 下直接 assert
+  // 炸，release 下污染包内部全局状态。代价：一旦尝试过，通知栏在本 session
+  // 内永久降级为不可用，但播放功能本身不受影响（不依赖通知栏）。
+  bool _notificationInitAttempted = false;
+
+  // AudioPlayer/通知服务/播放列表/状态管理器/播放控制器都是 late final
+  // 字段，只能赋值一次。构造它们本身是纯 Dart 对象操作、实际不会失败；
+  // 真正会抛的是后面的 audio_session 配置和通知栏初始化（平台通道）。但
+  // 一旦第一次成功构造过，重试 _init() 时必须跳过这一段，否则重新赋值
+  // late final 字段会抛 LateInitializationError。
+  bool _coreBuilt = false;
 
   AudioPlayerService._internal({
     required PlaybackEventHub eventHub,
     required IPlaybackStateRepository stateRepository,
-  }) : _eventHub = eventHub,
-       _stateRepository = stateRepository {
-    _init();
+  })  : _eventHub = eventHub,
+        _stateRepository = stateRepository {
+    // 保持与今天一致的"构造即启动"时序：DI 解析到这个单例就立刻开始
+    // 初始化，而不是等到第一次 `await ready`。
+    _readyFuture = _init();
   }
 
   static AudioPlayerService? _instance;
-  
+
   factory AudioPlayerService({
     required PlaybackEventHub eventHub,
     required IPlaybackStateRepository stateRepository,
@@ -50,36 +75,54 @@ class AudioPlayerService implements IAudioPlayerService {
 
   Future<void> _init() async {
     try {
-      _player = AudioPlayer();
-      _notificationService = AudioNotificationService(
-        _player,
-        _eventHub,
-        GetIt.I<ISubtitleService>(),
-      );
-      _playlist = ConcatenatingAudioSource(children: []);
+      if (!_coreBuilt) {
+        _player = AudioPlayer();
+        _notificationService = AudioNotificationService(
+          _player,
+          _eventHub,
+          GetIt.I<ISubtitleService>(),
+        );
+        _playlist = ConcatenatingAudioSource(children: []);
 
-      _stateManager = PlaybackStateManager(
-        player: _player,
-        stateRepository: _stateRepository,
-        eventHub: _eventHub,
-      );
+        _stateManager = PlaybackStateManager(
+          player: _player,
+          stateRepository: _stateRepository,
+          eventHub: _eventHub,
+        );
 
-      _playbackController = PlaybackController(
-        player: _player,
-        stateManager: _stateManager,
-        playlist: _playlist,
-        eventHub: _eventHub,
-      );
+        _playbackController = PlaybackController(
+          player: _player,
+          stateManager: _stateManager,
+          playlist: _playlist,
+          eventHub: _eventHub,
+        );
+        _coreBuilt = true;
+      }
 
       final session = await AudioSession.instance;
       await session.configure(const AudioSessionConfiguration.music());
-      await _notificationService.init();
+
+      // 见 _notificationInitAttempted 字段注释：只允许尝试一次。
+      if (!_notificationInitAttempted) {
+        _notificationInitAttempted = true;
+        await _notificationService.init();
+      }
 
       _stateManager.initStateListeners();
-      await restorePlaybackState();
-      _initCompleter.complete();
+
+      // 播放态恢复不再堵在 ready 闸门之前：改到首帧渲染后异步触发，用户
+      // 按下任意作品的播放不必等这一轮磁盘 IO/DB 查询排完。此时 _init()
+      // 即将成功返回（ready 即将 resolve），restorePlaybackState() 内部
+      // 会自己 `await ready`，不构成自等待死锁。
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        restorePlaybackState().catchError((e, stack) {
+          AppLogger.error('恢复播放状态失败（首帧后异步触发）', e, stack);
+        });
+      });
     } catch (e, stack) {
-      _initCompleter.completeError(e, stack);
+      // 清空记忆化 Future：下一次 `await ready` 会重新触发 _init() 而不是
+      // 永远卡在这次失败的 Future 上（见 _readyFuture 字段注释）。
+      _readyFuture = null;
       AudioErrorHandler.handleError(
         AudioErrorType.init,
         '音频播放器初始化',
@@ -106,6 +149,10 @@ class AudioPlayerService implements IAudioPlayerService {
   @override
   Future<void> resume() async {
     await ready;
+    // 通知权限的首次弹窗从启动期 init() 挪到这里（真正开始播放前）：
+    // playWithContext() 末尾会调用 resume()，两个入口因此共享同一次
+    // latch 调用，不需要各自单独 await 一次。
+    await _notificationService.ensureNotificationPermission();
     await _playbackController.play();
   }
 
@@ -158,10 +205,11 @@ class AudioPlayerService implements IAudioPlayerService {
 
   @override
   Future<void> restorePlaybackState() async {
+    await ready;
     try {
       AppLogger.debug('开始恢复播放状态');
       final state = await _stateManager.loadState();
-      
+
       if (state == null) {
         AppLogger.debug('没有可恢复的播放状态');
         return;

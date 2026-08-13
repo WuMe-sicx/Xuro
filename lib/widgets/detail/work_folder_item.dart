@@ -50,9 +50,9 @@ class WorkFolderItem extends StatelessWidget {
 
     // 如果还没有找到第一个音频文件夹，就搜索并记录
     _audioFolderPath ??= FilePath.findFirstAudioFolderPath(
-        [folder],
-        formats: _audioFormats,
-      );
+      [folder],
+      formats: _audioFormats,
+    );
 
     // 判断当前文件夹是否在音频文件夹的路径上
     return FilePath.isInPath(_audioFolderPath, folder.title);
@@ -70,9 +70,9 @@ class WorkFolderItem extends StatelessWidget {
           dividerColor: Colors.transparent,
           // 确保子组件也能继承正确的文字颜色
           textTheme: Theme.of(context).textTheme.apply(
-            bodyColor: colorScheme.onSurface,
-            displayColor: colorScheme.onSurface,
-          ),
+                bodyColor: colorScheme.onSurface,
+                displayColor: colorScheme.onSurface,
+              ),
         ),
         child: ExpansionTile(
           title: Row(
@@ -87,8 +87,8 @@ class WorkFolderItem extends StatelessWidget {
               ),
               if (onFolderDownload != null)
                 IconButton(
-                  icon: const Icon(Icons.download_for_offline_outlined,
-                      size: 20),
+                  icon:
+                      const Icon(Icons.download_for_offline_outlined, size: 20),
                   tooltip: Strings.downloadAllTooltip,
                   onPressed: () => onFolderDownload!.call(folder),
                 ),

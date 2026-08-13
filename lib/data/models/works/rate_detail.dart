@@ -11,5 +11,6 @@ class RateDetail with _$RateDetail {
     double? ratio,
   }) = _RateDetail;
 
-  factory RateDetail.fromJson(Map<String, dynamic> json) => _$RateDetailFromJson(json);
+  factory RateDetail.fromJson(Map<String, dynamic> json) =>
+      _$RateDetailFromJson(json);
 }

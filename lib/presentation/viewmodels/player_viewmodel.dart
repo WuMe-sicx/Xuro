@@ -19,9 +19,11 @@ class PlayerViewModel extends ChangeNotifier {
   final IAudioPlayerService _audioService;
   final PlaybackEventHub _eventHub;
   final ISubtitleService _subtitleService;
-  final _subtitleLoader = GetIt.I<SubtitleLoader>();
-  final _importService = GetIt.I<SubtitleImportService>();
-  final _downloadService = GetIt.I<DownloadService>();
+  // late：字幕相关字段只在导入/移除字幕路径用到，
+  // 首次访问才向 GetIt 取值，VM 层单测无需为它们注册依赖。
+  late final _subtitleLoader = GetIt.I<SubtitleLoader>();
+  late final _importService = GetIt.I<SubtitleImportService>();
+  late final _downloadService = GetIt.I<DownloadService>();
 
   bool _isPlaying = false;
   bool _isBuffering = false;
@@ -29,7 +31,12 @@ class PlayerViewModel extends ChangeNotifier {
   String? _errorMessage;
   bool _isUserImportedSubtitle = false;
   int _loadVersion = 0;
-  Duration? _position;
+  // position 是 5Hz 高频字段，单独走 ValueNotifier 而不进 notifyListeners()：
+  // 全应用只有 mini_player_progress/waveform_progress 两个 widget 在 build
+  // 期读它，若跟其余低频字段（标题/封面/isPlaying）合用 notifyListeners()，
+  // 播放时挂在同一个 PlayerViewModel 上的所有订阅者（含 mini player 的两个
+  // Hero、封面图、MiniPlayerControls 等）都会被拖进每秒 5 次的重建。
+  final _positionNotifier = ValueNotifier<Duration?>(null);
   Duration? _duration;
   Subtitle? _currentSubtitle;
 
@@ -41,9 +48,9 @@ class PlayerViewModel extends ChangeNotifier {
     required IAudioPlayerService audioService,
     required PlaybackEventHub eventHub,
     required ISubtitleService subtitleService,
-  }) : _audioService = audioService,
-       _eventHub = eventHub,
-       _subtitleService = subtitleService {
+  })  : _audioService = audioService,
+        _eventHub = eventHub,
+        _subtitleService = subtitleService {
     _initStreams();
     _requestInitialState();
   }
@@ -54,10 +61,12 @@ class PlayerViewModel extends ChangeNotifier {
       _eventHub.playbackState.listen(
         (event) {
           _isPlaying = event.state.playing;
-          _position = event.position;  // fallback position for pause/resume
+          _positionNotifier.value =
+              event.position; // fallback position for pause/resume
           _duration = event.duration;
-          _isBuffering = event.state.processingState == ProcessingState.buffering ||
-                         event.state.processingState == ProcessingState.loading;
+          _isBuffering =
+              event.state.processingState == ProcessingState.buffering ||
+                  event.state.processingState == ProcessingState.loading;
           notifyListeners();
         },
         onError: (error) => debugPrint('$_tag - 播放状态流错误: $error'),
@@ -74,14 +83,15 @@ class PlayerViewModel extends ChangeNotifier {
       ),
     );
 
-    // 播放进度 - UI更新路径：节流到200ms，减少rebuild频率
+    // 播放进度 - UI更新路径：节流到200ms，减少rebuild频率。
+    // 只写 positionNotifier，不再 notifyListeners()——避免 5Hz 广播波及
+    // 不读 position 的订阅者（见字段声明处注释）。
     _subscriptions.add(
       _eventHub.playbackProgress
           .throttleTime(const Duration(milliseconds: 200))
           .listen(
         (event) {
-          _position = event.position;
-          notifyListeners();
+          _positionNotifier.value = event.position;
         },
         onError: (error) => debugPrint('$_tag - 播放进度流错误: $error'),
       ),
@@ -102,8 +112,9 @@ class PlayerViewModel extends ChangeNotifier {
       _eventHub.contextChange.listen(
         (event) async {
           await _loadSubtitleIfAvailable(event.context);
-          if (_position != null) {
-            _subtitleService.updatePosition(_position!);
+          final position = _positionNotifier.value;
+          if (position != null) {
+            _subtitleService.updatePosition(position);
           }
         },
         onError: (error) => debugPrint('$_tag - 上下文流错误: $error'),
@@ -130,7 +141,8 @@ class PlayerViewModel extends ChangeNotifier {
       _eventHub.errors.listen(
         (event) {
           _errorMessage = '播放错误: ${event.operation}';
-          AppLogger.error('播放错误事件: ${event.operation}', event.error, event.stackTrace);
+          AppLogger.error(
+              '播放错误事件: ${event.operation}', event.error, event.stackTrace);
           notifyListeners();
         },
         onError: (error) => debugPrint('$_tag - 错误事件流错误: $error'),
@@ -143,7 +155,7 @@ class PlayerViewModel extends ChangeNotifier {
         (_) {
           _isPlaying = false;
           _isBuffering = false;
-          _position = null;
+          _positionNotifier.value = null;
           _duration = null;
           _isUserImportedSubtitle = false;
           _subtitleService.clearSubtitle();
@@ -192,7 +204,8 @@ class PlayerViewModel extends ChangeNotifier {
   bool get isBuffering => _isBuffering;
   String? get errorMessage => _errorMessage;
   bool get isUserImportedSubtitle => _isUserImportedSubtitle;
-  Duration? get position => _position;
+  Duration? get position => _positionNotifier.value;
+  ValueListenable<Duration?> get positionListenable => _positionNotifier;
   Duration? get duration => _duration;
   Subtitle? get currentSubtitle => _currentSubtitle;
 
@@ -244,6 +257,7 @@ class PlayerViewModel extends ChangeNotifier {
       subscription.cancel();
     }
     _subscriptions.clear();
+    _positionNotifier.dispose();
     super.dispose();
   }
 
@@ -264,7 +278,8 @@ class PlayerViewModel extends ChangeNotifier {
       final entry = await _importService.findImported(workId, fileName);
       if (_loadVersion != version) return;
       if (entry != null) {
-        final subtitleList = await _importService.loadLocalSubtitle(entry.subtitlePath);
+        final subtitleList =
+            await _importService.loadLocalSubtitle(entry.subtitlePath);
         if (_loadVersion != version) return;
         if (subtitleList != null) {
           await _subtitleService.loadSubtitleFromContent(subtitleList);
@@ -326,7 +341,8 @@ class PlayerViewModel extends ChangeNotifier {
     if (workId == null || fileName == null) return ImportResult.cancelled;
 
     final response = await _importService.importSubtitle(workId, fileName);
-    if (response.result == ImportResult.success && response.subtitleList != null) {
+    if (response.result == ImportResult.success &&
+        response.subtitleList != null) {
       // Verify we're still on the same track
       final currentWorkId = currentContext?.work.id?.toString();
       final currentFileName = currentContext?.currentFile.title;
@@ -359,7 +375,7 @@ class PlayerViewModel extends ChangeNotifier {
   Future<void> seekToNextLyric() async {
     final currentSubtitle = _subtitleService.currentSubtitleWithState;
     final subtitleList = _subtitleService.subtitleList;
-    
+
     if (currentSubtitle != null && subtitleList != null) {
       final nextSubtitle = currentSubtitle.subtitle.getNext(subtitleList);
       if (nextSubtitle != null) {
@@ -371,9 +387,10 @@ class PlayerViewModel extends ChangeNotifier {
   Future<void> seekToPreviousLyric() async {
     final currentSubtitle = _subtitleService.currentSubtitleWithState;
     final subtitleList = _subtitleService.subtitleList;
-    
+
     if (currentSubtitle != null && subtitleList != null) {
-      final previousSubtitle = currentSubtitle.subtitle.getPrevious(subtitleList);
+      final previousSubtitle =
+          currentSubtitle.subtitle.getPrevious(subtitleList);
       if (previousSubtitle != null) {
         await seek(previousSubtitle.start);
       }

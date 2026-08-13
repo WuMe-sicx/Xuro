@@ -51,8 +51,7 @@ class Strings {
   static const String cacheClean = '清理';
   static const String cacheCleanAll = '清理全部';
   static const String cacheExplainTitle = '缓存说明';
-  static const String cacheExplainBody =
-      '缓存用于存储最近播放的音频文件、字幕文件和图片，以提高加载速度。'
+  static const String cacheExplainBody = '缓存用于存储最近播放的音频文件、字幕文件和图片，以提高加载速度。'
       '清理全部会同时清除所有类型的缓存数据。';
 
   // Search — sort labels & states
@@ -86,6 +85,8 @@ class Strings {
   static const String browseEmptyTags = '暂无标签';
   static const String browseEmptyVoiceActors = '暂无声优';
   static const String browseEmptyCircles = '暂无社团';
+  // 分类屏编号列表行右侧的作品数计数，接口返回 null 时不展示（见 BrowseListItem）
+  static String browseItemCountLabel(int n) => '$n 条';
 
   // Auth / dialogs
   static const String loginAction = '登录';
@@ -275,8 +276,7 @@ class Strings {
   static const String passwordTooShort = '密码至少 5 位';
   static const String passwordMismatch = '两次输入的密码不一致';
   static const String registerSuccess = '注册成功，已自动登录';
-  static const String registerOkButLoginFailed =
-      '注册成功，但自动登录失败，请用刚才的账号密码登录';
+  static const String registerOkButLoginFailed = '注册成功，但自动登录失败，请用刚才的账号密码登录';
 
   // Settings — color variant
   static const String colorVariantTitle = '主色调';
@@ -284,6 +284,7 @@ class Strings {
   static const String colorVariantBlue = '蓝';
   static const String colorVariantMono = '黑';
   static const String colorVariantGreen = '绿';
+  static const String colorVariantStill = '红';
 
   // Settings — floating lyric overlay
   static const String lyricOverlaySection = '悬浮歌词';
@@ -313,4 +314,27 @@ class Strings {
   static const String unsupportedFileType = '暂不支持的文件类型';
   static const String audioDownloadTitle = '下载音频';
   static const String audioDownloadPrompt = '将该音频下载到本地磁盘以便离线播放？';
+
+  // Player — Modernist 改版：顶栏在线/本地角标、底部睡眠定时行
+  static const String playerOnline = '在线';
+  static const String playerLocal = '本地';
+  static const String playerSleepTimerChange = '更改';
+  static const String playerSleepTimerInactive = '定时 · 未开启';
+  static String playerSleepTimerActive(int minutes) => '定时 · $minutes 分钟后停止';
+
+  // Home — Modernist 发现首页：时段问候（纯客户端计算，无数据源）与分区文案
+  static const String continuePlaying = '继续播放';
+  static const String todaysPicks = '今晚精选';
+  static const String dayPeriodMorning = '早';
+  static const String dayPeriodAfternoon = '午';
+  static const String dayPeriodEvening = '晚';
+  static const String dayPeriodLateNight = '深夜';
+  static const String greetingMorning = '早上好，';
+  static const String greetingAfternoon = '下午好，';
+  static const String greetingEvening = '晚上好，';
+  static const String greetingLateNight = '深夜好，';
+  static const String greetingPromptDefault = '今天想听点什么？';
+  static const String greetingPromptEvening = '今晚想听点什么？';
+  static const String greetingPromptLateNight = '想睡前听点什么？';
+  static String salesCountLabel(int n) => '销量 $n';
 }

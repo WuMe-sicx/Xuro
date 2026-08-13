@@ -13,16 +13,16 @@ abstract class PaginatedWorksViewModel extends ChangeNotifier {
   bool _isLoginError = false;
   Pagination? _pagination;
   int _currentPage = 1;
-  bool _isPrefetching = false;
-  WorksResponse? _prefetchedResponse;
-  int? _prefetchedPage;
+  bool _firstLoadTriggered = false;
 
-  PaginatedWorksViewModel(this._apiService) {
-    _init();
-  }
+  PaginatedWorksViewModel(this._apiService);
 
-  // 修改为异步初始化
-  Future<void> _init() async {
+  /// 首载入口：由内容 widget 在挂载后的 postFrameCallback 中调用，而非
+  /// 构造函数——构造即请求会让所有 tab 的 VM 在启动时一起并发发请求。
+  /// 幂等：重复调用不重复请求（keep-alive 的 tab 回切不会重新触发）。
+  Future<void> ensureFirstLoad() async {
+    if (_firstLoadTriggered) return;
+    _firstLoadTriggered = true;
     await onInit(); // 添加初始化钩子
     loadPage(1);
   }
@@ -36,9 +36,10 @@ abstract class PaginatedWorksViewModel extends ChangeNotifier {
   String? get error => _error;
   bool get isLoginError => _isLoginError;
   int get currentPage => _currentPage;
-  int? get totalPages => _pagination?.totalCount != null && _pagination?.pageSize != null
-      ? (_pagination!.totalCount! / _pagination!.pageSize!).ceil()
-      : null;
+  int? get totalPages =>
+      _pagination?.totalCount != null && _pagination?.pageSize != null
+          ? (_pagination!.totalCount! / _pagination!.pageSize!).ceil()
+          : null;
 
   // 获取页面名称，用于日志
   String get pageName;
@@ -60,64 +61,24 @@ abstract class PaginatedWorksViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      WorksResponse response;
-      if (_prefetchedPage == page && _prefetchedResponse != null) {
-        response = _prefetchedResponse!;
-        _prefetchedResponse = null;
-        _prefetchedPage = null;
-        AppLogger.info('使用预加载数据: 第$page页$pageName');
-      } else {
-        AppLogger.info('加载$pageName: 第$page页');
-        response = await fetchPage(page);
-      }
+      AppLogger.info('加载$pageName: 第$page页');
+      final response = await fetchPage(page);
       _works = response.works;
       _pagination = response.pagination;
       _currentPage = page;
       AppLogger.info('第$page页$pageName加载成功: ${response.works.length}个作品');
     } catch (e) {
       AppLogger.error('加载$pageName失败', e);
-      if (e is NetworkException) {
-        _error = e.userMessage;
-        _isLoginError = e.isAuthError;
-      } else {
-        _error = e.toString();
-        _isLoginError = false;
-      }
+      _error = userMessageOf(e);
+      _isLoginError = isAuthErrorOf(e);
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  /// 预加载下一页数据（空闲时调用以减少翻页延迟）
-  void maybePrefetchNext() {
-    final nextPage = _currentPage + 1;
-    if (_isPrefetching) return;
-    if (_isLoading) return;
-    if (totalPages != null && nextPage > totalPages!) return;
-    if (_prefetchedPage == nextPage) return;
-
-    _isPrefetching = true;
-    fetchPage(nextPage).then((response) {
-      _prefetchedResponse = response;
-      _prefetchedPage = nextPage;
-      AppLogger.debug('预加载$pageName第$nextPage页完成');
-    }).catchError((e) {
-      AppLogger.debug('预加载$pageName第$nextPage页失败: $e');
-    }).whenComplete(() {
-      _isPrefetching = false;
-    });
-  }
-
-  /// 清除预加载缓存（当查询条件变更时调用）
-  void _invalidatePrefetch() {
-    _prefetchedResponse = null;
-    _prefetchedPage = null;
-  }
-
   // 刷新方法
   Future<void> refresh() async {
-    _invalidatePrefetch();
     AppLogger.info('刷新$pageName');
     await loadPage(1);
   }
@@ -130,4 +91,4 @@ abstract class PaginatedWorksViewModel extends ChangeNotifier {
 
   // 添加 pagination getter
   Pagination? get pagination => _pagination;
-} 
+}

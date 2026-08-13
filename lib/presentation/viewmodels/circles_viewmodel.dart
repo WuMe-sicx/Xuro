@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:xuro/data/models/circles/circle_item.dart';
 import 'package:xuro/data/services/api_service.dart';
+import 'package:xuro/data/services/exceptions/network_exception.dart';
 import 'package:xuro/utils/logger.dart';
 import 'package:get_it/get_it.dart';
 
@@ -35,7 +36,7 @@ class CirclesViewModel extends ChangeNotifier {
       AppLogger.info('社团列表加载成功: ${_allCircles.length}个社团');
     } catch (e) {
       AppLogger.error('加载社团列表失败', e);
-      _error = e.toString();
+      _error = userMessageOf(e);
     } finally {
       _isLoading = false;
       notifyListeners();

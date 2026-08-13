@@ -37,21 +37,21 @@ class CacheManagerScreen extends StatelessWidget {
                   subtitle: Text(viewModel.audioCacheSizeFormatted),
                   trailing: TextButton(
                     onPressed: viewModel.isLoading
-                      ? null
-                      : () => viewModel.clearAudioCache(),
+                        ? null
+                        : () => viewModel.clearAudioCache(),
                     child: const Text(Strings.cacheClean),
                   ),
                 ),
                 const Divider(),
-                
+
                 // 字幕缓存
                 ListTile(
                   title: const Text(Strings.subtitleCache),
                   subtitle: Text(viewModel.subtitleCacheSizeFormatted),
                   trailing: TextButton(
                     onPressed: viewModel.isLoading
-                      ? null
-                      : () => viewModel.clearSubtitleCache(),
+                        ? null
+                        : () => viewModel.clearSubtitleCache(),
                     child: const Text(Strings.cacheClean),
                   ),
                 ),
@@ -63,8 +63,8 @@ class CacheManagerScreen extends StatelessWidget {
                   subtitle: Text(viewModel.imageCacheSizeFormatted),
                   trailing: TextButton(
                     onPressed: viewModel.isLoading
-                      ? null
-                      : () => viewModel.clearImageCache(),
+                        ? null
+                        : () => viewModel.clearImageCache(),
                     child: const Text(Strings.cacheClean),
                   ),
                 ),
@@ -76,13 +76,13 @@ class CacheManagerScreen extends StatelessWidget {
                   subtitle: Text(viewModel.totalCacheSizeFormatted),
                   trailing: TextButton(
                     onPressed: viewModel.isLoading
-                      ? null
-                      : () => viewModel.clearAllCache(),
+                        ? null
+                        : () => viewModel.clearAllCache(),
                     child: const Text(Strings.cacheCleanAll),
                   ),
                 ),
                 const Divider(),
-                
+
                 // 缓存说明
                 const ListTile(
                   title: Text(Strings.cacheExplainTitle),
@@ -95,4 +95,4 @@ class CacheManagerScreen extends StatelessWidget {
       ),
     );
   }
-} 
+}

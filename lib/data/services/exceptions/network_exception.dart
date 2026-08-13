@@ -55,7 +55,9 @@ class NetworkException implements Exception {
             statusCode: statusCode,
             originalError: e,
           );
-        } else if (statusCode != null && statusCode >= 400 && statusCode < 500) {
+        } else if (statusCode != null &&
+            statusCode >= 400 &&
+            statusCode < 500) {
           return NetworkException(
             type: NetworkErrorType.clientError,
             message: '客户端错误: $statusCode',
@@ -118,3 +120,12 @@ class NetworkException implements Exception {
   @override
   String toString() => 'NetworkException($type): $message';
 }
+
+/// VM 层错误翻译的统一入口：`NetworkException` 走 [NetworkException.userMessage]，
+/// 其余异常（解析失败、断言等未包装的原始 Dart 异常）一律回落到通用文案——
+/// 调用方不应再各自写 `e.toString()`，那会把英文异常 dump 直接上屏。
+String userMessageOf(Object e) =>
+    e is NetworkException ? e.userMessage : Strings.loadFailed;
+
+/// 与 [userMessageOf] 配套：非 `NetworkException` 一律视为非鉴权错误。
+bool isAuthErrorOf(Object e) => e is NetworkException && e.isAuthError;

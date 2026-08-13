@@ -1,4 +1,5 @@
 import 'package:xuro/data/models/mark_status.dart';
+import 'package:xuro/core/theme/app_radius.dart';
 import 'package:xuro/common/constants/strings.dart';
 import 'package:flutter/material.dart';
 
@@ -83,10 +84,10 @@ class _ActionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final disabled = onTap == null && !loading;
-    
+
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: AppRadius.smAll,
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
@@ -104,7 +105,7 @@ class _ActionButton extends StatelessWidget {
             else
               Icon(
                 icon,
-                color: disabled 
+                color: disabled
                     ? theme.colorScheme.onSurface.withValues(alpha: 0.38)
                     : null,
               ),
@@ -122,4 +123,4 @@ class _ActionButton extends StatelessWidget {
       ),
     );
   }
-} 
+}

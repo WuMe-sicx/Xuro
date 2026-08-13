@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:xuro/core/theme/app_radius.dart';
 import 'package:xuro/widgets/common/skeleton_pulse.dart';
 
 class WorkFilesSkeleton extends StatelessWidget {
@@ -16,7 +17,7 @@ class WorkFilesSkeleton extends StatelessWidget {
             height: 24,
             decoration: BoxDecoration(
               color: skeletonColor,
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: AppRadius.smAll,
             ),
           ),
           const SizedBox(width: 16),
@@ -30,7 +31,7 @@ class WorkFilesSkeleton extends StatelessWidget {
                   width: double.infinity,
                   decoration: BoxDecoration(
                     color: skeletonColor,
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: AppRadius.smAll,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -39,7 +40,7 @@ class WorkFilesSkeleton extends StatelessWidget {
                   width: 100,
                   decoration: BoxDecoration(
                     color: skeletonColor,
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: AppRadius.smAll,
                   ),
                 ),
               ],
@@ -66,7 +67,7 @@ class WorkFilesSkeleton extends StatelessWidget {
                 width: 120,
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: AppRadius.smAll,
                 ),
               ),
             ),

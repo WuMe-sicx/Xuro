@@ -13,7 +13,7 @@ abstract class IAudioPlayerService {
 
   // 上下文管理
   Future<void> playWithContext(PlaybackContext context);
-  
+
   // 状态访问
   AudioTrackInfo? get currentTrack;
   PlaybackContext? get currentContext;

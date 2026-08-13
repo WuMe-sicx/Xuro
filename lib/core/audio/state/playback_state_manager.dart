@@ -11,12 +11,11 @@ import '../events/playback_event_hub.dart';
 import 'package:xuro/data/models/files/child.dart';
 import 'package:xuro/data/models/works/work.dart';
 
-
 class PlaybackStateManager {
   final AudioPlayer _player;
   final PlaybackEventHub _eventHub;
   final IPlaybackStateRepository _stateRepository;
-  
+
   AudioTrackInfo? _currentTrack;
   PlaybackContext? _currentContext;
 
@@ -35,9 +34,9 @@ class PlaybackStateManager {
     required AudioPlayer player,
     required PlaybackEventHub eventHub,
     required IPlaybackStateRepository stateRepository,
-  }) : _player = player,
-       _eventHub = eventHub,
-       _stateRepository = stateRepository;
+  })  : _player = player,
+        _eventHub = eventHub,
+        _stateRepository = stateRepository;
 
   // 初始化状态监听
   void initStateListeners() {
@@ -71,10 +70,8 @@ class PlaybackStateManager {
 
     _subscriptions.add(
       _player.positionStream.listen((position) {
-        _eventHub.emit(PlaybackProgressEvent(
-          position,
-          _player.bufferedPosition
-        ));
+        _eventHub
+            .emit(PlaybackProgressEvent(position, _player.bufferedPosition));
       }),
     );
 
@@ -111,7 +108,8 @@ class PlaybackStateManager {
   void updateTrackInfo(AudioTrackInfo track) {
     _currentTrack = track;
     if (_currentContext != null) {
-      _eventHub.emit(TrackChangeEvent(track, _currentContext!.currentFile, _currentContext!.work));
+      _eventHub.emit(TrackChangeEvent(
+          track, _currentContext!.currentFile, _currentContext!.work));
     }
   }
 
@@ -120,7 +118,7 @@ class PlaybackStateManager {
       final newContext = _currentContext!.copyWithFile(file);
       updateContext(newContext);
     }
-    
+
     final trackInfo = TrackInfoCreator.createFromFile(file, work);
     updateTrackInfo(trackInfo);
   }
@@ -212,10 +210,7 @@ class PlaybackStateManager {
     // 处理初始状态请求
     _subscriptions.add(
       _eventHub.requestInitialState.listen((_) {
-        _eventHub.emit(InitialStateEvent(
-          _currentTrack,
-          _currentContext
-        ));
+        _eventHub.emit(InitialStateEvent(_currentTrack, _currentContext));
       }),
     );
   }
@@ -231,4 +226,4 @@ class PlaybackStateManager {
     }
     _subscriptions.clear();
   }
-} 
+}

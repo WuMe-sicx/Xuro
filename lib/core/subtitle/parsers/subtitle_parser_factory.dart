@@ -8,7 +8,7 @@ class SubtitleParserFactory {
     VttParser(),
     LrcParser(),
   ];
-  
+
   static SubtitleParser? getParser(String content) {
     try {
       return _parsers.firstWhere((parser) => parser.canParse(content));
@@ -17,4 +17,4 @@ class SubtitleParserFactory {
       return null;
     }
   }
-} 
+}

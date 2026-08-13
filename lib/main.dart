@@ -21,9 +21,10 @@ void main() async {
   // 避免高分辨率封面把缓存撑爆）。
   PaintingBinding.instance.imageCache.maximumSizeBytes = 100 << 20; // 100 MiB
 
-  // 初始化服务定位器。仅保留首帧必需：prefs + 已保存鉴权态——
-  // MainScreen 的各 ViewModel 在构造时即发起带 token 的请求，
-  // 推迟鉴权会导致首批请求未带 token、误报登录态异常。
+  // 初始化服务定位器：注册所有单例。鉴权态恢复不必在此 await——
+  // token 由 AuthInterceptor 每次请求时自行从 AuthRepository 读取，
+  // 与 AuthViewModel 的加载时机无关；AuthViewModel 构造函数已自行发起
+  // 异步加载，登录态就绪前的窗口由 AuthViewModel.isAuthReady 兜底。
   await setupServiceLocator();
 
   runApp(const MyApp());

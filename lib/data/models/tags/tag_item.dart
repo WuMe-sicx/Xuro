@@ -13,5 +13,6 @@ class TagItem with _$TagItem {
     I18n? i18n,
   }) = _TagItem;
 
-  factory TagItem.fromJson(Map<String, dynamic> json) => _$TagItemFromJson(json);
+  factory TagItem.fromJson(Map<String, dynamic> json) =>
+      _$TagItemFromJson(json);
 }

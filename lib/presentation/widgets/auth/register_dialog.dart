@@ -134,9 +134,7 @@ class _RegisterDialogState extends State<RegisterDialog> {
                 errorText: _passwordError,
                 suffixIcon: IconButton(
                   icon: Icon(
-                    _obscurePassword
-                        ? Icons.visibility
-                        : Icons.visibility_off,
+                    _obscurePassword ? Icons.visibility : Icons.visibility_off,
                   ),
                   onPressed: () => setState(
                     () => _obscurePassword = !_obscurePassword,

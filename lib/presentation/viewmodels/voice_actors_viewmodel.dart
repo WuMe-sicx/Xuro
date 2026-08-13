@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:xuro/data/models/vas/voice_actor.dart';
 import 'package:xuro/data/services/api_service.dart';
+import 'package:xuro/data/services/exceptions/network_exception.dart';
 import 'package:xuro/utils/logger.dart';
 import 'package:get_it/get_it.dart';
 
@@ -35,7 +36,7 @@ class VoiceActorsViewModel extends ChangeNotifier {
       AppLogger.info('声优列表加载成功: ${_allVoiceActors.length}个声优');
     } catch (e) {
       AppLogger.error('加载声优列表失败', e);
-      _error = e.toString();
+      _error = userMessageOf(e);
     } finally {
       _isLoading = false;
       notifyListeners();

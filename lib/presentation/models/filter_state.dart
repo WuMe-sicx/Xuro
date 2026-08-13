@@ -9,7 +9,8 @@ class FilterState {
 
   bool get showSortDirection => orderField != 'random';
 
-  String get sortValue => orderField == 'random' ? 'desc' : (isDescending ? 'desc' : 'asc');
+  String get sortValue =>
+      orderField == 'random' ? 'desc' : (isDescending ? 'desc' : 'asc');
 
   FilterState copyWith({
     String? orderField,
@@ -23,13 +24,13 @@ class FilterState {
 
   // 用于持久化
   Map<String, dynamic> toJson() => {
-    'orderField': orderField,
-    'isDescending': isDescending,
-  };
+        'orderField': orderField,
+        'isDescending': isDescending,
+      };
 
   // 从持久化恢复
   factory FilterState.fromJson(Map<String, dynamic> json) => FilterState(
-    orderField: json['orderField'] ?? 'create_date',
-    isDescending: json['isDescending'] ?? true,
-  );
-} 
+        orderField: json['orderField'] ?? 'create_date',
+        isDescending: json['isDescending'] ?? true,
+      );
+}

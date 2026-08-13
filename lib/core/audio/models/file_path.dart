@@ -12,7 +12,7 @@ class FilePath {
   static String? getPath(Child targetFile, Files root) {
     AppLogger.debug('开始查找文件路径: ${targetFile.title}');
     final segments = _findPathSegments(root.children, targetFile);
-    
+
     if (segments == null) {
       AppLogger.debug('未找到文件路径');
       return null;
@@ -24,23 +24,23 @@ class FilePath {
   }
 
   /// 递归查找文件路径段
-  static List<String>? _findPathSegments(List<Child>? children, Child targetFile, [List<String> currentPath = const []]) {
+  static List<String>? _findPathSegments(
+      List<Child>? children, Child targetFile,
+      [List<String> currentPath = const []]) {
     if (children == null) return null;
 
     for (final child in children) {
-      if (child.title == targetFile.title && 
-          child.mediaDownloadUrl == targetFile.mediaDownloadUrl && 
+      if (child.title == targetFile.title &&
+          child.mediaDownloadUrl == targetFile.mediaDownloadUrl &&
           child.type == targetFile.type &&
-          child.size == targetFile.size) {  // size 作为额外验证
+          child.size == targetFile.size) {
+        // size 作为额外验证
         return [...currentPath, child.title!];
       }
 
       if (child.type == 'folder' && child.children != null) {
         final result = _findPathSegments(
-          child.children, 
-          targetFile, 
-          [...currentPath, child.title!]
-        );
+            child.children, targetFile, [...currentPath, child.title!]);
         if (result != null) return result;
       }
     }
@@ -52,7 +52,7 @@ class FilePath {
   /// 返回与目标文件在同一目录下的所有文件
   static List<Child> getSiblings(Child targetFile, Files root) {
     AppLogger.debug('开始获取同级文件: ${targetFile.title}');
-    
+
     // 获取目标文件的路径
     final path = getPath(targetFile, root);
     if (path == null) {
@@ -62,7 +62,8 @@ class FilePath {
 
     // 获取父目录路径
     final lastSeparator = path.lastIndexOf(separator);
-    final parentPath = lastSeparator > 0 ? path.substring(0, lastSeparator) : separator;
+    final parentPath =
+        lastSeparator > 0 ? path.substring(0, lastSeparator) : separator;
     AppLogger.debug('父目录路径: $parentPath');
 
     // 查找父目录内容
@@ -93,18 +94,17 @@ class FilePath {
     if (path == separator) return children;
 
     // 分割路径
-    final segments = path.split(separator)
-      ..removeWhere((s) => s.isEmpty);
-    
+    final segments = path.split(separator)..removeWhere((s) => s.isEmpty);
+
     List<Child>? current = children;
-    
+
     // 逐级查找目录
     for (final segment in segments) {
       final nextDir = current?.firstWhere(
         (child) => child.title == segment && child.type == 'folder',
         orElse: () => Child(),
       );
-      
+
       if (nextDir?.title == null) return null;
       current = nextDir?.children;
     }
@@ -121,7 +121,7 @@ class FilePath {
     if (children == null) return null;
 
     List<String>? audioFolderPath;
-    
+
     void findPath(Child folder, List<String> currentPath) {
       if (audioFolderPath != null) return;
 
@@ -144,7 +144,8 @@ class FilePath {
         // 如果当前目录没有音频文件，递归检查子目录
         for (final child in folder.children!) {
           if (child.type == 'folder') {
-            List<String> newPath = List.from(currentPath)..add(child.title ?? '');
+            List<String> newPath = List.from(currentPath)
+              ..add(child.title ?? '');
             findPath(child, newPath);
           }
         }
@@ -168,4 +169,4 @@ class FilePath {
     if (path == null || folderName == null) return false;
     return path.contains(folderName);
   }
-} 
+}

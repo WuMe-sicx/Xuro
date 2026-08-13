@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:xuro/core/settings/app_settings_service.dart';
 import 'package:xuro/core/theme/app_colors.dart';
+import 'package:xuro/core/theme/app_text_styles.dart';
 import 'package:xuro/screens/settings/widgets/settings_group.dart';
 import 'package:xuro/screens/settings/widgets/settings_tile.dart';
 
@@ -64,7 +65,7 @@ void main() {
     expect(sw.activeTrackColor, green.primary);
   });
 
-  group('分区头 == accent + labelMedium(12/w500)', () {
+  group('分区头 == accent + labelMedium 令牌', () {
     for (final (name, s) in [('blue', blue), ('green', green)]) {
       testWidgets(name, (tester) async {
         await tester.pumpWidget(_host(
@@ -79,8 +80,10 @@ void main() {
         ));
         final t = tester.widget<Text>(find.text('播放设置'));
         expect(t.style?.color, s.primary);
-        expect(t.style?.fontSize, 12);
-        expect(t.style?.fontWeight, FontWeight.w500);
+        // 断言「取自 labelMedium 令牌」而非复制令牌的字面值——否则每次调整
+        // 排版令牌都要回来改这里，测试就成了令牌的影子而不是契约的闸门。
+        expect(t.style?.fontSize, AppTextStyles.labelMedium.fontSize);
+        expect(t.style?.fontWeight, AppTextStyles.labelMedium.fontWeight);
       });
     }
   });

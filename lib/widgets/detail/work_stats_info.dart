@@ -65,4 +65,4 @@ class WorkStatsInfo extends StatelessWidget {
       ],
     );
   }
-} 
+}

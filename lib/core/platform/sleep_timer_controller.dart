@@ -53,8 +53,8 @@ class SleepTimerController extends ChangeNotifier {
     _minutes = null;
     notifyListeners();
     _audioService.pause().catchError(
-      (Object e) => AppLogger.error('[$_tag] 到点暂停失败', e),
-    );
+          (Object e) => AppLogger.error('[$_tag] 到点暂停失败', e),
+        );
   }
 
   @override

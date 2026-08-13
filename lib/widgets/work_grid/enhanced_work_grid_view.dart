@@ -5,7 +5,6 @@ import 'package:xuro/widgets/work_grid/components/grid_content.dart';
 import 'package:xuro/widgets/work_grid/components/grid_error.dart';
 import 'package:xuro/widgets/work_grid/components/grid_empty.dart';
 import 'package:xuro/widgets/work_grid/components/grid_loading.dart';
-import 'package:xuro/widgets/work_grid/models/grid_config.dart';
 
 class EnhancedWorkGridView extends StatelessWidget {
   final List<Work> works;
@@ -19,10 +18,8 @@ class EnhancedWorkGridView extends StatelessWidget {
   final int? currentPage;
   final int? totalPages;
   final String? emptyMessage;
-  final Widget? customEmptyWidget;
   final WorkLayoutStrategy layoutStrategy;
   final ScrollController? scrollController;
-  final GridConfig? config;
 
   const EnhancedWorkGridView({
     super.key,
@@ -37,19 +34,19 @@ class EnhancedWorkGridView extends StatelessWidget {
     this.currentPage,
     this.totalPages,
     this.emptyMessage,
-    this.customEmptyWidget,
     this.layoutStrategy = const WorkLayoutStrategy(),
     this.scrollController,
-    this.config,
   });
 
   @override
   Widget build(BuildContext context) {
     if (isLoading && works.isEmpty) {
-      return const GridLoading();
+      return GridLoading(layoutStrategy: layoutStrategy);
     }
 
-    if (error != null) {
+    // 陈旧内容优先于错误页：VM 的 catch 块不清空已加载的 works（见各 ViewModel），
+    // 所以「已有数据 + 翻页失败」时应保留原内容，只有从未取到过数据才整屏切错误态。
+    if (error != null && works.isEmpty) {
       return GridError(
         error: error!,
         onRetry: onRetry,
@@ -59,10 +56,7 @@ class EnhancedWorkGridView extends StatelessWidget {
     }
 
     if (works.isEmpty) {
-      return GridEmpty(
-        message: emptyMessage,
-        customWidget: customEmptyWidget,
-      );
+      return GridEmpty(message: emptyMessage);
     }
 
     Widget content = GridContent(
@@ -73,7 +67,6 @@ class EnhancedWorkGridView extends StatelessWidget {
       totalPages: totalPages,
       onPageChanged: onPageChanged,
       scrollController: scrollController,
-      config: config,
     );
 
     if (onRefresh != null) {
@@ -85,4 +78,4 @@ class EnhancedWorkGridView extends StatelessWidget {
 
     return content;
   }
-} 
+}

@@ -20,7 +20,8 @@ class PlaybackStateEvent extends PlaybackEvent {
       other is PlaybackStateEvent &&
           state.playing == other.state.playing &&
           state.processingState == other.state.processingState &&
-          position.inMilliseconds ~/ 100 == other.position.inMilliseconds ~/ 100 &&
+          position.inMilliseconds ~/ 100 ==
+              other.position.inMilliseconds ~/ 100 &&
           duration == other.duration;
 
   @override
@@ -69,8 +70,7 @@ class PlaybackProgressEvent extends PlaybackEvent {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is PlaybackProgressEvent &&
-          position == other.position;
+      other is PlaybackProgressEvent && position == other.position;
 
   @override
   int get hashCode => position.hashCode;

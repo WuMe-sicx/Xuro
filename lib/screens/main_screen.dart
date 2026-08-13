@@ -114,11 +114,14 @@ class _MainScreenState extends State<MainScreen> {
           final totalCount = _currentIndex == 0
               ? context.select<FavoritesViewModel, int?>((vm) => vm.totalCount)
               : _currentIndex == 1
-                  ? context.select<HomeViewModel, int?>((vm) => vm.pagination?.totalCount)
+                  ? context.select<HomeViewModel, int?>(
+                      (vm) => vm.pagination?.totalCount)
                   : _currentIndex == 2
-                      ? context.select<RecommendViewModel, int?>((vm) => vm.pagination?.totalCount)
+                      ? context.select<RecommendViewModel, int?>(
+                          (vm) => vm.pagination?.totalCount)
                       : _currentIndex == 3
-                          ? context.select<PopularViewModel, int?>((vm) => vm.pagination?.totalCount)
+                          ? context.select<PopularViewModel, int?>(
+                              (vm) => vm.pagination?.totalCount)
                           : null;
 
           // 构建标题文本
@@ -203,4 +206,4 @@ class _MainScreenState extends State<MainScreen> {
       ),
     );
   }
-} 
+}

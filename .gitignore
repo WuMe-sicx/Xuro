@@ -50,3 +50,8 @@ app.*.map.json
 
 # FVM Version Cache
 .fvm/
+# codegraph 索引缓存（本地生成，随代码漂移，不入库）
+.codegraph/
+
+# git worktree 工作目录
+.claude/worktrees/
