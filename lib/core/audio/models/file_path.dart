@@ -113,11 +113,14 @@ class FilePath {
     return current;
   }
 
-  /// 查找第一个包含音频文件的目录路径
-  /// 返回从根目录到目标目录的完整路径数组
+  /// 查找第一个包含音频文件的目录路径，返回从根到该目录的完整路径数组。
+  ///
+  /// [formats] 为带点扩展名（如 `.mp3`）。**故意不给默认值**：此前默认是
+  /// `['.mp3', '.wav']`，而唯一调用方一直显式传入用户设置里的六种格式——
+  /// 那个默认值从未被执行过，只是一份会悄悄过期的第三方格式表。
   static List<String>? findFirstAudioFolderPath(
     List<Child>? children, {
-    List<String> formats = const ['.mp3', '.wav'],
+    required List<String> formats,
   }) {
     if (children == null) return null;
 
