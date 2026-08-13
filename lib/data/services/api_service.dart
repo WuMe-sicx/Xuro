@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:xuro/data/models/files/files.dart';
 import 'package:xuro/data/models/works/work.dart';
 import 'package:xuro/data/models/works/pagination.dart';
+import 'package:xuro/data/models/works/works_response.dart';
 import 'package:xuro/utils/logger.dart';
 import 'package:xuro/data/services/interceptors/auth_interceptor.dart';
 import 'package:xuro/data/services/interceptors/retry_interceptor.dart';
@@ -15,31 +16,40 @@ import 'package:xuro/data/models/vas/voice_actor.dart';
 import 'package:xuro/data/models/works/work_info.dart';
 import 'package:xuro/core/settings/app_settings_service.dart';
 
-class WorksResponse {
-  final List<Work> works;
-  final Pagination pagination;
-
-  WorksResponse({required this.works, required this.pagination});
-}
-
 class ApiService {
   final Dio _dio;
   final _recommendationCache = RecommendationCacheManager();
 
   final AppSettingsService _settings;
 
-  ApiService({required AppSettingsService settings})
+  /// [dio] 可注入：默认路径（`dio == null`）逐字保留原行为——内联构造带
+  /// 超时三元组的 `Dio`，并依次挂 `RetryInterceptor` + `AuthInterceptor`。
+  /// 写法对齐仓库里 `DownloadService(dio: dio ?? Dio())` 的既有约定。测试
+  /// 注入自定义 `Dio` 时**不挂这两个拦截器**——测试要的是可控短路通道，
+  /// 重试/鉴权语义会干扰断言。
+  ApiService({required AppSettingsService settings, Dio? dio})
       : _settings = settings,
-        _dio = Dio(BaseOptions(
-          baseUrl: settings.serverUrl,
-          connectTimeout: const Duration(seconds: 15),
-          receiveTimeout: const Duration(seconds: 30),
-          sendTimeout: const Duration(seconds: 15),
-        )) {
-    _dio.interceptors.add(RetryInterceptor(dio: _dio));
-    _dio.interceptors.add(AuthInterceptor());
+        _dio = dio ??
+            Dio(BaseOptions(
+              baseUrl: settings.serverUrl,
+              connectTimeout: const Duration(seconds: 15),
+              receiveTimeout: const Duration(seconds: 30),
+              sendTimeout: const Duration(seconds: 15),
+            )) {
+    if (dio == null) {
+      _dio.interceptors.add(RetryInterceptor(dio: _dio));
+      _dio.interceptors.add(AuthInterceptor());
+    }
     // Listen for server URL changes
     _settings.addListener(_onSettingsChanged);
+  }
+
+  /// 与构造函数里的 `_settings.addListener` 配对。生产中 `ApiService` 是
+  /// DI 里的 lazySingleton、活到进程退出，从不调用；但测试里每 `new` 一个
+  /// 都会往 `AppSettingsService` 上永久挂一个监听器，不清理会在多个测试
+  /// 之间累积悬挂回调。
+  void dispose() {
+    _settings.removeListener(_onSettingsChanged);
   }
 
   void _onSettingsChanged() {
