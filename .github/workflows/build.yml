@@ -183,11 +183,11 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          prerelease: true
+          # 正式发布。带 `-beta` / `-rc` 之类后缀的 tag 自动标记为预发布，
+          # 因此发预览版只要打 `v1.3.0-rc.1` 这样的 tag，无需再改本文件。
+          prerelease: ${{ contains(github.ref_name, '-') }}
           draft: false
           body: |
-            ## 🚧 Pre-release Version
-
             ### 📋 Release Information
             **Version:** ${{ github.ref_name }}
             **Previous Version:** ${{ steps.previoustag.outputs.tag }}
@@ -196,23 +196,20 @@ jobs:
             ### 📝 Changelog
             ${{ steps.commits.outputs.commits }}
 
+            完整更新记录见 [CHANGELOG.md](https://github.com/WuMe-sicx/Xuro/blob/main/CHANGELOG.md)。
+
             ### 📦 Distribution
             | File | Description | Purpose |
             |------|-------------|----------|
-            | `.apk` | Android Package | Direct installation for testing |
-            | `.aab` | Android App Bundle | Google Play Store deployment |
-            | `.ipa` | iOS App Archive | iOS device installation |
-
-            ### 🔍 Additional Notes
-            - This is a pre-release build intended for testing purposes
-            - Features and functionality may not be fully stable
-            - Not recommended for production use
+            | `.apk` | Android Package | 直接安装 |
+            | `.aab` | Android App Bundle | Google Play 上架 |
+            | `.ipa` | iOS App Archive | iOS 设备安装 |
 
             ### 📱 Compatibility
             - Minimum Android SDK: 21 (Android 5.0)
             - Target Android SDK: 33 (Android 13)
 
-            > **Note:** Please report any issues or bugs through the GitHub issue tracker.
+            > 问题反馈请走 GitHub Issues。
           files: |
             dist/flutter-apk/app-release.apk
             dist/bundle/release/app-release.aab
