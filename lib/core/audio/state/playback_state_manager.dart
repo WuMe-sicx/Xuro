@@ -27,6 +27,14 @@ class PlaybackStateManager {
   // stop() 的 remove 一定排在任何在途 save 之后；_persistSuppressed 让
   // stop 后、下一个非空播放上下文设置前的任何 save 变为 no-op，避免把
   // 已主动停止的内容写回 prefs。
+  //
+  // **不变量：`_persistSuppressed == true` 恒蕴含 `_currentContext == null`。**
+  // 唯一置位处是 `clearSavedState()`，而它在全库唯一的调用点
+  // （`audio_player_service.stop()`）紧跟在 `clearState()` 之后、中间无 await。
+  // `updateTrackAndContext` 的同曲目守卫依赖这条：守卫只在 context 非空时才
+  // 可能跳过 `updateContext`，而 context 非空即意味着抑制早已解除。若哪天把
+  // `clearSavedState()` 从 stop() 里单拎出来用，这条不变量断裂，播放态会静默
+  // 停止持久化——改这里之前先确认守卫仍然成立。
   Future<void> _persistChain = Future<void>.value();
   bool _persistSuppressed = false;
 
@@ -114,13 +122,16 @@ class PlaybackStateManager {
   }
 
   void updateTrackAndContext(Child file, Work work) {
-    if (_currentContext != null) {
-      final newContext = _currentContext!.copyWithFile(file);
-      updateContext(newContext);
+    final context = _currentContext;
+    // 曲目没变就不重发 PlaybackContextEvent：`setPlaybackContext` 会先
+    // updateContext 建立上下文、再走到这里刷 trackInfo，两次发射同一份上下文
+    // 会让 PlayerViewModel 把整套字幕解析（两次 DB 查询 + 磁盘 + 可能一次网络）
+    // 跑第二遍。contextChange 是唯一没有 distinct 的 hub 流，挡不住重复。
+    if (context != null && context.currentFile.title != file.title) {
+      updateContext(context.copyWithFile(file));
     }
 
-    final trackInfo = TrackInfoCreator.createFromFile(file, work);
-    updateTrackInfo(trackInfo);
+    updateTrackInfo(TrackInfoCreator.createFromFile(file, work));
   }
 
   void _onPlaybackCompleted() {

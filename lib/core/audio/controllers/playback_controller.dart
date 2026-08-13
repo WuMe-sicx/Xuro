@@ -106,11 +106,19 @@ class PlaybackController {
       AppLogger.debug('停止当前播放');
       await _player.stop();
 
-      // 2. 设置新的播放源
+      // 2. 换源。队列被替换到新上下文写入之间有一个窗口：期间 _currentContext
+      // 描述的还是上一个作品的队列，而 currentIndexStream 已经在报新队列的
+      // 下标，监听器会拿新下标去索引旧列表 → 发出错作品的事件，且
+      // TrackInfoCreator 的 mediaDownloadUrl! 会在流监听器里抛、逃逸到 zone。
+      // 静默置空让监听器在窗口内忽略索引事件（不发 PlaybackClearedEvent——
+      // 这不是「停止播放」，UI 不该闪空）。
+      _stateManager.updateContext(null);
+
       AppLogger.debug('设置播放源: 初始位置=${initialPosition?.inMilliseconds}ms');
-      List<Child> loadedFiles;
+      final List<Child> loadedFiles;
+      final int queueIndex;
       try {
-        loadedFiles = await PlaylistBuilder.setPlaylistSource(
+        (loadedFiles, queueIndex) = await PlaylistBuilder.setPlaylistSource(
           player: _player,
           playlist: _playlist,
           files: originalContext.playlist,
@@ -123,20 +131,19 @@ class PlaybackController {
         rethrow;
       }
 
-      // 3. 加载成功后更新上下文
-      var context = originalContext;
-      if (loadedFiles.length != originalContext.playlist.length) {
-        final currentFile = loadedFiles.contains(originalContext.currentFile)
-            ? originalContext.currentFile
-            : loadedFiles.first;
-        context = PlaybackContext.withFilteredPlaylist(
-          work: originalContext.work,
-          files: originalContext.files,
-          currentFile: currentFile,
-          playlist: loadedFiles,
-          playMode: originalContext.playMode,
-        );
-      }
+      // 3. 上下文一律按队列的真实内容与下标重建。
+      // 此前只在「长度不等」时才重建，且把 currentFile 猜成 loadedFiles.first
+      // ——目标轨构造失败时播放器实际停在 remapIndex 给的槽位（原下标之后第一个
+      // 存活的轨），不是 0，于是锁屏标题/字幕/持久化的 currentFile 全错，
+      // 且因 currentIndexStream 带 distinct、那次 emit 又落在 context 为空的
+      // 窗口里不会重放，要错到下一次真正切曲才自愈。
+      final context = PlaybackContext.fromQueue(
+        work: originalContext.work,
+        files: originalContext.files,
+        playlist: loadedFiles,
+        currentIndex: queueIndex,
+        playMode: originalContext.playMode,
+      );
       _stateManager.updateContext(context);
 
       // Set loop mode based on play mode
@@ -148,6 +155,12 @@ class PlaybackController {
 
       AppLogger.debug('播放上下文设置完成');
     } catch (e, stack) {
+      // 换源已经把队列换掉了（updatePlaylist 在 setAudioSource 之前），而上下文
+      // 停在换源窗口的 null 上。此时若只是返回，_currentTrack 仍是上一首 →
+      // mini player 展示一首「next/previous 与持久化全部失效」的曲子，而
+      // resume() → _player.play() 不受上下文门控，一按播放就会放出新队列的
+      // 音频、顶着旧作品的元数据。归零才是诚实的状态。
+      _stateManager.clearState();
       AppLogger.error('设置播放上下文失败', e, stack);
       _eventHub.emit(PlaybackErrorEvent('setPlaybackContext', e, stack));
       AudioErrorHandler.handleError(
