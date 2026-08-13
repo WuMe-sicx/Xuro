@@ -1,312 +1,291 @@
-# Xuro UI 设计规范 v4.0（参考图基准 · 代码事实对齐）
+# Xuro UI 设计规范 v5.0（Modernist · 代码事实对齐）
 
-> 本规范的视觉基准是用户提供的参考图（蓝白 / 黑白 / 绿白 三配色 × 侧边栏 / 首页 / 播放器 / 设置 / 关于我们 五屏）。
-> **三者必须一致：参考图 = 本规范 = 代码**。与代码冲突时以代码为事实源并回修本规范，不得让规范继续失真。
-> 设计核心：作为 ASMR 音频应用，围绕 **宁静、沉浸、平顺**；遵循 Material 3，但**颜色采用自研双轴体系（非 `ColorScheme.fromSeed`）**。
+> **视觉基准**：Claude Design 项目《Flutter ASMR播放器设计》
+> （`f11e0a02-12c2-476f-8591-aaf9384c4922`，文件 `ASMR Player.dc.html`）
+> 及其设计系统 `_ds/modernist-*/styles.css`。用 `DesignSync` 工具读取。
 >
-> v4.0 变更摘要：①颜色章节由「紫色 fromSeed」改写为真实的 `ColorVariant × Brightness` 双轴体系；②组件章节按参考图重构为「原子组件库 + 5 屏复用矩阵 + 三配色不变量」；③§7 性能审计表更新为真实状态（多数 P0/P1 已闭环）；④动画/无障碍/响应式/工作流等仍属实部分保留。
+> **⚠️ 该稿设计时未读过本代码库**（稿子脚注自述）。因此它的信息架构——环境音分类、
+> 「本周主题」策展位、播放次数、渐弱停止、发现/分类/收藏/我的 四标签导航——与
+> asmr.one 的真实能力不匹配。**取它的视觉语言，功能逐条对着真实数据核。**
+>
+> **两条反复确认的立场**：稿子没画的屏 ≠ 该删；稿子画了的功能 ≠ 该造。
+>
+> v4.0（2026-05-16 参考图基准）已**整篇作废**——那张参考图被用户以产品负责人身份
+> 弃用。本文档不保留其内容，只保留仍然成立的性能与工作流条款。
 
 ---
 
 ## 目录
 
-1. [设计令牌 (Design Tokens)](#1-设计令牌-design-tokens)
-2. [组件设计标准（参考图基准）](#2-组件设计标准参考图基准)
+1. [设计令牌](#1-设计令牌)
+2. [组件标准](#2-组件标准)
 3. [动画与微交互](#3-动画与微交互)
-4. [无障碍标准](#4-无障碍标准)
-5. [响应式布局规则](#5-响应式布局规则)
+4. [无障碍](#4-无障碍)
+5. [响应式](#5-响应式)
 6. [组件开发规范](#6-组件开发规范)
-7. [性能优化准则](#7-性能优化准则)
-8. [开发工作流规范](#8-开发工作流规范)
+7. [性能准则](#7-性能准则)
+8. [已知缺口](#8-已知缺口)
 
 ---
 
-## 1. 设计令牌 (Design Tokens)
+## 1. 设计令牌
 
-### 1.1 颜色系统：双轴体系（事实源 `lib/core/theme/app_colors.dart`）
+事实源是 `lib/core/theme/`，**本文档与代码冲突时以代码为准**。
 
-颜色由**两个正交轴**决定，组合出 6 个手搓 `ColorScheme`：
+### 1.1 颜色：纸墨 + 中性阶 × 四配色
+
+Modernist 的底色体系是一对纸墨加一条共享中性阶；配色只轮换 accent。
+
+| 角色 | 亮色 | 暗色 |
+| :--- | :--- | :--- |
+| 纸 / 墨 | `paper #F3F2F2` / `ink #201E1D` | 互换 |
+| `surface` | `paper` | `ink` |
+| `onSurface` | `ink` | `paper` |
+| `surfaceContainerHighest` | `neutral200` | `neutral900` |
+| `onSurfaceVariant` | `neutral600` | `neutral500` |
+| `outlineVariant` | `neutral400` | `neutral700` |
+
+中性阶 `neutral100..900` 明暗共用——同一档的任意角色视觉重量相等，这是 Modernist
+「一个墨色的九个层级」的来源。**暗色档是本项目从纸墨互换推导的，稿子只给了亮色。**
+
+四个 `ColorVariant`：
+
+| variant | 亮色 accent | 暗色 accent |
+| :--- | :--- | :--- |
+| `blue` | `#0066FF` | `#4D9AFF` |
+| `mono` | `ink` | `paper` |
+| `green` | `#00A86B` | `#4DD7A1` |
+| `still` | `#EC3013`（稿子的招牌红） | `#FF563C` |
+
+**多配色不变量**：可复用组件禁止写死颜色，一律取 `colorScheme.*` 或
+`AppColors.neutral*`。切换 variant 必须**只**改变 accent 像素。
+
+**⚠️ 未赋值 token 陷阱**：`secondary` / `secondaryContainer` / `tertiary` 刻意留空，
+Flutter 会填入**不随 variant 轮换**的固定基线色。`NavigationBar` 的 indicator 默认
+吃 `secondaryContainer`——底部导航胶囊曾因此在四个配色下恒为同一个薄荷绿。要用这
+几个 token 之前，必须先在八套 scheme 里全部补齐赋值。
+
+**唯一有文档的例外**：设置页的配色选择器行，用 `SettingsTile.leadingColor` 显示每个
+variant 的真实 `primary`——那是*选择器内容*，不是 chrome。
+
+### 1.2 排版
+
+事实源 `AppTextStyles`。标题 **800 字重 + 负字距**，正文 400——这个对比比颜色更承担
+Modernist 的识别度。
+
+| 令牌 | 字号 / 字重 / 行高 | 用途 |
+| :--- | :--- | :--- |
+| `headlineMedium` | 28 / w800 / 1.12，字距 −0.42 | 首页问候、播放器曲名 |
+| `titleLarge` | 22 / w800 / 1.12，字距 −0.33 | AppBar、分区大标题 |
+| `titleMedium` | 16 / w800 / 1.2 | 列表行标题、卡片标题 |
+| `bodyLarge` | 15 / w400 / 1.55 | 正文 |
+| `bodyMedium` | 13 / w400 / 1.5 | 次要描述 |
+| `labelMedium` | 11 / w800 / 1.3，字距 1.1 | 分区 kicker（accent 色） |
+| `caption` | 10 / w600 / 1.2 | 时长、角标、版权 |
+
+令牌**不绑定颜色**，颜色由使用处从 `colorScheme` 取。
+
+**字体**：`assets/fonts/Archivo-{400,600,800}.ttf`（OFL），设为 `ThemeData.fontFamily`。
+**Archivo 无 CJK 字形**，中日文回退系统字体——它实际只作用于品牌字、数字、时长、
+RJ 号。这是设计的客观约束（稿子里的中文同样是回退渲染），不是实现打折。
+
+### 1.3 间距
+
+`AppSpacing`，4px 网格 `space4..space64`，页面边距 `pageMobile` 16 / `pageTabletDesktop` 24。
+稿子里不在 4px 网格上的具体值（行高 56、行内边距 18 等）用**具名局部常量 + 注释说明
+几何来源**处理，不塞进令牌层。
+
+### 1.4 圆角 —— 全部为 0
+
+`AppRadius` 四档 `sm/md/lg/full` **全部为 0**。层级由 2px / 1px 分隔线和留白表达，
+不由圆角和阴影表达。四个名字保留，是为了让调用点继续声明「这是什么层级的元素」。
+
+**零圆角排查**：以下 grep 在 `app_radius.dart` 之外必须恒为 0 命中——
 
 ```
-ThemeMode (light / dark / system)   ×   ColorVariant (blue / mono / green)
-        ↑ ThemeController                       ↑ AppSettingsService
+BorderRadius.circular(   Radius.circular(   BoxShape.circle
+CircleAvatar             ClipOval           StadiumBorder
 ```
 
-> ⚠️ **禁止使用 `ColorScheme.fromSeed`**：它会按色相派生 secondary/tertiary，破坏「双色简化」意图。`AppColors.lightSchemeFor(variant)` / `darkSchemeFor(variant)` 手工构造。
+**圆形是「最大圆角」，会躲过任何按半径*值*做的排查**——侧边栏头像就是这样活下来的。
 
-#### 三配色不变量（参考图「三种配色」的落地规则）
+**M3 组件默认形状不读 `AppRadius`**：按钮默认 `StadiumBorder`，输入框、SnackBar、
+BottomSheet 各有自己的默认圆角。`app_theme` 必须显式覆盖
+`filledButton / elevatedButton / textButton / outlinedButton / inputDecoration /
+snackBar / bottomSheet / dialog / chip / navigationBar`，否则零圆角在这些组件上整体失效。
 
-> **同一套组件，三配色之间只有 accent 像素不同**。表面恒为白（亮）/ 近黑（暗），图标底/卡片底为中性灰。
-> 只有以下三个 token 随 `ColorVariant` 轮换，其余全部中性：`primary`、`onPrimary`、`primaryContainer`。
-> 组件**禁止写死颜色**——一律取 `Theme.of(context).colorScheme.*` 或 §1.2–1.6 令牌。
+### 1.5 分隔线
 
-| 配色 | 标签(Strings) | 参考图副标 | Light `primary` | Dark `primary` |
-| :--- | :--- | :--- | :--- | :--- |
-| `blue` | 蓝 | 清新·舒缓·放松 | `#0066FF` | `#4D9AFF` |
-| `mono` | 黑 | 简约·专注·沉浸 | `#000000` | `#FFFFFF` |
-| `green` | 绿 | 自然·治愈·清新 | `#00A86B` | `#4DD7A1` |
+`AppColors.dividerThickness = 2`。**两级层级**：
 
-`onPrimary`：三配色均 light=白 / dark=黑。
-`primaryContainer`（chip/选中底）：blue `#E3EEFF`/`#1A2A4A`，mono `#EEEEEE`/`#2A2A2A`，green `#D8F4E7`/`#1A3A2A`。
-默认配色 `ColorVariant.blue`；深浅模式独立持久化。
+- **2px** —— 分区之间、品牌区与导航之间、页面级边界
+- **1px** —— 同一组内的行之间
 
-#### 中性表面与语义色（不随配色变化）
+这个粗细差是 Modernist 表达「组 > 行」的唯一手段，不要抹平。
 
-| 语义 | Light | Dark | 用途 |
-| :--- | :--- | :--- | :--- |
-| `surface` | `#FFFFFF` | `#1C1B1F` | 基础底色 |
-| `onSurface` | `black87` | `#FFFFFF` | 主文本 |
-| `surfaceContainerHighest` | `#E6E6E6` | `#2B2B2B` | 最高对比层 / 暗色卡片底 |
-| Surface L1（自研令牌） | `#F7F7F7` | `#1F1F1F` | 容器层、迷你播放器底 |
-| Surface L2（自研令牌） | `#F2F2F2` | `#252525` | 侧边栏、搜索框、对话框底 |
-| `onSurfaceVariant` | `#49454F` | `#CAC4D0` | 次要文本/图标 |
-| `outlineVariant` | `#CAC4D0` | `#49454F` | 分割线/描边 |
-| `error` | `#B3261E` | `#F2B8B5` | 错误态 |
+### 1.6 海拔
 
-> Surface L1/L2 经「调色板简化」任务**已实现并中性化**（去除原紫色调），通过 `AppColors.surfaceL1/L2(brightness)` 取用。旧规范「尚未实现」的备注作废。
-
-#### 交互状态叠加
-
-| 状态 | 叠加层 |
-| :--- | :--- |
-| Hover | Primary 8% |
-| Pressed | Primary 12% |
-| Focused | Primary 12% + 2px Outline |
-| Disabled | 38% 不透明度（统一，不定义自定义禁用色） |
-
-> 颜色透明度统一用 `.withValues(alpha:)`（**禁止新增 `.withOpacity()`**，历史 25 处由 Phase E 清理）。
-
-### 1.2 排版 (Typography)
-
-> 状态：`AppTextStyles` 为 Phase B 待建令牌类；落地前组件取 `Theme.of(context).textTheme.*`，**禁止用 `fontSize:` 硬覆盖**（现 `work_info_section.dart` 等违规点 Phase C 清理）。
-
-| 类型 | 粗细 | sp | 行高 | 用途 |
-| :--- | :--- | :--- | :--- | :--- |
-| Headline Medium | Medium | 28 | 1.2 | 大标题 |
-| Title Large | Medium | 22 | 1.3 | AppBar 标题、播放器曲名 |
-| Title Medium | Medium | 16 | 1.5 | 列表标题、卡片标题、分区头 |
-| Body Large | Regular | 16 | 1.5 | 主要正文 |
-| Body Medium | Regular | 14 | 1.5 | 次要描述、副标题 |
-| Label Medium | Medium | 12 | 1.3 | 标签、按钮、小注 |
-| Caption | Regular | 10 | 1.2 | 时间戳（如 `30:45`）、版权 |
-
-### 1.3 间距 (Spacing)
-
-> 状态：`AppSpacing` 为 Phase B 待建令牌类。4px 基准网格。
-
-- Tokens：4 / 8 / 12 / 16 / 20 / 24 / 32 / 40 / 48 / 64
-- 布局边距：移动端 16，平板/桌面 24
-
-### 1.4 圆角 (Border Radius)
-
-> 状态：`AppRadius` 为 Phase B 待建令牌类。当前 `app_theme.dart` 卡片硬编码 12（Phase B 接入令牌）。
-
-| Token | 值 | 用途 |
-| :--- | :--- | :--- |
-| Small | 8 | Chip、Tooltip |
-| Medium | 12 | 作品卡片、列表项 |
-| Large | 16 | 播放器抽屉、底部面板、对话框 |
-| Full | 999 | 胶囊按钮、搜索框、头像、`AccentPill` |
-| Circle | — | 播放器圆形封面 `CircularCover`（参考图） |
-
-### 1.5 图标系统
-
-| Token | dp | 用途 |
-| :--- | :--- | :--- |
-| Inline | 16 | 正文内嵌 |
-| List Leading | 20–24 | 列表前置图标（线性 outlined） |
-| Standard | 24 | 标准操作 |
-| Emphasis | 32 | 播放/暂停 |
-| Feature | 48 | 空状态/特性 |
-
-- 不透明度：激活 87% / 非激活 60% / 禁用 38%。图标默认中性，**仅激活态用 accent**。
-- 点击区域：24px 图标 → 48×48；20px → 40×40（移动端强制 ≥48×48）。
-
-### 1.6 海拔 (Elevation)
-
-- 当前 `cardTheme.elevation = 0`；亮色卡片可叠 1dp 区分，**暗色不使用阴影**，靠 Surface 层级（L1/L2/Highest）区分深度。
-- AppBar：`elevation:0` + `scrolledUnderElevation:0` + `centerTitle:true`（`app_theme.dart`）。
+**不用**。`elevation: 0`，无阴影。Modernist 靠线和留白分层。
 
 ---
 
-## 2. 组件设计标准（参考图基准）
+## 2. 组件标准
 
-### 2.0 三层组件架构
+### 2.1 原子库 `lib/widgets/common/`
 
-```
-Layer 0  设计令牌   AppColors(双轴) + AppSpacing/AppRadius/AppTextStyles/AppAnimations
-Layer 1  原子组件   跨 5 屏 × 3 配色复用；不写死颜色；全取 Theme/令牌
-Layer 2  屏幕组合   Sidebar/Home/Player/Settings/About 仅做布局组合
-```
+`BrandWordmark` · `AppFooter` · `SocialIconRow` · `AppSearchField` · `SkeletonPulse` · `TagChip`
 
-### 2.1 原子组件 × 屏幕 复用矩阵
+**原子靠「吃掉散装实现」长出来，不是靠新增。** `SectionHeader` / `CategoryChip` /
+`AccentPill` 曾被建出来又删掉——它们的指定消费方是这个 App 不具备的功能，零调用点。
+**在有真实消费方之前不要新建原子**：一个有三配色测试却没有调用点的原子，是给「无法
+影响任何像素的代码」打了绿勾，反而让删除显得有风险。
 
-| 原子组件 | 侧边栏 | 首页 | 播放器 | 设置 | 关于 | 代码归宿 |
-| :--- | :-: | :-: | :-: | :-: | :-: | :--- |
-| `BrandWordmark`（≈ASMR 标志） | ● | | | | ● | `lib/widgets/common/` 新建 |
-| `AccentPill`†（选中胶囊/关注/主按钮） | ● | | ● | | | `lib/widgets/common/` 新建 |
-| `SectionHeader`†（标题 + 更多>） | | ● | | ● | ● | `lib/widgets/common/` 新建 |
-| `AppSearchField`（圆角搜索框） | | ● | | | | 已吸收 `browse_search_bar.dart`（2026-08-13 起 tags/circles/voice_actors 三屏复用，该文件已删除） |
-| `AppListTile`（图标+标题+尾控件） | ● | | | ● | ● | 泛化 `settings/widgets/settings_tile.dart` |
-| `AppListGroup`（分组+头+脚） | | | | ● | ● | 上提 `settings/widgets/settings_group.dart` |
-| `CategoryChip`†（图标+标签 chip） | | ● | | | | 演进 `widgets/common/tag_chip.dart` |
-| `WorkCoverCard`（封面+时长角标+标题） | | ● | | | | `widgets/work_card/*` + 时长角标 |
-| `CircularCover`（圆形封面+环） | | | ● | | | 改 `widgets/player/player_cover.dart` |
-| `WaveformProgress`（波形进度） | | | ● | | | 替换 `widgets/player/player_progress.dart` 视觉层 |
-| `NowPlayingRow`（最新上传行+迷你控件） | | ● | | | | 复用 `widgets/mini_player/*` 控件 |
-| `SidebarDecoration`（底部装饰插画） | ● | | | | | `lib/widgets/sidebar/` 新建 |
-| `SocialIconRow`（圆形社交图标排） | | | | | ● | `lib/widgets/common/` 新建 |
-| `AppFooter`（© 版权脚） | | | | | ● | `lib/widgets/common/` 新建 |
+`BrandWordmark` 是纯排版：字标 `onSurface` + **accent 句点**（对应设计系统
+`.nav-brand` 与稿中的 `STILL.`）。句点是品牌里唯一着色的字符——这是「accent 只给
+一处」在品牌上的体现。
 
-复用率：设置/关于 ≈80% 复用现有 `SettingsGroup`/`SettingsTile`（已含 `.navigation/.toggle/.selection` 工厂变体）；首页为最大净增组合但全由原子拼成；播放器改动集中在 `CircularCover` + `WaveformProgress`。
+`TagChip` **自己拥有颜色**，通过 `TagTone`（`primary` / `neutral` / `outline`）+ `dense`。
+它此前暴露裸 `backgroundColor` / `textColor`，五个调用点立刻塞了
+`Colors.orange/green/blue`，详情页 chip 在所有 scheme 下都是固定色相，且暗色下一处
+不过 WCAG AA。**允许调用方决定颜色的浅接口，一定会被那样使用。**
 
-> †延后未建（2026-08-13 UI 收敛任务结论）：`AccentPill`/`SectionHeader`/`CategoryChip` 在本 App 中全部零调用点，指定消费方不存在——首页策展区（"热门分类"两列网格、"推荐音频"/"最新上传" 分区标题）没有对应的数据源与屏幕；"关注" 功能没有对应后端；侧边栏选中态已由 `SidebarTile` 实现（且刻意用 `AppRadius.lg` 而非 `full` 圆角，与本节原描述不同）。三者连同专属测试组已删除；本节以下正文仍保留原表述作为设计意图记录，实现时以“延后未建”为准，不要为了对齐这里反向造功能。
+### 2.2 列表行
 
-### 2.2 五屏布局规格（对参考图）
+行高 56（与 `SettingsTile` / `SidebarTile` / `BrowseListItem` 一致），零圆角，无卡片，
+行间 1px 分隔线，尾部箭头 `→`。编号列表（浏览页）左侧编号用 `onSurface` 35% 透明。
 
-**侧边栏**：顶 `BrandWordmark`；导航列表，选中项 = `AccentPill`†（实心 accent 底 + `onPrimary` 文字 + Full 圆角），未选中为纯文本+线性图标；底部 `SidebarDecoration`（蓝/绿叶、黑配色月+山）。移动端宽 `min(屏宽×72%, 360px)`，右侧上下圆角 28px，沿用现有玻璃拟态深色策略（见 `lib/widgets/sidebar/`，不回退）。
+### 2.3 异步状态
 
-**首页**：AppBar 标题 + 通知铃；`AppSearchField`（Full 圆角，Surface L2 底，尾部放大镜）；`SectionHeader`†`("推荐音频", 更多>)` + `WorkCoverCard` 横滑（Medium 圆角封面 + 左下时长 Caption 角标 + 标题）；`SectionHeader`†`("热门分类")` + `CategoryChip`†两列网格（图标+标签，`primaryContainer` 软底）；`SectionHeader`†`("最新上传", 更多>)` + `NowPlayingRow`（方形小封面 + 标题 + "正在播放" + 迷你播放控件）。
+四态编排收敛在 `EnhancedWorkGridView` 一处（legacy `WorkGridView` 已删）：
 
-**播放器**：AppBar 下箭头收起 + "播放器" + 收藏心 + 更多⋮；曲名 Title Large + 副标 Body Medium("ASMR · 自然") + `AccentPill`†`("关注")`；`CircularCover`（大圆形封面 + 细环，保留 `Hero(tag:'mini-player-cover')`）；`WaveformProgress`（波形 + 时间 Caption `12:34 / 30:45`，拖拽 seek 逻辑复用现 `PlayerProgress`）；主控行 `[循环][上一首][实心 accent 大播放][下一首][列表]`；底部动作行 定时关闭/倍速播放/音效设置/加入收藏（图标+Label）。
-> 控制区遵守**播放器极简原则**：扩展现有单控制行，禁止堆叠重复/歧义图标；底部动作行中无后端支撑的项（倍速/音效/均衡器/定时）只做占位或暂不纳入，不为对齐 UI 反向造功能。
+- **loading 只在 `works.isEmpty` 时替换内容**——翻页不得把列表换成裸转圈
+- **error 只在 `works.isEmpty` 时显示**——VM 的 catch 不清空 `_works`，陈旧内容优先于错误页
+- **empty 必须有可见提示**，禁止 `SizedBox.shrink()` 兜底
+- 错误态按钮：连接/未知错误 → 「重试」；鉴权错误且有 `onLogin` → 「去登录」
 
-**设置**：AppBar "设置"；`AppListGroup` 分区（accent `SectionHeader`†）：播放设置 / 声音设置 / 通用设置；每行 `AppListTile` = 线性 leading 图标 + 标题 + 尾控件（值+`>` / 开关 / 滑块）。沿用现有 `SettingsTheme.pageBackground` + `noSplashTheme`。
+骨架列数走 `WorkLayoutStrategy`，不得写死。
 
-**关于我们**：AppBar 返回 + "关于我们"；居中 `BrandWordmark` + "版本 Vx.y.z"（来自 `package_info_plus`，非硬编码）；产品简介段；`AppListGroup`（用户协议/隐私政策/意见反馈 等 `>` 项，复用现有 7 个 `SettingsTile.navigation`）；联系我们 + 邮箱；`SocialIconRow`；`AppFooter` 版权。
+### 2.4 侧边栏
 
-### 2.3 通用组件标准
+跟随应用主题的清爽列表。**禁止**：全屏 `BackdropFilter`（真机 256ms 首开 jank，
+证据见 `docs/todos/done/20260515-sidebar-first-open-jank.md`）、玻璃拟态、渐变、
+柔光、玻璃卡、强制深色 `Theme` 覆盖。
 
-- **作品卡片**：1:1 封面；按下缩放 0.95（取 `MicroInteractions.buttonScaleDown`，现 `WorkCard` 未实现 → Phase E）；hover 8% Primary 遮罩。
-- **按钮**：Filled 高 40 / 横向 24 / Full 圆角 / Primary 底；Outlined 1px 边透明底；Text 无底 Primary 文字；IconButton 48×48 触达。
-- **迷你播放器**：内容区 48 + 安全区；顶部 2px `LinearProgressIndicator`(Primary)；Surface L1 底；点击/上滑 Hero 展开。
-- **列表项**：单行 56 / 双行 72 / 三行 88；前置 40（图标）或 56（缩略图）；分割线 1px `outlineVariant` 起始偏移 16；分区头 Label Medium + accent 色。
-- **对话框**：宽 280–560，全周 24，Surface L2 底，Large 圆角；标题 `headlineSmall`，操作右对齐 8 间距。
-- **Chip**：高 32 横向 12；只读 Surface L2；交互选中用 Primary + 前置 Checkmark；Wrap 间距水平/垂直各 8。
-- **状态反馈**：空状态居中(宽280) 图标64(Tertiary)→标题→描述→操作；错误态分内联/全屏/Snackbar(4s+重试)/网络断顶部 Banner。错误文案须走 `NetworkException.userMessage`（连接失败=VPN 提示，401/403=去登录），不暴露 `e.toString()`。
+`SidebarHeader` 的 `addPostFrameCallback` + `_dialogScheduled` 重入标志必须保留
+（同帧 `Navigator.pop` + `showDialog` 造成过生产崩溃）。
+
+抽屉是**纯导航**，不要为了视觉好看编造「当前选中区块」的持久化状态。
 
 ---
 
 ## 3. 动画与微交互
 
-> 状态：`AppAnimations` / `MicroInteractions` 已实现于 `lib/core/theme/app_animations.dart`，与本节**一致**。业务代码禁止硬编码 Duration/Curve。
+### 3.1 时长与曲线
 
-### 3.1 时间曲线与时长（`AppAnimations`）
+一律取 `AppAnimations`，禁止硬编码 `Duration` / `Curve`。
 
-| 常量 | 值 | 用途 |
-| :--- | :--- | :--- |
-| `enter` | `easeOutCubic` | 进入：减速停止 |
-| `exit` | `easeInCubic` | 退出：加速离开 |
-| `standard` | `easeInOutCubic` | 状态切换 |
-| `emphasis` | `elasticOut` | 强调回弹 |
-| `smoothScroll` | `easeOutQuart` | 歌词滚动/长列表 |
-| `micro` | 100ms | 涟漪、颜色、透明度 |
-| `short` | 200ms | 标签/菜单/Chip |
-| `medium` | 300ms | 列表进入、卡片展开、歌词同步 |
-| `long` | 450ms | 播放器全屏、页面路由 |
+### 3.2 微交互
 
-单个动画绝对禁止 >500ms。
+`MicroInteractions` 定义了按压缩放 0.95、收藏弹跳等常量。**目前 0 调用点**——
+交互反馈层尚未落地，见 §8。
 
-### 3.2 微交互（`MicroInteractions`）
+### 3.3 页面转场
 
-按钮按下 scale 0.95 / opacity 0.8 / 100ms；卡片 elevation +2(仅亮色)/150ms；收藏 scale→1.3/300ms/elasticOut；播放图标 morph 200ms；下拉刷新指示器 40 / 触发距离 100；进度滑块 thumb 拖拽 8 / 空闲 0 / 150ms。
+不得自创过渡。现有两处自定义：mini player → 播放器（`PageRouteBuilder` + 两对
+`Hero`）、详情 → 相似作品（右进左出）。其余走默认 `MaterialPageRoute`。
 
-### 3.3 页面级动画（不得自创过渡）
+`Hero(tag:'mini-player-cover')` 与 `Hero(tag:'player-title')` 不得更名。
 
-| 场景 | 方案 | 时长 | 曲线 |
-| :--- | :--- | :--- | :--- |
-| 主网格进入 | Staggered fade-in，仅首屏前 6 项，最大延迟 250ms | 300ms | easeOutCubic |
-| 播放器全屏展开 | Hero(封面) + Slide(控制区) | 450ms | easeOutCubic |
-| 标签切换 | Crossfade（禁止水平滑动） | 200ms | easeInOut |
-| 歌词高亮 | Scale 1.0→1.05 + Opacity 0.5→1.0 | 300ms | easeOutCubic |
-| 筛选面板 | AnimatedSlide + AnimatedOpacity | 200ms | easeInOut |
-| 骨架屏 | 纯色脉冲 Opacity 0.3↔0.7（`SkeletonPulse`，禁用 Shimmer 包） | 1500ms loop | easeInOut |
+### 3.4 动画性能
 
-### 3.4 动画性能规则
-
-优先隐式动画；高频重绘包 `RepaintBoundary`（见 §7.4）；禁止对 width/height/margin 加动画（改 `Transform`）；尊重 `MediaQuery.disableAnimations`（为真则 Duration 归零）；同屏非循环动画 ≤3；`Tween/Duration/Offset` 用 `const`；多动画屏用 `TickerProviderStateMixin`。
+- 优先隐式动画与 `AnimatedBuilder`，避免整树 `setState`
+- 高频重绘节点包 `RepaintBoundary`
+- **必须尊重 `MediaQuery.disableAnimations`**——目前全库 0 处，是真实无障碍缺口（§8）
 
 ---
 
-## 4. 无障碍标准
+## 4. 无障碍
 
-- 对比度：正文 ≥4.5:1，大文本(18pt+) ≥3:1。
-- 点击目标：移动端强制 ≥48×48。
-- 减弱动效：`MediaQuery.disableAnimations` 为真 → 全部 Duration 归零。
-- 屏幕阅读器：所有 `IconButton` / 图像须 `semanticLabel`。
-- 聚焦指示：2px Primary 外框，2px 偏移。
+- 可点击元素最小触达 48×48
+- 图标按钮提供 `tooltip` 或 `Semantics.label`
+- 正文对比度 ≥ 4.5:1。**新增或修改 chip / 角标 / 次要文字时实测对比度**——
+  详情页 chip 曾在暗色下测得 ≈2.7:1
+- 尊重系统的「减弱动效」（§3.4）
 
 ---
 
-## 5. 响应式布局规则
+## 5. 响应式
 
-| 断点 | 布局 | 卡片列数 | 间距 |
-| :--- | :--- | :--- | :--- |
-| < 800 (Mobile) | 底部导航 | 2 | 8 |
-| 800–1200 (Tablet) | 底部导航/侧边栏 | 3 | 12 |
-| ≥ 1200 (Desktop) | 固定侧边导航 | 4 | 16 |
+断点与列数由 `WorkLayoutConfig` / `WorkLayoutStrategy` 统一（1200 / 800；4 / 3 / 2 列）。
+屏幕内不要各自读 `MediaQuery.size` 造第二套断点。
 
 ---
 
 ## 6. 组件开发规范
 
-### 6.1 拆分
+**拆分**：单文件超 300 行考虑拆分；跨屏复用的抽 `widgets/common/`，与屏强耦合的
+就近放在该屏目录。
 
-- `build()` >80 行必须拆子 Widget；优先 `StatelessWidget`；单文件公开 Widget ≤3。
+**命名**：文件 `snake_case`，类 `PascalCase`，私有 `_` 前缀。
 
-### 6.2 命名
+**Provider**：订阅范围尽量窄。`Selector` 的 record 必须包含所有会影响该子树的字段。
+高频通知（如播放位置）不要走 `ChangeNotifier` 的全员广播——见
+`PlayerViewModel.positionListenable`。
 
-Screen→`XxxScreen`；ViewModel→`XxxViewModel`；可复用→`XxxWidget`/`XxxView`；接口→`IXxxService`；实现→`XxxService`；Freezed→`Xxx`/`XxxModel`。
+**字符串**：UI 可见文案一律走 `Strings`。诊断/异常串豁免（它们经
+`NetworkException.userMessage` 翻译后才面向用户）。
 
-### 6.3 Provider
-
-精确监听 `context.select<T,R>()`；只取方法用 `context.read`；**禁止 `context.watch` 包裹大 Widget 树**。
-
-### 6.4 字符串
-
-所有 UI 可见文案集中 `lib/common/constants/strings.dart`，**禁止硬编码中文**（日志/调试串可豁免）。现存 ~60–90 处 UI 违规由 Phase E 收口。
+**注释**：只写「为什么」，中文，不写变更史。
 
 ---
 
-## 7. 性能优化准则
+## 7. 性能准则
 
-### 7.1 §7 审计真实状态（2026-05-16 实测，旧表已大面积过期）
+### 7.1 状态管理
 
-| 项 | 文件 | 真实状态 |
-| :--- | :--- | :--- |
-| PlayerViewModel 进度流 60Hz rebuild（原 P0） | `player_viewmodel.dart` | ✅ **已闭环**：UI 路径 `.throttleTime(200ms)` + 字幕路径全精度不 notify（:78-98） |
-| `work_row.dart` IntrinsicHeight（原 P1） | `work_row.dart` | ✅ **已闭环**：全库 `IntrinsicHeight` 0 处，已是 `Row+Expanded` |
-| Shimmer 持续帧开销（原 P1） | 多处 | ⚠️ **主体已闭环**（`SkeletonPulse` opacity 脉冲+`RepaintBoundary`）；残留 `pubspec` `shimmer` 依赖 + `work_files_skeleton.dart` 引用待 Phase E 清 |
-| `groupWorksIntoRows` 每 build 重算（原 P1） | `work_layout_strategy.dart:35` | ❌ **仍未闭环**：未缓存，`work_grid.dart:21` build 路径调用 → Phase E memo |
-| `PlaybackEventHub` 节流（原 P0） | `playback_event_hub.dart` | ◐ `playbackProgress` 用自定义 `.distinct(position)` 比较器（有效）；`playbackState.distinct()` 依赖 `PlaybackStateEvent` 的 `==/hashCode`，执行阶段核验 |
+- 订阅范围最小化；`const` 构造尽量用满
+- 高频事件先节流，再考虑是否该走独立的 `Listenable`
 
-### 7.2 状态管理性能
+### 7.2 列表与滚动
 
-notifyListeners：UI ≤30 次/秒；进度 throttle 200ms；字幕仅行变化才通知。Provider 拆粒度，`context.select` 精确监听。禁止 `build()` 内 `addPostFrameCallback`/`Timer`/重计算。
+- 分页列表用 builder delegate（`SliverChildBuilderDelegate`）
+- **不要在滚动/构建路径上引入 per-item 的 DB 或文件系统查询**。需要整页的附加信息
+  时批量查一次（例：首页在线/本地角标）
 
-### 7.3 列表与滚动
+### 7.3 图片
 
-强制 `*.builder`，禁止 Column/Row spread 长列表；避免 `IntrinsicHeight`（用固定高/AspectRatio/LayoutBuilder）；网格分组计算须缓存；图片用 `CachedNetworkImage` 并指定 w/h 防 CLS。
+封面按布局宽 × DPR 设 `memCacheWidth` 降采样；**不要**设 `maxWidthDiskCache`——
+磁盘缓存全 App 共享，降采样盘文件会让复用同一 URL 的大图消费者取到糊图。
 
-### 7.4 RepaintBoundary
+### 7.4 启动路径
 
-必须包：MiniPlayer、PlayerProgress、歌词活跃行、用 `AnimationController` 的自定义组件。禁止包静态组件/整页。仅用 Repaint Rainbow 确认热点后添加。
+见 `CLAUDE.md` 的 App Initialization Flow。要点：ViewModel 不在构造函数联网；
+非首帧必需的初始化推迟到首帧后；恢复播放态不得阻塞用户的首次操作。
 
-### 7.5 内存
+### 7.5 发版前检查（Profile 模式，非 debug）
 
-Stream 在 initState 订阅 / dispose 取消，统一 `List<StreamSubscription>` 管理且 try-catch；Timer 全部 dispose 取消，优先 RxDart `throttle/debounce`；Controller 生命周期对齐 initState/dispose + `@mustCallSuper`。
-
-### 7.6 发版前性能检查（Profile 模式，非 debug）
-
-主列表滚动 ≥55fps；播放器动画 ≥55fps；冷启动首帧 <2s(release)；标签切换 <300ms；冷启动内存 <150MB；30min 播放无泄漏。
+- 首页列表滚动 ≥ 55fps
+- 冷启动首帧：`flutter run --profile --trace-startup`，读 `start_up_info.json`。
+  **debug 下的 `[startup]` 埋点是 JIT 数据，不能代表 release**
 
 ---
 
-## 8. 开发工作流规范
+## 8. 已知缺口
 
-> 权威文档为 [`dev_workflow.md`](dev_workflow.md)（强制流程：TODO → 开发 → `/init`）。本节仅列要点，冲突以 `dev_workflow.md` 为准。
+以下为**已知未做**，不是遗漏，记录在此避免重复发现：
 
-- 改 `lib/data/models/` 下 Freezed 后必须 `dart run build_runner build --delete-conflicting-outputs`，生成物一并提交，禁止手改。
-- 提交前：`flutter analyze`（无新增 warning）→ `flutter test`（全过）→ `dart format lib/`。
-- 性能分析用 Profile/Release，**勿用 debug 测帧率**。
-- 文档优先级：`dev_workflow > 子系统文档 > 本规范 > guidelines`。本规范的视觉判断以参考图为准。
+| 缺口 | 说明 |
+| :--- | :--- |
+| 交互反馈层 | `MicroInteractions` 0 调用点；按压缩放未落地；触觉只在 `settings_tile.dart` 两处；mini player 与播放器主体用 `GestureDetector` 无涟漪 |
+| `disableAnimations` | 全库 0 处，真实无障碍缺口 |
+| 列表入场动画 | 未做。分页 Sliver 每次筛选/翻页/换主题都重建，stagger 会反复闪，且正对 §7.5 的 55fps 硬线 |
+| 播放器 drag-to-dismiss | 未做。当前唯一出口是左上角按钮，单手够不着 |
+| 真机验收 | release/profile 冷启动毫秒未采集；四配色 × 明暗未逐屏对照；播放器全屏未验 |
+
+---
+
+## 9. 工作流
+
+任何跨文件或有可观察行为变化的改动，**先建 TODO 文档**（`docs/todos/_template.md`），
+再动代码；完成时执行 `/init` 刷新 `CLAUDE.md` 并把文档移入 `done/`。
+详见 `docs/dev_workflow.md`。
