@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:xuro/data/models/vas/voice_actor.dart';
 import 'package:xuro/data/services/api_service.dart';
-import 'package:xuro/data/services/exceptions/network_exception.dart';
+import 'package:xuro/presentation/models/load_failure.dart';
 import 'package:xuro/utils/logger.dart';
 import 'package:get_it/get_it.dart';
 
@@ -11,7 +11,7 @@ class VoiceActorsViewModel extends ChangeNotifier {
   List<VoiceActor> _allVoiceActors = [];
   List<VoiceActor> _filteredVoiceActors = [];
   bool _isLoading = false;
-  String? _error;
+  LoadFailure? _failure;
   String _searchQuery = '';
 
   VoiceActorsViewModel() {
@@ -20,13 +20,13 @@ class VoiceActorsViewModel extends ChangeNotifier {
 
   List<VoiceActor> get voiceActors => _filteredVoiceActors;
   bool get isLoading => _isLoading;
-  String? get error => _error;
+  LoadFailure? get failure => _failure;
   String get searchQuery => _searchQuery;
 
   Future<void> loadVoiceActors() async {
     if (_isLoading) return;
     _isLoading = true;
-    _error = null;
+    _failure = null;
     notifyListeners();
 
     try {
@@ -36,7 +36,7 @@ class VoiceActorsViewModel extends ChangeNotifier {
       AppLogger.info('声优列表加载成功: ${_allVoiceActors.length}个声优');
     } catch (e) {
       AppLogger.error('加载声优列表失败', e);
-      _error = userMessageOf(e);
+      _failure = LoadFailure.from(e);
     } finally {
       _isLoading = false;
       notifyListeners();

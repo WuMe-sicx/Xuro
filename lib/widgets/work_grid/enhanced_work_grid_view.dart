@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:xuro/data/models/works/work.dart';
 import 'package:xuro/presentation/layouts/work_layout_strategy.dart';
+import 'package:xuro/presentation/models/load_failure.dart';
 import 'package:xuro/widgets/work_grid/components/grid_content.dart';
 import 'package:xuro/widgets/work_grid/components/grid_error.dart';
 import 'package:xuro/widgets/work_grid/components/grid_empty.dart';
@@ -9,9 +10,8 @@ import 'package:xuro/widgets/work_grid/components/grid_loading.dart';
 class EnhancedWorkGridView extends StatelessWidget {
   final List<Work> works;
   final bool isLoading;
-  final String? error;
+  final LoadFailure? failure;
   final VoidCallback? onRetry;
-  final bool isLoginError;
   final VoidCallback? onLogin;
   final Future<void> Function()? onRefresh;
   final Future<void> Function(int page)? onPageChanged;
@@ -25,9 +25,8 @@ class EnhancedWorkGridView extends StatelessWidget {
     super.key,
     required this.works,
     required this.isLoading,
-    this.error,
+    this.failure,
     this.onRetry,
-    this.isLoginError = false,
     this.onLogin,
     this.onRefresh,
     this.onPageChanged,
@@ -46,11 +45,10 @@ class EnhancedWorkGridView extends StatelessWidget {
 
     // 陈旧内容优先于错误页：VM 的 catch 块不清空已加载的 works（见各 ViewModel），
     // 所以「已有数据 + 翻页失败」时应保留原内容，只有从未取到过数据才整屏切错误态。
-    if (error != null && works.isEmpty) {
+    if (failure != null && works.isEmpty) {
       return GridError(
-        error: error!,
+        failure: failure!,
         onRetry: onRetry,
-        isLoginError: isLoginError,
         onLogin: onLogin,
       );
     }

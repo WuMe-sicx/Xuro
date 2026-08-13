@@ -2,15 +2,14 @@ import 'package:flutter/foundation.dart';
 import 'package:xuro/data/models/works/work.dart';
 import 'package:xuro/data/models/works/pagination.dart';
 import 'package:xuro/data/services/api_service.dart';
-import 'package:xuro/data/services/exceptions/network_exception.dart';
+import 'package:xuro/presentation/models/load_failure.dart';
 import 'package:xuro/utils/logger.dart';
 
 abstract class PaginatedWorksViewModel extends ChangeNotifier {
   final ApiService _apiService;
   List<Work> _works = [];
   bool _isLoading = false;
-  String? _error;
-  bool _isLoginError = false;
+  LoadFailure? _failure;
   Pagination? _pagination;
   int _currentPage = 1;
   bool _firstLoadTriggered = false;
@@ -33,8 +32,7 @@ abstract class PaginatedWorksViewModel extends ChangeNotifier {
   // Getters
   List<Work> get works => _works;
   bool get isLoading => _isLoading;
-  String? get error => _error;
-  bool get isLoginError => _isLoginError;
+  LoadFailure? get failure => _failure;
   int get currentPage => _currentPage;
   int? get totalPages =>
       _pagination?.totalCount != null && _pagination?.pageSize != null
@@ -56,8 +54,7 @@ abstract class PaginatedWorksViewModel extends ChangeNotifier {
     if (page < 1 || (totalPages != null && page > totalPages!)) return;
 
     _isLoading = true;
-    _error = null;
-    _isLoginError = false;
+    _failure = null;
     notifyListeners();
 
     try {
@@ -69,8 +66,7 @@ abstract class PaginatedWorksViewModel extends ChangeNotifier {
       AppLogger.info('第$page页$pageName加载成功: ${response.works.length}个作品');
     } catch (e) {
       AppLogger.error('加载$pageName失败', e);
-      _error = userMessageOf(e);
-      _isLoginError = isAuthErrorOf(e);
+      _failure = LoadFailure.from(e);
     } finally {
       _isLoading = false;
       notifyListeners();

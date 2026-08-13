@@ -1,9 +1,8 @@
 import 'package:flutter/foundation.dart';
-import 'package:xuro/common/constants/strings.dart';
 import 'package:xuro/data/models/works/work.dart';
 import 'package:xuro/data/models/works/pagination.dart';
 import 'package:xuro/data/services/api_service.dart';
-import 'package:xuro/data/services/exceptions/network_exception.dart';
+import 'package:xuro/presentation/models/load_failure.dart';
 import 'package:xuro/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:xuro/utils/logger.dart';
 import 'package:get_it/get_it.dart';
@@ -15,8 +14,7 @@ class RecommendViewModel extends ChangeNotifier {
   final AuthViewModel _authViewModel;
   List<Work> _works = [];
   bool _isLoading = false;
-  String? _error;
-  bool _isLoginError = false;
+  LoadFailure? _failure;
   Pagination? _pagination;
   int _currentPage = 1;
   bool _filterPanelExpanded = false;
@@ -48,11 +46,7 @@ class RecommendViewModel extends ChangeNotifier {
   // Getters
   List<Work> get works => _works;
   bool get isLoading => _isLoading;
-  String? get error => _error;
-
-  /// True when [error] is a "not logged in" / auth failure, so the UI can
-  /// offer a login action instead of a (useless) retry.
-  bool get isLoginError => _isLoginError;
+  LoadFailure? get failure => _failure;
   int get currentPage => _currentPage;
   int? get totalPages =>
       _pagination?.totalCount != null && _pagination?.pageSize != null
@@ -67,7 +61,7 @@ class RecommendViewModel extends ChangeNotifier {
   void toggleSubtitleFilter() {
     _settings.setHasSubtitleFilter(!_settings.hasSubtitleFilter);
     notifyListeners();
-    loadRecommendations(refresh: true); // 刷新列表
+    loadRecommendations(); // 刷新列表
   }
 
   void toggleFilterPanel() {
@@ -98,15 +92,15 @@ class RecommendViewModel extends ChangeNotifier {
     // 检查是否已登录
     final uuid = _authViewModel.recommenderUuid;
     if (uuid == null) {
-      _error = Strings.loginRequired;
-      _isLoginError = true;
+      _failure = const LoadFailure.loginRequired();
+      _works = [];
+      _pagination = null;
       notifyListeners();
       return;
     }
 
     _isLoading = true;
-    _error = null;
-    _isLoginError = false;
+    _failure = null;
     notifyListeners();
 
     try {
@@ -121,8 +115,7 @@ class RecommendViewModel extends ChangeNotifier {
       AppLogger.info('第$page页推荐列表加载成功: ${response.works.length}个作品');
     } catch (e) {
       AppLogger.error('加载推荐列表失败', e);
-      _error = userMessageOf(e);
-      _isLoginError = isAuthErrorOf(e);
+      _failure = LoadFailure.from(e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -130,7 +123,7 @@ class RecommendViewModel extends ChangeNotifier {
   }
 
   /// 加载推荐列表(用于初始加载和刷新)
-  Future<void> loadRecommendations({bool refresh = false}) async {
+  Future<void> loadRecommendations() async {
     await loadPage(1);
   }
 }

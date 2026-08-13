@@ -6,8 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:xuro/common/constants/strings.dart';
 import 'package:xuro/presentation/viewmodels/tags_viewmodel.dart';
+import 'package:xuro/presentation/widgets/auth/prompt_login.dart';
 import 'package:xuro/screens/browse/widgets/browse_list_item.dart';
 import 'package:xuro/widgets/common/app_search_field.dart';
+import 'package:xuro/widgets/work_grid/components/grid_error.dart';
 
 class TagsScreen extends StatelessWidget {
   const TagsScreen({super.key});
@@ -45,20 +47,11 @@ class TagsScreen extends StatelessWidget {
     if (viewModel.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
-    if (viewModel.error != null) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(Strings.loadFailed,
-                style: Theme.of(context).textTheme.bodyLarge),
-            const SizedBox(height: 8),
-            ElevatedButton(
-              onPressed: viewModel.refresh,
-              child: const Text(Strings.retry),
-            ),
-          ],
-        ),
+    if (viewModel.failure != null) {
+      return GridError(
+        failure: viewModel.failure!,
+        onRetry: viewModel.refresh,
+        onLogin: () => promptLogin(context, onLoggedIn: viewModel.refresh),
       );
     }
     if (viewModel.tags.isEmpty) {

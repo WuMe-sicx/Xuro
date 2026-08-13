@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:xuro/presentation/viewmodels/search_viewmodel.dart';
 import 'package:xuro/widgets/work_grid/enhanced_work_grid_view.dart';
 import 'package:xuro/presentation/layouts/work_layout_strategy.dart';
+import 'package:xuro/presentation/widgets/auth/prompt_login.dart';
 import 'package:xuro/utils/logger.dart';
 
 class SearchScreen extends StatelessWidget {
@@ -234,8 +235,16 @@ class _SearchScreenContentState extends State<SearchScreenContent> {
                 return EnhancedWorkGridView(
                   works: viewModel.works,
                   isLoading: viewModel.isLoading,
-                  error: viewModel.error,
-                  onRetry: _onSearch,
+                  failure: viewModel.failure,
+                  // 重试/登录后重放的关键词取自 VM 而不是输入框：用户完全
+                  // 可以在撞到错误之后把输入框删空（onChanged 只 setState，
+                  // 不碰 VM，所以错误页与按钮都还在），此时 _onSearch 会因
+                  // keyword 为空静默返回——按钮点了没反应。
+                  onRetry: () => viewModel.search(viewModel.keyword),
+                  onLogin: () => promptLogin(
+                        context,
+                        onLoggedIn: () => viewModel.search(viewModel.keyword),
+                      ),
                   emptyMessage: emptyMessage,
                   layoutStrategy: _layoutStrategy,
                   scrollController: _scrollController,

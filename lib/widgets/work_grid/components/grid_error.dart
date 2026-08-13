@@ -1,41 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:xuro/common/constants/strings.dart';
 import 'package:xuro/core/theme/app_spacing.dart';
+import 'package:xuro/presentation/models/load_failure.dart';
 
 class GridError extends StatelessWidget {
-  final String error;
+  final LoadFailure failure;
   final VoidCallback? onRetry;
-
-  /// When true and [onLogin] is provided, the action button becomes a
-  /// "go to login" button instead of "retry" — retrying a not-logged-in
-  /// request is pointless, the user needs to authenticate first.
-  final bool isLoginError;
   final VoidCallback? onLogin;
 
   const GridError({
     super.key,
-    required this.error,
+    required this.failure,
     this.onRetry,
-    this.isLoginError = false,
     this.onLogin,
   });
 
   @override
   Widget build(BuildContext context) {
-    final showLogin = isLoginError && onLogin != null;
+    // 登录态没传 onLogin 时按钮会回退成「重试」，图标必须跟按钮走同一个
+    // 判断，否则出现过锁图标配重试按钮的错配（图标承诺登录、按钮却重试）。
+    final showLogin = failure.needsLogin && onLogin != null;
 
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            isLoginError ? Icons.lock_outline : Icons.error_outline,
+            showLogin ? Icons.lock_outline : Icons.error_outline,
             size: AppSpacing.space48,
             color: Theme.of(context).colorScheme.error,
           ),
           const SizedBox(height: AppSpacing.space16),
           Text(
-            error,
+            failure.message,
             style: Theme.of(context).textTheme.bodyLarge,
             textAlign: TextAlign.center,
           ),
