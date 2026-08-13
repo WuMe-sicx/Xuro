@@ -1,16 +1,13 @@
 import 'dart:math';
+import 'package:xuro/core/files/file_kind.dart';
 import 'package:xuro/data/models/files/child.dart';
 import 'package:xuro/utils/logger.dart';
 
 class SubtitleMatcher {
-  static const supportedFormats = ['.vtt', '.lrc'];
   static const double _similarityThreshold = 0.6;
 
-  static bool isSubtitleFile(String? fileName) {
-    if (fileName == null) return false;
-    return supportedFormats
-        .any((format) => fileName.toLowerCase().endsWith(format));
-  }
+  static bool isSubtitleFile(String? fileName) =>
+      FileKinds.isPairableSubtitleName(fileName);
 
   /// Find matching subtitle for an audio file using 3-tier strategy:
   /// 1. Exact match (basename or basename+ext)
@@ -144,10 +141,12 @@ class SubtitleMatcher {
 
   static List<String> _getPossibleSubtitleNames(String audioFileName) {
     final baseName = _getBaseName(audioFileName);
+    // module 里的扩展名集合不带点，拼文件名需要带点，就地补上，
+    // 不为此在 FileKinds 里加一份带点的重复常量。
     return [
-      for (final format in supportedFormats) ...[
-        '$baseName$format',
-        '$audioFileName$format',
+      for (final ext in FileKinds.pairableSubtitleExtensions) ...[
+        '$baseName.$ext',
+        '$audioFileName.$ext',
       ]
     ];
   }

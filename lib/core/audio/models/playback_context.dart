@@ -5,6 +5,7 @@ import 'package:xuro/data/models/files/child.dart';
 import 'package:xuro/utils/logger.dart';
 import 'package:xuro/core/audio/models/play_mode.dart';
 import 'package:xuro/core/audio/models/file_path.dart';
+import 'package:xuro/core/files/file_kind.dart';
 
 class PlaybackContext {
   final Work work;
@@ -68,37 +69,28 @@ class PlaybackContext {
     );
   }
 
-  // 获取同级文件列表
+  /// 同目录、同扩展名的兄弟文件构成播放列表。
+  ///
+  /// **只收同扩展名是有意的**：asmr.one 大量作品会把同一套音频同时下发
+  /// mp3 与 wav/flac 两份放在同一目录，合并成一个队列会让每首曲子连放两遍。
   static List<Child> _getPlaylistFromSameDirectory(
       Child currentFile, Files files) {
-    // AppLogger.debug('开始获取播放列表...');
-    // AppLogger.debug('当前文件: ${currentFile.title}');
-    // AppLogger.debug('当前文件类型: ${currentFile.type}');
+    final extension = FileKinds.extensionOf(currentFile.title);
 
-    // 获取当前文件的扩展名
-    final extension = currentFile.title?.split('.').last.toLowerCase();
-    // AppLogger.debug('当前文件扩展名: $extension');
-
-    if (extension != 'mp3' && extension != 'wav') {
+    // 此前这里硬编码 `!= 'mp3' && != 'wav'`，而设置页向用户承诺六种格式、
+    // 详情页也让 .flac/.opus/.m4a/.aac 可点——点下去在这里被判空，用户看到
+    // 「播放失败」，且冷启动的播放恢复也会因列表为空而静默放弃。
+    if (extension == null ||
+        !FileKinds.defaultPlayableExtensions.contains(extension)) {
       AppLogger.debug('不支持的文件类型: $extension');
       return [];
     }
 
-    // 使用 FilePath 获取同级文件
     final siblings = FilePath.getSiblings(currentFile, files);
-
-    // 过滤出相同扩展名的文件
-    final playlist = siblings
+    return siblings
         .where((file) =>
             file.title?.toLowerCase().endsWith('.$extension') ?? false)
         .toList();
-
-    // AppLogger.debug('找到 ${playlist.length} 个可播放文件:');
-    // for (var file in playlist) {
-    //   AppLogger.debug('- [${file.type}] ${file.title} (URL: ${file.mediaDownloadUrl != null ? '有' : '无'})');
-    // }
-
-    return playlist;
   }
 
   /// Create a context with a pre-filtered playlist (e.g. after skipping failed audio sources).

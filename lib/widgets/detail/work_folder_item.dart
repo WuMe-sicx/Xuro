@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:xuro/common/constants/strings.dart';
+import 'package:xuro/core/files/file_kind.dart';
 import 'package:xuro/data/models/files/child.dart';
 import 'package:xuro/utils/logger.dart';
 import 'package:xuro/widgets/detail/work_file_item.dart';
@@ -14,12 +15,14 @@ class WorkFolderItem extends StatelessWidget {
   final Function(Child file)? onFileDownload;
   final void Function(Child? folderNode)? onFolderDownload;
 
-  // 支持的音频格式列表，按优先级排序
+  /// 自动展开哪个文件夹时用的音频格式表（带点）。优先取用户在设置里排好的
+  /// 顺序；DI 未就绪（如 widget 单测）时回退到 [FileKinds] 的默认表，而不是
+  /// 再手抄一份——手抄的那份必然和设置里的默认值悄悄分叉。
   static List<String> get _audioFormats {
     try {
       return GetIt.I<AppSettingsService>().audioExtensions;
     } catch (_) {
-      return ['.mp3', '.flac', '.wav', '.opus', '.m4a', '.aac'];
+      return FileKinds.defaultPlayableExtensions.map((e) => '.$e').toList();
     }
   }
 
@@ -100,7 +103,7 @@ class WorkFolderItem extends StatelessWidget {
           ),
           initiallyExpanded: shouldExpand,
           children: folder.children
-                  ?.map((child) => child.type == 'folder'
+                  ?.map((child) => FileKinds.isFolder(child)
                       ? WorkFolderItem(
                           folder: child,
                           indentation: indentation + 16.0,

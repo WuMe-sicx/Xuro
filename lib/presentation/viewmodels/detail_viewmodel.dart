@@ -18,6 +18,7 @@ import 'package:xuro/data/models/works/work_info.dart';
 import 'package:xuro/widgets/detail/work_folder_item.dart';
 import 'package:xuro/core/audio/models/file_path.dart';
 import 'package:xuro/core/subtitle/utils/subtitle_matcher.dart';
+import 'package:xuro/core/files/file_kind.dart';
 import 'package:dio/dio.dart';
 
 /// 一条批量下载项：音频 + 同目录匹配到的字幕（可空）。
@@ -42,8 +43,6 @@ class DetailViewModel extends ChangeNotifier {
   late final IAudioPlayerService _audioService;
   late final DownloadService _downloadService;
   final Work work;
-
-  static const _videoExtensions = {'mp4', 'mkv', 'mov', 'avi', 'webm', 'm4v'};
 
   Files? _files;
   bool _isLoading = false;
@@ -186,35 +185,6 @@ class DetailViewModel extends ChangeNotifier {
     if (!_disposed) notifyListeners();
   }
 
-  /// 扩展名是否属已知视频集。**比 API `type` 更可靠**：asmr.one 实测会把
-  /// "介绍视频.mp4"等下发成 `type:"audio"`，若信 `type` 会被当音频送进
-  /// 播放管线、播放列表按扩展名过滤后为空 → "播放列表为空/播放失败"。
-  static bool _hasVideoExtension(String? title) {
-    final ext = title?.split('.').last.toLowerCase();
-    return ext != null && _videoExtensions.contains(ext);
-  }
-
-  /// 该文件是否为视频（`type==video` 或视频扩展名）。视频不直接判为
-  /// "无法打开"，而是引导下载到本地用外部查看器播放（见 detail_screen）。
-  bool isVideoFile(Child file) =>
-      (file.type ?? '').toLowerCase() == 'video' ||
-      _hasVideoExtension(file.title);
-
-  /// 静态纯判定：是音频且**不是**视频扩展名。视频扩展名优先于不可靠的
-  /// API `type`，否则错标 `type:audio` 的 .mp4 会被当音频。
-  static bool _isAudioChild(Child c) =>
-      (c.type ?? '').toLowerCase() == 'audio' && !_hasVideoExtension(c.title);
-
-  bool isAudioFile(Child file) => _isAudioChild(file);
-
-  static const _subtitleExtensions = {'vtt', 'lrc', 'srt', 'txt'};
-
-  /// 该文件是否为可预览字幕（.vtt/.lrc/.srt/.txt）。
-  bool isSubtitleFile(Child file) {
-    final ext = file.title?.split('.').last.toLowerCase();
-    return ext != null && _subtitleExtensions.contains(ext);
-  }
-
   /// 纯函数：递归收集子树下所有音频，并就近（同目录同级）配对字幕。
   /// 字幕匹配只在该音频所在目录的兄弟节点中找（与 [SubtitleLoader]
   /// `findSubtitleFile` 的 `getSiblings` 语义一致）。
@@ -222,9 +192,9 @@ class DetailViewModel extends ChangeNotifier {
     final out = <DownloadPair>[];
     if (children == null) return out;
     for (final c in children) {
-      if ((c.type ?? '').toLowerCase() == 'folder') {
+      if (FileKinds.isFolder(c)) {
         out.addAll(collectAudioWithSubtitles(c.children));
-      } else if (_isAudioChild(c)) {
+      } else if (FileKinds.isAudio(c)) {
         final sub = c.title != null
             ? SubtitleMatcher.findMatchingSubtitle(c.title!, children)
             : null;
@@ -256,7 +226,7 @@ class DetailViewModel extends ChangeNotifier {
       cancelToken: cancelToken,
     );
     if (result.isPlayable &&
-        isAudioFile(file) &&
+        FileKinds.isAudio(file) &&
         !(cancelToken?.isCancelled ?? false)) {
       final sub = _matchedSubtitle(file);
       if (sub != null) {
@@ -354,7 +324,7 @@ class DetailViewModel extends ChangeNotifier {
   Future<void> playFile(Child file, BuildContext context) async {
     // 用统一分类：错标 type=audio 的视频在这里被挡下，给清晰错误，
     // 而不是放进播放管线产生"播放列表为空"的误导性失败。
-    if (!isAudioFile(file)) {
+    if (!FileKinds.isAudio(file)) {
       throw Exception('不支持的文件类型（疑似视频）: ${file.title}');
     }
 
