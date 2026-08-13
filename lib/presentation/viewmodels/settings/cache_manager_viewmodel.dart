@@ -14,9 +14,6 @@ class CacheManagerViewModel extends ChangeNotifier {
   String? _error;
 
   bool get isLoading => _isLoading;
-  int get audioCacheSize => _audioCacheSize;
-  int get subtitleCacheSize => _subtitleCacheSize;
-  int get imageCacheSize => _imageCacheSize;
   int get totalCacheSize =>
       _audioCacheSize + _subtitleCacheSize + _imageCacheSize;
   String? get error => _error;

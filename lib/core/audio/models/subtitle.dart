@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 
 enum SubtitleState {
   current, // 当前播放的字幕
@@ -111,12 +110,6 @@ class SubtitleList {
       return SubtitleWithState(subtitle, SubtitleState.current);
     }
     return SubtitleWithState(subtitle, SubtitleState.passed);
-  }
-
-  List<Subtitle> getSubtitlesInRange(int start, int count) {
-    if (start < 0 || start >= subtitles.length) return [];
-    final end = math.min(start + count, subtitles.length);
-    return subtitles.sublist(start, end);
   }
 
   (Subtitle?, Subtitle?, Subtitle?) getCurrentContext() {

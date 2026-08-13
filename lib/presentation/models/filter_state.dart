@@ -7,8 +7,6 @@ class FilterState {
     this.isDescending = true,
   });
 
-  bool get showSortDirection => orderField != 'random';
-
   String get sortValue =>
       orderField == 'random' ? 'desc' : (isDescending ? 'desc' : 'asc');
 

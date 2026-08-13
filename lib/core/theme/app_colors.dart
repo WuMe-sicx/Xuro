@@ -18,9 +18,7 @@ class AppColors {
   // === Modernist 中性阶 ===
   // 单一墨色在共享明度轴上的九档，明暗两套共用——这是 Modernist 里「同一档的
   // 任意角色视觉重量相等」的来源。
-  static const Color neutral100 = Color(0xFFF8F4F4);
   static const Color neutral200 = Color(0xFFEAE7E7);
-  static const Color neutral300 = Color(0xFFD7D3D3);
   static const Color neutral400 = Color(0xFFBAB6B6);
   static const Color neutral500 = Color(0xFF9B9797);
   static const Color neutral600 = Color(0xFF7D7979);

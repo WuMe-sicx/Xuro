@@ -6,7 +6,6 @@ import '../utils/playlist_builder.dart';
 import '../utils/audio_error_handler.dart';
 import '../events/playback_event_hub.dart';
 import '../events/playback_event.dart';
-import '../models/play_mode.dart';
 import 'package:xuro/data/models/files/child.dart';
 import 'package:xuro/data/models/works/work.dart';
 

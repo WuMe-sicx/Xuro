@@ -33,7 +33,9 @@ void main() {
 
     // 版本在头部，不在列表（旧 '版本信息' tile 已移除）
     expect(find.text('${Strings.versionLabel} v9.9.9'), findsOneWidget);
-    expect(find.text(Strings.versionInfo), findsNothing);
+    // 字面量而非 Strings 常量：这条断言的作用就是「这段文案不该出现」，
+    // 为它在 Strings 里留一个谁都不渲染的常量反而是死代码。
+    expect(find.text('版本信息'), findsNothing);
 
     // Social 行有 2 个真实入口（Telegram + GitHub）
     final social = tester.widget<SocialIconRow>(find.byType(SocialIconRow));

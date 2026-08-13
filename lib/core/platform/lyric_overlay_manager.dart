@@ -139,10 +139,4 @@ class LyricOverlayManager {
       await showWithPermissionCheck(context);
     }
   }
-
-  // 其他控制方法...
-
-  Future<void> syncState() async {
-    _isShowing = await _controller.isShowing();
-  }
 }

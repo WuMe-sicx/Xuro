@@ -93,11 +93,6 @@ class NetworkException implements Exception {
     }
   }
 
-  bool get isRetryable =>
-      type == NetworkErrorType.timeout ||
-      type == NetworkErrorType.connectionError ||
-      type == NetworkErrorType.serverError;
-
   bool get isAuthError => type == NetworkErrorType.authError;
 
   /// User-facing message. asmr.one is geo-blocked, so any connection failure

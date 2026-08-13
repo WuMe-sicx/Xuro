@@ -12,7 +12,6 @@ class UpdateViewModel extends ChangeNotifier {
   final UpdateService _service;
 
   bool _isChecking = false;
-  bool _checked = false;
   bool _disposed = false;
   String? _error;
   UpdateInfo? _latest;
@@ -35,9 +34,6 @@ class UpdateViewModel extends ChangeNotifier {
   }
 
   bool get isChecking => _isChecking;
-
-  /// 是否已完成过至少一次检查（用于区分「检查中」与「已是最新」初始态）。
-  bool get checked => _checked;
   String? get error => _error;
   UpdateInfo? get latest => _latest;
   bool get hasUpdate => _hasUpdate;
@@ -64,7 +60,6 @@ class UpdateViewModel extends ChangeNotifier {
       _error = Strings.updateErrorUnknown;
     } finally {
       _isChecking = false;
-      _checked = true;
       _safeNotify();
     }
   }

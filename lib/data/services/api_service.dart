@@ -9,7 +9,6 @@ import 'package:xuro/utils/logger.dart';
 import 'package:xuro/data/services/interceptors/auth_interceptor.dart';
 import 'package:xuro/data/services/interceptors/retry_interceptor.dart';
 import 'package:xuro/data/services/exceptions/network_exception.dart';
-import 'package:xuro/data/models/playlists_with_exist_statu/playlist.dart';
 import 'package:xuro/data/models/my_lists/my_playlists/my_playlists.dart';
 import 'package:xuro/data/models/tags/tag_item.dart';
 import 'package:xuro/data/models/circles/circle_item.dart';
@@ -489,29 +488,6 @@ class ApiService {
         return 'replay';
       case MarkStatus.onHold:
         return 'postponed';
-    }
-  }
-
-  /// 获取默认标记目标收藏夹
-  Future<Playlist> getDefaultMarkTargetPlaylist() async {
-    try {
-      final response =
-          await _dio.get('/playlist/get-default-mark-target-playlist');
-
-      if (response.statusCode == 200) {
-        final playlist = Playlist.fromJson(response.data);
-        AppLogger.info(
-            '获取默认标记目标收藏夹成功: id=${playlist.id}, name=${playlist.name}');
-        return playlist;
-      }
-
-      throw Exception('获取默认标记目标收藏夹失败: ${response.statusCode}');
-    } on DioException catch (e) {
-      AppLogger.error('网络请求失败', e, e.stackTrace);
-      throw NetworkException.fromDioException(e);
-    } catch (e, stackTrace) {
-      AppLogger.error('解析数据失败', e, stackTrace);
-      throw Exception('解析数据失败: $e');
     }
   }
 

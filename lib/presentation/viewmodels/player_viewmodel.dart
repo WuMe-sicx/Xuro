@@ -10,7 +10,6 @@ import 'dart:async';
 import 'package:xuro/core/subtitle/subtitle_loader.dart';
 import 'package:xuro/core/download/download_service.dart';
 import 'package:xuro/core/audio/events/playback_event_hub.dart';
-import 'package:just_audio/just_audio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:xuro/core/subtitle/subtitle_import_service.dart';
 import 'package:rxdart/rxdart.dart';
@@ -26,9 +25,7 @@ class PlayerViewModel extends ChangeNotifier {
   late final _downloadService = GetIt.I<DownloadService>();
 
   bool _isPlaying = false;
-  bool _isBuffering = false;
   bool _isToggling = false;
-  String? _errorMessage;
   bool _isUserImportedSubtitle = false;
   int _loadVersion = 0;
   // position 是 5Hz 高频字段，单独走 ValueNotifier 而不进 notifyListeners()：
@@ -64,9 +61,6 @@ class PlayerViewModel extends ChangeNotifier {
           _positionNotifier.value =
               event.position; // fallback position for pause/resume
           _duration = event.duration;
-          _isBuffering =
-              event.state.processingState == ProcessingState.buffering ||
-                  event.state.processingState == ProcessingState.loading;
           notifyListeners();
         },
         onError: (error) => debugPrint('$_tag - 播放状态流错误: $error'),
@@ -136,14 +130,13 @@ class PlayerViewModel extends ChangeNotifier {
       ),
     );
 
-    // 错误事件
+    // 错误事件：只落日志。播放失败的用户提示由触发播放的调用方（DetailViewModel
+    // 等）就地弹 SnackBar，VM 不再持有一份没人读的 errorMessage。
     _subscriptions.add(
       _eventHub.errors.listen(
         (event) {
-          _errorMessage = '播放错误: ${event.operation}';
           AppLogger.error(
               '播放错误事件: ${event.operation}', event.error, event.stackTrace);
-          notifyListeners();
         },
         onError: (error) => debugPrint('$_tag - 错误事件流错误: $error'),
       ),
@@ -154,7 +147,6 @@ class PlayerViewModel extends ChangeNotifier {
       _eventHub.playbackCleared.listen(
         (_) {
           _isPlaying = false;
-          _isBuffering = false;
           _positionNotifier.value = null;
           _duration = null;
           _isUserImportedSubtitle = false;
@@ -201,18 +193,11 @@ class PlayerViewModel extends ChangeNotifier {
   }
 
   bool get isPlaying => _isPlaying;
-  bool get isBuffering => _isBuffering;
-  String? get errorMessage => _errorMessage;
   bool get isUserImportedSubtitle => _isUserImportedSubtitle;
   Duration? get position => _positionNotifier.value;
   ValueListenable<Duration?> get positionListenable => _positionNotifier;
   Duration? get duration => _duration;
   Subtitle? get currentSubtitle => _currentSubtitle;
-
-  void clearError() {
-    _errorMessage = null;
-    notifyListeners();
-  }
 
   Future<void> playPause() async {
     if (_isToggling) return;
@@ -371,29 +356,4 @@ class PlayerViewModel extends ChangeNotifier {
 
   AudioTrackInfo? get currentTrackInfo => _audioService.currentTrack;
   PlaybackContext? get currentContext => _audioService.currentContext;
-
-  Future<void> seekToNextLyric() async {
-    final currentSubtitle = _subtitleService.currentSubtitleWithState;
-    final subtitleList = _subtitleService.subtitleList;
-
-    if (currentSubtitle != null && subtitleList != null) {
-      final nextSubtitle = currentSubtitle.subtitle.getNext(subtitleList);
-      if (nextSubtitle != null) {
-        await seek(nextSubtitle.start);
-      }
-    }
-  }
-
-  Future<void> seekToPreviousLyric() async {
-    final currentSubtitle = _subtitleService.currentSubtitleWithState;
-    final subtitleList = _subtitleService.subtitleList;
-
-    if (currentSubtitle != null && subtitleList != null) {
-      final previousSubtitle =
-          currentSubtitle.subtitle.getPrevious(subtitleList);
-      if (previousSubtitle != null) {
-        await seek(previousSubtitle.start);
-      }
-    }
-  }
 }
