@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:xuro/data/models/files/files.dart';
 import 'package:xuro/data/models/works/work.dart';
 import 'package:xuro/data/models/works/pagination.dart';
+import 'package:xuro/data/models/works/works_response.dart';
 import 'package:xuro/utils/logger.dart';
 import 'package:xuro/data/services/interceptors/auth_interceptor.dart';
 import 'package:xuro/data/services/interceptors/retry_interceptor.dart';
@@ -15,31 +16,40 @@ import 'package:xuro/data/models/vas/voice_actor.dart';
 import 'package:xuro/data/models/works/work_info.dart';
 import 'package:xuro/core/settings/app_settings_service.dart';
 
-class WorksResponse {
-  final List<Work> works;
-  final Pagination pagination;
-
-  WorksResponse({required this.works, required this.pagination});
-}
-
 class ApiService {
   final Dio _dio;
   final _recommendationCache = RecommendationCacheManager();
 
   final AppSettingsService _settings;
 
-  ApiService({required AppSettingsService settings})
+  /// [dio] 可注入：默认路径（`dio == null`）逐字保留原行为——内联构造带
+  /// 超时三元组的 `Dio`，并依次挂 `RetryInterceptor` + `AuthInterceptor`。
+  /// 写法对齐仓库里 `DownloadService(dio: dio ?? Dio())` 的既有约定。测试
+  /// 注入自定义 `Dio` 时**不挂这两个拦截器**——测试要的是可控短路通道，
+  /// 重试/鉴权语义会干扰断言。
+  ApiService({required AppSettingsService settings, Dio? dio})
       : _settings = settings,
-        _dio = Dio(BaseOptions(
-          baseUrl: settings.serverUrl,
-          connectTimeout: const Duration(seconds: 15),
-          receiveTimeout: const Duration(seconds: 30),
-          sendTimeout: const Duration(seconds: 15),
-        )) {
-    _dio.interceptors.add(RetryInterceptor(dio: _dio));
-    _dio.interceptors.add(AuthInterceptor());
+        _dio = dio ??
+            Dio(BaseOptions(
+              baseUrl: settings.serverUrl,
+              connectTimeout: const Duration(seconds: 15),
+              receiveTimeout: const Duration(seconds: 30),
+              sendTimeout: const Duration(seconds: 15),
+            )) {
+    if (dio == null) {
+      _dio.interceptors.add(RetryInterceptor(dio: _dio));
+      _dio.interceptors.add(AuthInterceptor());
+    }
     // Listen for server URL changes
     _settings.addListener(_onSettingsChanged);
+  }
+
+  /// 与构造函数里的 `_settings.addListener` 配对。生产中 `ApiService` 是
+  /// DI 里的 lazySingleton、活到进程退出，从不调用；但测试里每 `new` 一个
+  /// 都会往 `AppSettingsService` 上永久挂一个监听器，不清理会在多个测试
+  /// 之间累积悬挂回调。
+  void dispose() {
+    _settings.removeListener(_onSettingsChanged);
   }
 
   void _onSettingsChanged() {
@@ -50,35 +60,72 @@ class ApiService {
     }
   }
 
-  /// 获取作品文件列表
-  Future<Files> getWorkFiles(String workId, {CancelToken? cancelToken}) async {
+  /// 请求 → 解包 → 错误分类。15 个端点共用这一条通路，取代此前 15 处逐字
+  /// 相同的 `on DioException` + 裸 catch 三件套。
+  ///
+  /// **刻意没有状态码闸门。** 重构前每个方法都有一份 `if (statusCode == 200)`
+  /// 加一句 `throw Exception('...失败: $statusCode')`，共 12 份。它们全是多余的：
+  /// Dio 默认 `validateStatus` 是 200-299（`dio_mixin.dart` 的 `_dispatchRequest`
+  /// 里），非 2xx 早就被抛成 `DioException` 了；而 2xx 之内唯一的失败模式是
+  /// 「响应体不是预期形状」，那件事 [parse] 自己会抛。留着闸门只会误杀合法的
+  /// 201 Created / 204 No Content —— `POST /playlist/add-works-to-playlist`
+  /// 返回 201 完全正常，而 `AuthService.register` 就明确接受 `200 || 201`。
+  ///
+  /// [label] 只进日志，不进抛出的消息（用户可见文案统一由 `userMessageOf` 决定）。
+  /// [send] 在 try 内执行，所以请求体构造里的 `int.parse` 之类抛出仍归入
+  /// 「解析失败」这一类，与重构前一致。
+  Future<T> _request<T>({
+    required String label,
+    required Future<Response> Function() send,
+    required T Function(dynamic data) parse,
+  }) async {
     try {
-      final response = await _dio.get(
+      return parse((await send()).data);
+    } on DioException catch (e) {
+      AppLogger.error('网络请求失败', e, e.stackTrace);
+      throw NetworkException.fromDioException(e);
+    } catch (e, stackTrace) {
+      AppLogger.error('$label解析数据失败', e, stackTrace);
+      throw Exception('解析数据失败: $e');
+    }
+  }
+
+  /// works+pagination 信封解包，收敛 getWorks/getFavorites/getRecommendations/
+  /// getPopular/getItemNeighbors 这 5 个响应体形状完全相同的端点。
+  /// pagination 不兜底：畸形响应下 `Pagination.fromJson(null)` 该抛就抛，
+  /// 兜底会把「抛错」静默变成「空列表」，是可见行为变化。
+  static WorksResponse _parseWorksResponse(dynamic data) {
+    final List<dynamic> works = data['works'] ?? [];
+    final pagination = Pagination.fromJson(data['pagination']);
+    return WorksResponse(
+      works: works.map((work) => Work.fromJson(work)).toList(),
+      pagination: pagination,
+    );
+  }
+
+  /// 顶层数组响应解包，收敛 getTags/getCircles/getVoiceActors。
+  static List<T> _parseList<T>(dynamic data, T Function(dynamic) fromJson) {
+    final List<dynamic> list = data;
+    return list.map(fromJson).toList();
+  }
+
+  /// 获取作品文件列表
+  Future<Files> getWorkFiles(String workId, {CancelToken? cancelToken}) {
+    return _request<Files>(
+      label: '获取文件列表',
+      send: () => _dio.get(
         '/tracks/$workId',
         queryParameters: {
           'v': '2',
         },
         cancelToken: cancelToken, // 添加 cancelToken 支持
-      );
-
-      if (response.statusCode == 200) {
-        final filesData = {
-          'type': 'root',
-          'title': 'Root',
-          'children': response.data,
-        };
-
-        return Files.fromJson(filesData);
-      }
-
-      throw Exception('获取文件列表失败: ${response.statusCode}');
-    } on DioException catch (e) {
-      AppLogger.error('网络请求失败', e, e.stackTrace);
-      throw NetworkException.fromDioException(e);
-    } catch (e, stackTrace) {
-      AppLogger.error('解析数据失败', e, stackTrace);
-      throw Exception('解析数据失败: $e');
-    }
+      ),
+      parse: (data) => Files.fromJson({
+        'type': 'root',
+        'title': 'Root',
+        'children': data,
+      }),
+    );
   }
 
   /// 获取作品列表
@@ -88,43 +135,26 @@ class ApiService {
     String order = 'create_date',
     String sort = 'desc',
     String playlistId = '',
-  }) async {
-    try {
-      final queryParams = {
-        'page': page,
-        'subtitle': hasSubtitle ? 1 : 0,
-        'order': order,
-        'sort': sort,
-      };
+  }) {
+    return _request<WorksResponse>(
+      label: '获取作品列表',
+      send: () {
+        final queryParams = {
+          'page': page,
+          'subtitle': hasSubtitle ? 1 : 0,
+          'order': order,
+          'sort': sort,
+        };
 
-      // 如果提供了收藏夹ID，添加到查询参数
-      if (playlistId.isNotEmpty) {
-        queryParams['withPlaylistStatus[]'] = playlistId;
-      }
+        // 如果提供了收藏夹ID，添加到查询参数
+        if (playlistId.isNotEmpty) {
+          queryParams['withPlaylistStatus[]'] = playlistId;
+        }
 
-      final response = await _dio.get(
-        '/works',
-        queryParameters: queryParams,
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> works = response.data['works'] ?? [];
-        final pagination = Pagination.fromJson(response.data['pagination']);
-
-        return WorksResponse(
-          works: works.map((work) => Work.fromJson(work)).toList(),
-          pagination: pagination,
-        );
-      }
-
-      throw Exception('获取作品列表失败: ${response.statusCode}');
-    } on DioException catch (e) {
-      AppLogger.error('网络请求失败', e, e.stackTrace);
-      throw NetworkException.fromDioException(e);
-    } catch (e, stackTrace) {
-      AppLogger.error('解析数据失败', e, stackTrace);
-      throw Exception('解析数据失败: $e');
-    }
+        return _dio.get('/works', queryParameters: queryParams);
+      },
+      parse: _parseWorksResponse,
+    );
   }
 
   /// 搜索作品
@@ -140,9 +170,10 @@ class ApiService {
     String order = 'create_date',
     String sort = 'desc',
     bool hasSubtitle = false,
-  }) async {
-    try {
-      final response = await _dio.getUri(
+  }) {
+    return _request<WorksResponse>(
+      label: '搜索',
+      send: () => _dio.getUri(
         _buildSearchUri(
           keyword: keyword,
           page: page,
@@ -150,31 +181,23 @@ class ApiService {
           sort: sort,
           hasSubtitle: hasSubtitle,
         ),
-      );
+      ),
+      // works 用直接 cast（不兜底 `?? []`），与其它端点的解包故意不同——
+      // 保留原状：缺 works 键时的报错形状不在本次重构范围内。
+      parse: (data) {
+        AppLogger.debug('搜索返回数据: $data');
 
-      if (response.statusCode == 200) {
-        AppLogger.debug('搜索返回数据: ${response.data}');
+        final works =
+            (data['works'] as List).map((work) => Work.fromJson(work)).toList();
 
-        final works = (response.data['works'] as List)
-            .map((work) => Work.fromJson(work))
-            .toList();
-
-        final pagination = Pagination.fromJson(response.data['pagination']);
+        final pagination = Pagination.fromJson(data['pagination']);
 
         return WorksResponse(
           works: works,
           pagination: pagination,
         );
-      }
-
-      throw Exception('搜索失败: ${response.statusCode}');
-    } on DioException catch (e) {
-      AppLogger.error('网络请求失败', e, e.stackTrace);
-      throw NetworkException.fromDioException(e);
-    } catch (e, stackTrace) {
-      AppLogger.error('解析数据失败', e, stackTrace);
-      throw Exception('解析数据失败: $e');
-    }
+      },
+    );
   }
 
   Uri _buildSearchUri({
@@ -221,32 +244,16 @@ class ApiService {
   }
 
   /// 获取收藏列表
-  Future<WorksResponse> getFavorites({int page = 1}) async {
-    try {
-      final response = await _dio.get('/review', queryParameters: {
+  Future<WorksResponse> getFavorites({int page = 1}) {
+    return _request<WorksResponse>(
+      label: '获取收藏列表',
+      send: () => _dio.get('/review', queryParameters: {
         'page': page,
         'order': 'updated_at',
         'sort': 'desc',
-      });
-
-      if (response.statusCode == 200) {
-        final List<dynamic> works = response.data['works'] ?? [];
-        final pagination = Pagination.fromJson(response.data['pagination']);
-
-        return WorksResponse(
-          works: works.map((work) => Work.fromJson(work)).toList(),
-          pagination: pagination,
-        );
-      }
-
-      throw Exception('获取收藏列表失败: ${response.statusCode}');
-    } on DioException catch (e) {
-      AppLogger.error('网络请求失败', e, e.stackTrace);
-      throw NetworkException.fromDioException(e);
-    } catch (e, stackTrace) {
-      AppLogger.error('解析数据失败', e, stackTrace);
-      throw Exception('解析数据失败: $e');
-    }
+      }),
+      parse: _parseWorksResponse,
+    );
   }
 
   /// 获取推荐作品
@@ -254,9 +261,10 @@ class ApiService {
     required String uuid,
     int page = 1,
     bool hasSubtitle = false,
-  }) async {
-    try {
-      final response = await _dio.post(
+  }) {
+    return _request<WorksResponse>(
+      label: '获取推荐列表',
+      send: () => _dio.post(
         '/recommender/recommend-for-user',
         data: {
           'keyword': ' ',
@@ -266,35 +274,19 @@ class ApiService {
           'localSubtitledWorks': [],
           'withPlaylistStatus': [],
         },
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> works = response.data['works'] ?? [];
-        final pagination = Pagination.fromJson(response.data['pagination']);
-
-        return WorksResponse(
-          works: works.map((work) => Work.fromJson(work)).toList(),
-          pagination: pagination,
-        );
-      }
-
-      throw Exception('获取推荐列表失败: ${response.statusCode}');
-    } on DioException catch (e) {
-      AppLogger.error('网络请求失败', e, e.stackTrace);
-      throw NetworkException.fromDioException(e);
-    } catch (e, stackTrace) {
-      AppLogger.error('解析数据失败', e, stackTrace);
-      throw Exception('解析数据失败: $e');
-    }
+      ),
+      parse: _parseWorksResponse,
+    );
   }
 
   /// 获取热门作品
   Future<WorksResponse> getPopular({
     int page = 1,
     bool hasSubtitle = false,
-  }) async {
-    try {
-      final response = await _dio.post(
+  }) {
+    return _request<WorksResponse>(
+      label: '获取热门列表',
+      send: () => _dio.post(
         '/recommender/popular',
         data: {
           'keyword': ' ',
@@ -303,26 +295,9 @@ class ApiService {
           'localSubtitledWorks': [],
           'withPlaylistStatus': [],
         },
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> works = response.data['works'] ?? [];
-        final pagination = Pagination.fromJson(response.data['pagination']);
-
-        return WorksResponse(
-          works: works.map((work) => Work.fromJson(work)).toList(),
-          pagination: pagination,
-        );
-      }
-
-      throw Exception('获取热门列表失败: ${response.statusCode}');
-    } on DioException catch (e) {
-      AppLogger.error('网络请求失败', e, e.stackTrace);
-      throw NetworkException.fromDioException(e);
-    } catch (e, stackTrace) {
-      AppLogger.error('解析数据失败', e, stackTrace);
-      throw Exception('解析数据失败: $e');
-    }
+      ),
+      parse: _parseWorksResponse,
+    );
   }
 
   /// 获取相关推荐作品
@@ -331,16 +306,17 @@ class ApiService {
     int page = 1,
     bool hasSubtitle = false,
   }) async {
-    try {
-      // 先尝试从缓存获取
-      final cachedData =
-          _recommendationCache.get(itemId, page, hasSubtitle ? 1 : 0);
-      if (cachedData != null) {
-        return cachedData;
-      }
+    // 先尝试从缓存获取。命中直接返回，不进 `_request`——缓存路径没有
+    // 网络请求，套错误分类通路没有意义。
+    final cachedData =
+        _recommendationCache.get(itemId, page, hasSubtitle ? 1 : 0);
+    if (cachedData != null) {
+      return cachedData;
+    }
 
-      // 缓存未命中，从网络获取
-      final response = await _dio.post(
+    final worksResponse = await _request<WorksResponse>(
+      label: '获取相关推荐',
+      send: () => _dio.post(
         '/recommender/item-neighbors',
         data: {
           'keyword': '',
@@ -350,128 +326,84 @@ class ApiService {
           'localSubtitledWorks': [],
           'withPlaylistStatus': [],
         },
-      );
+      ),
+      parse: _parseWorksResponse,
+    );
 
-      if (response.statusCode == 200) {
-        final List<dynamic> works = response.data['works'] ?? [];
-        final pagination = Pagination.fromJson(response.data['pagination']);
+    // 存入缓存
+    _recommendationCache.set(itemId, page, hasSubtitle ? 1 : 0, worksResponse);
 
-        final worksResponse = WorksResponse(
-          works: works.map((work) => Work.fromJson(work)).toList(),
-          pagination: pagination,
-        );
-
-        // 存入缓存
-        _recommendationCache.set(
-            itemId, page, hasSubtitle ? 1 : 0, worksResponse);
-
-        return worksResponse;
-      }
-
-      throw Exception('获取相关推荐失败: ${response.statusCode}');
-    } on DioException catch (e) {
-      AppLogger.error('网络请求失败', e, e.stackTrace);
-      throw NetworkException.fromDioException(e);
-    } catch (e, stackTrace) {
-      AppLogger.error('解析数据失败', e, stackTrace);
-      throw Exception('解析数据失败: $e');
-    }
+    return worksResponse;
   }
 
   /// 获取作品在收藏夹中的状态
   Future<PlaylistsWithExistStatu> getWorkExistStatusInPlaylists({
     required String workId,
     int page = 1,
-  }) async {
-    try {
-      final response = await _dio.get(
+  }) {
+    return _request<PlaylistsWithExistStatu>(
+      label: '获取收藏夹列表',
+      send: () => _dio.get(
         '/playlist/get-work-exist-status-in-my-playlists',
         queryParameters: {
           'workID': workId,
           'page': page,
           'version': 2,
         },
-      );
-
-      if (response.statusCode == 200) {
-        return PlaylistsWithExistStatu.fromJson(response.data);
-      }
-
-      throw Exception('获取收藏夹列表失败: ${response.statusCode}');
-    } on DioException catch (e) {
-      AppLogger.error('网络请求失败', e, e.stackTrace);
-      throw NetworkException.fromDioException(e);
-    } catch (e, stackTrace) {
-      AppLogger.error('解析数据失败', e, stackTrace);
-      throw Exception('解析数据失败: $e');
-    }
+      ),
+      parse: (data) => PlaylistsWithExistStatu.fromJson(data),
+    );
   }
 
   /// 添加作品到收藏夹
   Future<void> addWorkToPlaylist({
     required String playlistId,
     required String workId,
-  }) async {
-    try {
-      await _dio.post(
+  }) {
+    return _request<void>(
+      label: '添加到收藏夹',
+      send: () => _dio.post(
         '/playlist/add-works-to-playlist',
         data: {
           'id': playlistId,
           'works': [int.parse(workId)],
         },
-      );
-    } on DioException catch (e) {
-      AppLogger.error('网络请求失败', e, e.stackTrace);
-      throw NetworkException.fromDioException(e);
-    } catch (e, stackTrace) {
-      AppLogger.error('添加到收藏夹失败', e, stackTrace);
-      throw Exception('添加到收藏夹失败: $e');
-    }
+      ),
+      parse: (_) {},
+    );
   }
 
   /// 从收藏夹移除作品
   Future<void> removeWorkFromPlaylist({
     required String playlistId,
     required String workId,
-  }) async {
-    try {
-      await _dio.post(
+  }) {
+    return _request<void>(
+      label: '从收藏夹移除',
+      send: () => _dio.post(
         '/playlist/remove-works-from-playlist',
         data: {
           'id': playlistId,
           'works': [int.parse(workId)],
         },
-      );
-    } on DioException catch (e) {
-      AppLogger.error('网络请求失败', e, e.stackTrace);
-      throw NetworkException.fromDioException(e);
-    } catch (e, stackTrace) {
-      AppLogger.error('从收藏夹移除失败', e, stackTrace);
-      throw Exception('从收藏夹移除失败: $e');
-    }
+      ),
+      parse: (_) {},
+    );
   }
 
   /// 更新作品的标记状态
-  Future<void> updateWorkMarkStatus(String workId, String status) async {
-    try {
-      final response = await _dio.put(
+  Future<void> updateWorkMarkStatus(String workId, String status) {
+    return _request<void>(
+      label: '标记',
+      send: () => _dio.put(
         '/review',
         data: {
           'work_id': int.parse(workId),
           'progress': status,
         },
-      );
-
-      if (response.statusCode != 200) {
-        throw Exception('标记失败: ${response.statusCode}');
-      }
-    } on DioException catch (e) {
-      AppLogger.error('网络请求失败', e, e.stackTrace);
-      throw NetworkException.fromDioException(e);
-    } catch (e, stackTrace) {
-      AppLogger.error('更新标记状态失败', e, stackTrace);
-      rethrow;
-    }
+      ),
+      parse: (_) {},
+    );
   }
 
   /// 将 MarkStatus 枚举转换为 API 参数
@@ -491,83 +423,38 @@ class ApiService {
   }
 
   /// 获取所有标签列表
-  Future<List<TagItem>> getTags() async {
-    try {
-      final response = await _dio.get('/tags/');
-
-      if (response.statusCode == 200) {
-        final List<dynamic> data = response.data;
-        return data.map((item) => TagItem.fromJson(item)).toList();
-      }
-
-      throw Exception('获取标签列表失败: ${response.statusCode}');
-    } on DioException catch (e) {
-      AppLogger.error('网络请求失败', e, e.stackTrace);
-      throw NetworkException.fromDioException(e);
-    } catch (e, stackTrace) {
-      AppLogger.error('解析数据失败', e, stackTrace);
-      throw Exception('解析数据失败: $e');
-    }
+  Future<List<TagItem>> getTags() {
+    return _request<List<TagItem>>(
+      label: '获取标签列表',
+      send: () => _dio.get('/tags/'),
+      parse: (data) => _parseList(data, (item) => TagItem.fromJson(item)),
+    );
   }
 
   /// 获取所有社团列表
-  Future<List<CircleItem>> getCircles() async {
-    try {
-      final response = await _dio.get('/circles/');
-
-      if (response.statusCode == 200) {
-        final List<dynamic> data = response.data;
-        return data.map((item) => CircleItem.fromJson(item)).toList();
-      }
-
-      throw Exception('获取社团列表失败: ${response.statusCode}');
-    } on DioException catch (e) {
-      AppLogger.error('网络请求失败', e, e.stackTrace);
-      throw NetworkException.fromDioException(e);
-    } catch (e, stackTrace) {
-      AppLogger.error('解析数据失败', e, stackTrace);
-      throw Exception('解析数据失败: $e');
-    }
+  Future<List<CircleItem>> getCircles() {
+    return _request<List<CircleItem>>(
+      label: '获取社团列表',
+      send: () => _dio.get('/circles/'),
+      parse: (data) => _parseList(data, (item) => CircleItem.fromJson(item)),
+    );
   }
 
   /// 获取所有声优列表
-  Future<List<VoiceActor>> getVoiceActors() async {
-    try {
-      final response = await _dio.get('/vas/');
-
-      if (response.statusCode == 200) {
-        final List<dynamic> data = response.data;
-        return data.map((item) => VoiceActor.fromJson(item)).toList();
-      }
-
-      throw Exception('获取声优列表失败: ${response.statusCode}');
-    } on DioException catch (e) {
-      AppLogger.error('网络请求失败', e, e.stackTrace);
-      throw NetworkException.fromDioException(e);
-    } catch (e, stackTrace) {
-      AppLogger.error('解析数据失败', e, stackTrace);
-      throw Exception('解析数据失败: $e');
-    }
+  Future<List<VoiceActor>> getVoiceActors() {
+    return _request<List<VoiceActor>>(
+      label: '获取声优列表',
+      send: () => _dio.get('/vas/'),
+      parse: (data) => _parseList(data, (item) => VoiceActor.fromJson(item)),
+    );
   }
 
   /// 获取作品详细信息
-  Future<WorkInfo> getWorkInfo(String workId,
-      {CancelToken? cancelToken}) async {
-    try {
-      final response =
-          await _dio.get('/workInfo/$workId', cancelToken: cancelToken);
-
-      if (response.statusCode == 200) {
-        return WorkInfo.fromJson(response.data);
-      }
-
-      throw Exception('获取作品详情失败: ${response.statusCode}');
-    } on DioException catch (e) {
-      AppLogger.error('网络请求失败', e, e.stackTrace);
-      throw NetworkException.fromDioException(e);
-    } catch (e, stackTrace) {
-      AppLogger.error('解析数据失败', e, stackTrace);
-      throw Exception('解析数据失败: $e');
-    }
+  Future<WorkInfo> getWorkInfo(String workId, {CancelToken? cancelToken}) {
+    return _request<WorkInfo>(
+      label: '获取作品详情',
+      send: () => _dio.get('/workInfo/$workId', cancelToken: cancelToken),
+      parse: (data) => WorkInfo.fromJson(data),
+    );
   }
 }

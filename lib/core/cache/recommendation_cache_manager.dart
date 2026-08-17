@@ -1,4 +1,4 @@
-import 'package:xuro/data/services/api_service.dart';
+import 'package:xuro/data/models/works/works_response.dart';
 import 'package:xuro/utils/logger.dart';
 
 class RecommendationCacheManager {

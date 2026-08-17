@@ -144,7 +144,9 @@ class DetailViewModel extends ChangeNotifier {
           .resetExpandState(); // Reset on new data load, not on every build
       AppLogger.info('文件加载成功: ${work.id}');
     } catch (e) {
-      if (e is! DioException || e.type != DioExceptionType.cancel) {
+      // ApiService 已把 DioException 转译成 NetworkException（非其子类），
+      // 判 DioException 恒真会把 dispose() 触发的取消当成真实失败上屏。
+      if (e is! NetworkException || e.type != NetworkErrorType.cancelled) {
         AppLogger.info('加载文件失败');
         _error = userMessageOf(e);
       }
@@ -160,7 +162,8 @@ class DetailViewModel extends ChangeNotifier {
           await _apiService.getWorkInfo(workId, cancelToken: _cancelToken);
       AppLogger.info('作品详情加载成功: ${work.id}');
     } catch (e) {
-      if (e is! DioException || e.type != DioExceptionType.cancel) {
+      // 同上：走 NetworkException 判定，避免 dispose() 的取消被当成真实失败。
+      if (e is! NetworkException || e.type != NetworkErrorType.cancelled) {
         AppLogger.error('加载作品详情失败', e);
       }
     } finally {
@@ -401,7 +404,8 @@ class DetailViewModel extends ChangeNotifier {
             } catch (e) {
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(Strings.operationFailed(e))),
+                  SnackBar(
+                      content: Text(Strings.operationFailed(userMessageOf(e)))),
                 );
               }
             }
@@ -487,7 +491,7 @@ class DetailViewModel extends ChangeNotifier {
           } catch (e) {
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(Strings.markFailed(e))),
+                SnackBar(content: Text(Strings.markFailed(userMessageOf(e)))),
               );
             }
           }

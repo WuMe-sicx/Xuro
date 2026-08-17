@@ -1,5 +1,6 @@
 import 'package:xuro/presentation/viewmodels/base/paginated_works_viewmodel.dart';
 import 'package:xuro/data/services/api_service.dart';
+import 'package:xuro/data/models/works/works_response.dart';
 import 'package:get_it/get_it.dart';
 import 'package:xuro/core/settings/app_settings_service.dart';
 

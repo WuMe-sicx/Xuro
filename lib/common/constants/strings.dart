@@ -142,9 +142,11 @@ class Strings {
 
   // Detail SnackBars (interpolated)
   static String playFailed(Object e) => '播放失败: $e';
-  static String operationFailed(Object e) => '操作失败: $e';
+  // 吃已翻译好的文案而非原始异常：Strings 是纯文案层，不能反向依赖
+  // network_exception（common→data），翻译交给调用方的 userMessageOf(e)。
+  static String operationFailed(String message) => '操作失败: $message';
   static String markedAs(String label) => '已标记为$label';
-  static String markFailed(Object e) => '标记失败: $e';
+  static String markFailed(String message) => '标记失败: $message';
 
   // Detail
   static const String detail = '音乐详情';
