@@ -115,29 +115,34 @@ void main() {
       );
     });
 
-    // 现状钉点：`else` 分支只在 statusCode != 200 时抛 `Exception('...: 201')`，
-    // 该抛出仍落在同一个 try 块里，被自己的裸 `catch (e, stackTrace)` 第二次
-    // 包裹成 `Exception('解析数据失败: $e')`——最终外抛的消息里同时含有
-    // 两层文案。这是双重包裹的真实形状，不是设计意图。
-    test('状态码 201（2xx 但非 200）：落进状态码 else 分支，'
-        '被自身 catch 二次包裹', () async {
+    // 行为变更（有意）：重构前每个方法都有一份 `if (statusCode == 200)`，
+    // 2xx-非-200 会走进 else 抛异常、再被自己的裸 catch 二次包裹成
+    // 「解析数据失败: Exception: 获取作品列表失败: 201」。
+    //
+    // 那 12 份闸门已全部删除，不是"收敛成一份"：Dio 默认 validateStatus 已经
+    // 拦掉非 2xx，而 2xx 之内唯一的失败模式是响应体形状不对——那件事解包自己
+    // 会抛。留着闸门只会误杀合法的 201 Created（`POST add-works-to-playlist`
+    // 返回 201 完全正常，`AuthService.register` 就明确接受 `200 || 201`）。
+    //
+    // 所以现在 201 + 合法响应体 = 正常解析。
+    test('状态码 201（2xx 但非 200）：正常解析，不再因状态码被拒', () async {
       final api = buildApi((options, handler) {
         handler.resolve(Response(
           requestOptions: options,
           statusCode: 201,
-          data: {'works': [], 'pagination': {}},
+          data: {
+            'works': [
+              {'id': 7, 'title': 'created'}
+            ],
+            'pagination': {'currentPage': 1, 'pageSize': 20, 'totalCount': 1},
+          },
         ));
       });
 
-      await expectLater(
-        api.getWorks(),
-        throwsA(predicate<Object>(
-          (e) =>
-              e.toString().contains('解析数据失败') &&
-              e.toString().contains('获取作品列表失败: 201'),
-          '201 分支的 Exception 消息被裸 catch 二次包裹',
-        )),
-      );
+      final result = await api.getWorks();
+
+      expect(result.works.single.id, 7);
+      expect(result.pagination.totalCount, 1);
     });
 
     test('401：分类为 NetworkException 且 isAuthError 为真', () async {
