@@ -37,6 +37,8 @@ class _SimilarWorksScreenState extends State<SimilarWorksScreen> {
   void dispose() {
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
+    // ChangeNotifierProvider.value 不负责 dispose，VM 需要在这里手动释放。
+    _viewModel.dispose();
     super.dispose();
   }
 
